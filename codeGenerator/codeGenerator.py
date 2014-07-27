@@ -1,6 +1,11 @@
 import time
+import os
+from hashlib import sha1
 
+os.chdir(os.path.dirname(__file__))
 startTime = time.time()
+DISASM_SCRIPT_NAME = 'disasmTablesGenerator.py'
+THIS_SCRIP = os.path.basename(__file__)
 execfile('disasmTablesGenerator.py')
 
 OUTPUT_FILE = 'opcodeSideEffects.auto.asm'
@@ -519,7 +524,7 @@ ANOTHER_POINTER_FILTER  = set(['PTR2'])
 NOBASE_FILTER           = set(['NOBASE'])
 
 class OreganoCodeGenerator(object):
-    def __init__(self):
+    def __init__(self, outputFile, is64=False):
         print 'Creating disasm tables',
         dg = DisasmGenerator()
         print 'DONE'
@@ -530,8 +535,18 @@ class OreganoCodeGenerator(object):
         self.allKindsOfEffects = {}
         self.codeMissing = {}
         self.highestTableId = 0
-        self.fullTable   = dg.getTable32()
-        code, tableId = self.genJumpTable(self.fullTable)
+        if is64:
+            outputFile = OUTPUT_FILE64
+            self.fullTable = dg.getTable64()
+        else:
+            outputFile = OUTPUT_FILE
+            self.fullTable = dg.getTable32()
+        jumpTableCode, tableId = self.genJumpTable(self.fullTable, is64=is64)
+        disasmScriptHash = sha1(file(DISASM_SCRIPT_NAME, 'rb').read()).digest()
+        thisScriptHash = sha1(file(THIS_SCRIP, 'rb').read()).digest()
+        code  = '; %s hash: %s\n' % (DISASM_SCRIPT_NAME, disasmScriptHash.encode('hex'))
+        code += '; %s hash: %s\n' % (THIS_SCRIP, thisScriptHash.encode('hex'))
+        code +=  jumpTableCode
         print 'DONE'
         print 'Writting everything',
         if tableId != 1:
@@ -541,27 +556,7 @@ class OreganoCodeGenerator(object):
         for jumps in self.jumpTables:
             code += '\n'.join(jumps)
         code += '\n\n'
-        file(OUTPUT_FILE, 'wb').write(code)
-        print 'DONE'
-
-        print 'Gen code 64',
-        self.jumpTables = []
-        self.uniqueChecker = {}
-        self.opcodesWithSameEffect = []
-        self.allKindsOfEffects = {}
-        self.highestTableId = 0
-        self.fullTable64 = dg.getTable64()
-        code64, table64Id = self.genJumpTable(self.fullTable64, is64=True)
-        print 'DONE'
-        print 'Writting everything',
-        if table64Id != 1:
-            raise Exception("Main table is not ided 1")
-        code64 += '\n\n\n;Jump tables\n'
-        code64 += "section .JTABLE rdata align=4"
-        for jumps in self.jumpTables:
-            code64 += '\n'.join(jumps)
-        code64 += '\n\n'
-        file(OUTPUT_FILE64, 'wb').write(code64)
+        file(outputFile, 'wb').write(code)
         print 'DONE'
 
     # Skeleton is one of the functions defined above
@@ -1099,7 +1094,30 @@ class OreganoCodeGenerator(object):
         self.jumpTables.append(jumps)
         return code, tableId
 
+def shouldRecreate(outputFile, dependencies):
+    for depend in dependencies:
+        searchFor = '; %s hash: ' % depend
+        if not os.path.isfile(outputFile):
+            return True
+        for line in file(outputFile, 'rb').readlines():
+            if line.startswith(searchFor):
+                break
+        if not searchFor.startswith(searchFor):
+            return True
+        currentHash = sha1(file(depend, 'rb').read()).digest().encode('hex')
+        oldHash = line[len(searchFor):][:len(currentHash)]
+        if currentHash != oldHash:
+            return True
+    return False
 
-OreganoCodeGenerator()
+if shouldRecreate(OUTPUT_FILE, [THIS_SCRIP, DISASM_SCRIPT_NAME]):
+    OreganoCodeGenerator(OUTPUT_FILE,   is64=False)
+else:
+    print "32bit is up to date"
+if shouldRecreate(OUTPUT_FILE64, [THIS_SCRIP, DISASM_SCRIPT_NAME]):
+    OreganoCodeGenerator(OUTPUT_FILE64, is64=True)
+else:
+    print "64bit is up to date"
 endTime = time.time()
 print 'DONE all', (endTime - startTime)
+

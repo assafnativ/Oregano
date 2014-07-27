@@ -17,6 +17,9 @@
       <UniqueIdentifier>{8E41214B-6785-4CFE-B992-037D68949A14}</UniqueIdentifier>
       <Extensions>inf;inv;inx;mof;mc;</Extensions>
     </Filter>
+    <Filter Include="Asm">
+      <UniqueIdentifier>{f7ef9ff0-140f-4aaf-a37e-9f4b12e4d253}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Inf Include="Oregano.inf">
@@ -76,20 +79,28 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\tracer\interruptsHooks.asm">
-      <Filter>Source Files</Filter>
-    </None>
-    <None Include="..\tracer\interruptsHooks64.asm">
-      <Filter>Source Files</Filter>
-    </None>
     <None Include="..\tracer\platformDefines.asm">
-      <Filter>Source Files</Filter>
+      <Filter>Asm</Filter>
     </None>
-    <None Include="..\tracer\trapInterrupt.asm">
-      <Filter>Source Files</Filter>
-    </None>
-    <None Include="..\tracer\trapInterrupt64.asm">
-      <Filter>Source Files</Filter>
-    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <YASM Include="..\tracer\interruptsHooks.asm">
+      <Filter>Asm</Filter>
+    </YASM>
+    <YASM Include="..\tracer\interruptsHooks64.asm">
+      <Filter>Asm</Filter>
+    </YASM>
+    <YASM Include="..\codeGenerator\opcodeSideEffects.auto.asm">
+      <Filter>Asm</Filter>
+    </YASM>
+    <YASM Include="..\codeGenerator\opcodeSideEffects64.auto.asm">
+      <Filter>Asm</Filter>
+    </YASM>
+    <YASM Include="..\tracer\trapInterrupt.asm">
+      <Filter>Asm</Filter>
+    </YASM>
+    <YASM Include="..\tracer\trapInterrupt64.asm">
+      <Filter>Asm</Filter>
+    </YASM>
   </ItemGroup>
 </Project>

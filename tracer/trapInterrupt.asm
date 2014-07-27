@@ -441,7 +441,7 @@ LOG_BUFFER_HAS_SPACE:
 _trap_interrupt_perform_mem_log@0:
 PERFORM_MEM_LOG:
 	; Parse Opcode
-	;INCLUDE Opcode_side_effects.asm
+	%include "opcodeSideEffects.auto.asm"
 	movzx ecx, BYTE [ebx]
 	inc ebx
 	jmp [TABLE_ID_0001 + ecx * SIZE_OF_POINTER]

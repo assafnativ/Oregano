@@ -2,8 +2,8 @@
 /* Used for PsLookupProcessByProcessId */
 #include <ntifs.h>
 
-#include "control_thread_context.h"
-#include "trap_interrupt.h"
+#include "controlThreadContext.h"
+#include "trapInterrupt.h"
 /* Used for the definition of the undocumented SuspendThread API */
 #include "windowsInternals.h"
 

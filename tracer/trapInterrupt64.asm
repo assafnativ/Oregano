@@ -506,7 +506,7 @@ LOG_BUFFER_HAS_SPACE:
 trap_interrupt_perform_mem_log:
 PERFORM_MEM_LOG:
 	; Parse Opcode
-	;INCLUDE Opcode_side_effects.asm
+	%include "opcodeSideEffects64.auto.asm"
 	movzx ecx, BYTE [rbx]
 	inc rbx
     lea rdx, QWORD [TABLE_ID_0001]

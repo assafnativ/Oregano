@@ -4,29 +4,27 @@
 
 [Version]
 Signature="$WINDOWS NT$"
-Class=
-ClassGuid=
-Provider=
-DriverVer=
-CatalogFile=
+Class=DiskDrive
+ClassGuid={4d36e967-e325-11ce-bfc1-08002be10318}
+Provider="Nativ"
+DriverVer=07/26/2014,1.0.0.0
+CatalogFile = oregano.cat
 
 [DestinationDirs]
 DefaultDestDir = 12
-
 
 [SourceDisksNames]
 1 = %DiskName%,,,""
 
 [SourceDisksFiles]
 
-
 [Manufacturer]
 %ManufacturerName%=Standard,NT$ARCH$
 
 [Standard.NT$ARCH$]
-
+%CatalogFile.DeviceDesc0% = disk, GenDisk
+%ManufacturerName.DeviceDesc1% = disk, GenOptical
 
 [Strings]
-ManufacturerName=""
-ClassName=""
+ManufacturerName="Nativ"
 DiskName="Oregano Source Disk"

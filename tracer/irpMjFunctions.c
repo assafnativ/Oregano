@@ -15,9 +15,9 @@
 #include "GlobalDefines.h"
 #include "driver.h"
 #include "interrupt.h"
-#include "trap_interrupt.h"
-#include "interrupts_hooks.h"
-#include "control_thread_context.h"
+#include "trapInterrupt.h"
+#include "interruptsHooks.h"
+#include "controlThreadContext.h"
 #include "windowsInternals.h"
 #include "offsets.h"
 

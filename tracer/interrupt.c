@@ -9,7 +9,7 @@
 /* Includes */
 #include <wdm.h>
 #include "interrupt.h"
-#include "interrupts_hooks.h"
+#include "interruptsHooks.h"
 
 /* Functions definitions */
 

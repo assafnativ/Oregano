@@ -5,7 +5,7 @@
 /* Bullshit stuff */
 #include "GlobalDefines.h"
 /* Defines the io control codes */
-#include "iocontrol_codes.h"
+#include "iocontrolCodes.h"
 /* Defines structs that holds information about needed Windows offsets */
 #include "offsets.h"
 
@@ -24,7 +24,7 @@
 #define MAX_LOG_RANGES                  (0x80)
 
 /* Program consts & strings */
-#define DRIVER_NAME			(L"\\Device\\" TARGET_NAME)
+#define DRIVER_NAME			(L"\\Device\\Oregano")
 #define DOS_DEVICE_NAME		(L"\\DosDevices\\Oregano")
 #define OREGANO_MEMORY_TAG	((ULONG)'oNaG')
 
