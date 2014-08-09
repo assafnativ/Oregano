@@ -19,3 +19,13 @@
 *.exe
 *.out
 *.app
+
+# Temp files
+*~
+*.auto.*
+*.user
+*.suo
+*.opensdf
+*.sdf
+intermediate/*
+output/*
