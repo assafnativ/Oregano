@@ -17,6 +17,27 @@ DefaultDestDir = 12
 1 = %DiskName%,,,""
 
 [SourceDisksFiles]
+Oregano.sys = 1,,
+
+[DefaultInstall]
+OptionDesc = %DriverDescription%
+
+[DefaultInstall.Services]
+AddService = %DriverName%,,Oregano.Service
+
+[DefaultUninstall.Services]
+DelService = %DriverName%,0x200
+
+[Oregano.Service]
+DisplayName = %DriverName%
+Description = %DriverDescription%
+ServiceBinary = %10%\%InstallDir%\%DriverName%.sys ; DIRID_DRIVERS
+ServiceType = 2
+StartType = 1
+ErrorControl = 1
+Dependencies = FltMgr
+
+[DefaultUninstall]
 
 [Manufacturer]
 %ManufacturerName%=Standard,NT$ARCH$
@@ -26,5 +47,8 @@ DefaultDestDir = 12
 %ManufacturerName.DeviceDesc1% = disk, GenOptical
 
 [Strings]
+DriverName="Oregano"
 ManufacturerName="Nativ"
 DiskName="Oregano Source Disk"
+DriverDescription="Oregano Driver"
+InstallDir="\Program Files\Oregano"
