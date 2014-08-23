@@ -11,7 +11,7 @@
 /* Set the functions types */
 /* 
  * DriverEntry is needed only once, there for we set it to be Init,
- * which meens The system can delete the page after we done with it.
+ * which means The system can delete the page after we done with it.
  */
 #pragma alloc_text( INIT, DriverEntry )
 DRIVER_INITIALIZE DriverEntry;
@@ -87,8 +87,8 @@ NTSTATUS	DriverEntry(	PDRIVER_OBJECT	driver_object,
 
 	/* 
 	 * Set device object flags, sets the I/O access to none buffered nor direct
-	 * I am not so sure about it, if blue screen occurs I'll have to chack it
-	 * agine !TBD! 
+	 * I am not so sure about it, if blue screen occurs I'll have to check it
+	 * again !TBD! 
 	 */
 	device_object->Flags |= 0; // Yeah, I know it doesn't do anything, but it is there for me to remmber.
 

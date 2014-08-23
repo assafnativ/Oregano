@@ -1,8 +1,8 @@
 
 
 /*
- * Oragano driver irp mj functions
- * defines all the irp mj functions needed for file access like.
+ * Oregano driver IRP MJ functions
+ * defines all the IRP MJ functions needed for file access like.
  *
  * Written by Assaf Nativ
  */
@@ -37,7 +37,7 @@ void new_thread_handler(
 
 /* 
  * All functions are PAGE type,
- * coz' they are all used more then once or used for unloading.
+ * because they are all used more then once or used for unloading.
  */
 #pragma alloc_text( PAGE, allocBuffersPoll )
 #pragma alloc_text( PAGE, deallocBuffersPoll )
@@ -58,7 +58,7 @@ static ADDRESS ntos_base = NULL;
 /*
  * new_thread_handler
  *
- * args:
+ * Arguments:
  *  IN HANDLE processId
  *  IN HANDLE threadId
  *  IN HANDLE BOOLEAN create
@@ -91,7 +91,7 @@ void new_thread_handler(
 /*
  * allocBuffersPoll
  *
- *  args:
+ *  Arguments:
  *      None
  */
 NTSTATUS allocBuffersPoll()
@@ -124,12 +124,12 @@ NTSTATUS allocBuffersPoll()
 /*
  * deallocBuffersPoll
  *
- *  args:
+ *  Arguments:
  *      None
  */
 void deallocBuffersPoll()
 {
-    /* Iter for deallocating of log buffers. */
+    /* Iterator for deallocating of log buffers. */
     unsigned int    i = 0;
     void *          buffer_to_free = NULL;
 
@@ -151,7 +151,7 @@ void deallocBuffersPoll()
 /*
  * io_control_debug_print
  *
- *  args:
+ *  Arguments:
  *      irp
  *      io_stack_irp
  *      input_buffer
@@ -296,11 +296,11 @@ NTSTATUS find_SystemServiceTable(ADDRESS * KeServiceDescriptorTable_ptr)
 /*
  * io_control_init_oregano
  *
- *  args:
+ *  Arguments:
  *      irp
  *      io_stack_irp
  *      input_buffer
- *          Some unexported system services indexs in the KeServiceDescriptorTable
+ *          Some unexported system services indexes in the KeServiceDescriptorTable
  *      output_buffer
  */
 NTSTATUS io_control_init_oregano(
@@ -363,7 +363,7 @@ NTSTATUS io_control_init_oregano(
 /*
  * io_control_add_trace_range
  *
- *  args:
+ *  Arguments:
  *      irp
  *      io_stack_irp
  *      input_buffer
@@ -452,7 +452,7 @@ IO_CONTROL_ADD_TRACE_RANGE_INVALID_ARG:
 /*
  * io_control_set_process_info
  *
- *  args:
+ *  Arguments:
  *      irp
  *      io_stack_irp
  *      input_buffer
@@ -511,7 +511,7 @@ IO_CONTROL_SET_PROCESS_ID_DONE:
 /*
  * io_control_start_trace
  *
- * args:
+ * Arguments:
  *      irp
  *      io_stack_irp
  *      input_buffer
@@ -563,7 +563,7 @@ NTSTATUS io_control_start_trace(
 /*
  * io_control_stop_trace
  *
- * args:
+ * Arguments:
  *      irp
  *      io_stack_irp
  *      input_buffer
@@ -592,7 +592,7 @@ NTSTATUS io_control_stop_trace(
 /*
  * io_control_get_last_break_point_info
  *
- *  args:
+ *  Arguments:
  *      irp
  *      io_stack_irp
  *      input_buffer
@@ -618,7 +618,7 @@ NTSTATUS io_control_get_last_break_point_info(
  *
  * Give the user info that would help him write the log data to disk.
  *
- *  args:
+ *  Arguments:
  *      irp
  *      io_stack_irp
  *      input_buffer
@@ -669,7 +669,7 @@ NTSTATUS io_control_probe_trace(
  *
  * Copy the log of a buffer to the user buffer
  *
- *  args:
+ *  Arguments:
  *      irp
  *      io_stack_irp
  *      input_buffer
@@ -717,7 +717,7 @@ NTSTATUS io_control_read_buffer(
 /* For functions declaration see the header file */
 
 /* See header file for descriptions */
-/* TODO: I get this IRP quite alot, need to find out why */
+/* TODO: I get this IRP quite a lot, need to find out why */
 DRIVER_DISPATCH default_irp_handler;
 NTSTATUS default_irp_handler( PDEVICE_OBJECT device_object, PIRP irp )
 {
@@ -811,7 +811,7 @@ NTSTATUS on_close( PDEVICE_OBJECT device_object, PIRP irp )
         loadIdt64( &idt );
         #endif
 
-        /* Get the current int1 funciton */
+        /* Get the current int1 function */
         get_interrupt_info( &idt, 1, &int1_info );
 
         /* Set back the old int1 */
@@ -881,7 +881,7 @@ NTSTATUS on_create( PDEVICE_OBJECT device_object, PIRP irp )
     /* Set the current active buffer to the first one */
     log_buffer = log_buffer_item[0];
     /* First DWORD of the buffer is the next writing point,
-     * so set it to 4 so we won't overwrite the buffer pos */
+     * so set it to 4 so we won't overwrite the buffer position */
     *(unsigned int *)log_buffer = sizeof(unsigned int);
     active_log_buffer = 0;
     next_free_log_buffer = 0;
@@ -902,7 +902,7 @@ NTSTATUS on_create( PDEVICE_OBJECT device_object, PIRP irp )
         #endif
 
         for (hooksIter = interruptsHooks; 0xffffffff != hooksIter->index; ++hooksIter) {
-            /* Now get the defult interrupts */
+            /* Now get the default interrupts */
             get_interrupt_info( &idt, (unsigned char)hooksIter->index, &hooksIter->intInfo );
 
 #ifdef i386
@@ -964,7 +964,7 @@ NTSTATUS on_device_control( PDEVICE_OBJECT device_object, PIRP irp )
     /* Would hold the return code of the function */
     NTSTATUS        return_ntstatus = STATUS_SUCCESS;
 
-    /* Would point to the current io irp stack */
+    /* Would point to the current IO IRP stack */
     PIO_STACK_LOCATION  io_stack_irp = NULL;
 
     /* Used for input output data of the driver */
@@ -994,95 +994,82 @@ NTSTATUS on_device_control( PDEVICE_OBJECT device_object, PIRP irp )
     input_buffer    = (unsigned char *)io_stack_irp->Parameters.DeviceIoControl.Type3InputBuffer;
     output_buffer   = (unsigned char *)irp->UserBuffer;
 
-    /* The following block is the parse block of the input buffer. */
-    /* Just for safety, it is quit dangerous playing with buffers */
-    __try {
+    unsigned long   io_control_code = 0;
 
-        unsigned long   io_control_code = 0;
+    io_control_code = io_stack_irp->Parameters.DeviceIoControl.IoControlCode;
+    KdPrint(( "Oregano: on_device_control: Device io control code: %x\r\n", io_control_code ));
+    switch( io_control_code ) {
+        case IOCTL_DEBUG_PRINT:
+            KdPrint(("Oregano: on_device_control: IOCTL_DEBUG_PRINT\r\n"));
+            return_ntstatus = io_control_debug_print( 
+                    irp, io_stack_irp, input_buffer, output_buffer );
+            KdPrint(("Oregano: on_device_control: IOCTL_DEBUG_PRINT - Done\r\n"));
+            break;
+        case IOCTL_INIT_OREGANO:
+            KdPrint(("Oregano: on_device_control: IOCTL_INIT_OREGANO\r\n"));
+            return_ntstatus = io_control_init_oregano(
+                    irp, io_stack_irp, input_buffer, output_buffer );
+            KdPrint(("Oregano: on_device_control: IOCTL_INIT_OREGANO - Done\r\n"));
+            break;
+        case IOCTL_ADD_TRACE_RANGE:
+            KdPrint(("Oregano: on_device_control: IOCTL_ADD_TRACE_RANGE\r\n"));
+            return_ntstatus = io_control_add_trace_range( 
+                    irp, io_stack_irp, input_buffer, output_buffer );
+            KdPrint(("Oregano: on_device_control: IOCTL_ADD_TRACE_RANGE - Done\r\n"));
+            break;
+        case IOCTL_SET_PROCESS_INFO:
+            KdPrint(("Oregano: on_device_control: IOCTL_SET_PROCESS_ID\r\n"));
+            return_ntstatus = io_control_set_process_info( 
+                    irp, io_stack_irp, input_buffer, output_buffer );
+            KdPrint(("Oregano: on_device_control: IOCTL_SET_PROCESS_ID - Done\r\n"));
+            break;
+        case IOCTL_START_TRACE:
+            KdPrint(("Oregano: on_device_control: IOCTL_START_TRACE\r\n"));
+            return_ntstatus = io_control_start_trace( 
+                    irp, io_stack_irp, input_buffer, output_buffer );
+            KdPrint(("Oregano: on_device_control: IOCTL_START_TRACE - Done\r\n"));
+            break;
+        case IOCTL_STOP_TRACE:
+            KdPrint(("Oregano: on_device_control: IOCTL_STOP_TRACE\r\n"));
+            return_ntstatus = io_control_stop_trace( 
+                    irp, io_stack_irp, input_buffer, output_buffer );
+            KdPrint(("Oregano: on_device_control: IOCTL_STOP_TRACE - Done\r\n"));
+            break;
+        case IOCTL_GET_LAST_BREAK_POINT_INFO:
+            KdPrint(("Oregano: on_device_control: IOCTL_GET_LAST_BREAK_POINT_INFO\r\n"));
+            return_ntstatus = io_control_get_last_break_point_info( 
+                    irp, io_stack_irp, input_buffer, output_buffer );
+            KdPrint(("Oregano: on_device_control: IOCTL_GET_LAST_BREAK_POINT_INFO - Done\r\n"));
+            break;
+        case IOCTL_PROBE_TRACE:
+            //KdPrint(("Oregano: on_device_control: IOCTL_PROBE_TRACE\r\n"));
+            return_ntstatus = io_control_probe_trace( 
+                    irp, io_stack_irp, input_buffer, output_buffer );
+            //KdPrint(("Oregano: on_device_control: IOCTL_PROBE_TRACE - Done\r\n"));
+            break;
+        /* 
+            * TOBD: Maybe I should let the driver write the log to disk
+            */
+        case IOCTL_READ_BUFFER:
+            // KdPrint(("Oregano: on_device_control: IOCTL_READ_BUFFER\r\n"));
+            if( 0 == targetProcessId ) {
+                goto ON_DEVICE_CONTROL_IO_BUFFERS_ERROR;
+            }
+            return_ntstatus = io_control_read_buffer( 
+                    irp, io_stack_irp, input_buffer, output_buffer );
+            // KdPrint(("Oregano: on_device_control: IOCTL_READ_BUFFER - Done\r\n"));
+            break;
+        default:
+            KdPrint(( "Oregano: on_device_control: Unknown io control code %d\r\n", io_control_code ));
+    }
 
-        io_control_code = io_stack_irp->Parameters.DeviceIoControl.IoControlCode;
-        KdPrint(( "Oregano: on_device_control: Device io control code: %x\r\n", io_control_code ));
-        switch( io_control_code ) {
-            case IOCTL_DEBUG_PRINT:
-                KdPrint(("Oregano: on_device_control: IOCTL_DEBUG_PRINT\r\n"));
-                return_ntstatus = io_control_debug_print( 
-                        irp, io_stack_irp, input_buffer, output_buffer );
-                KdPrint(("Oregano: on_device_control: IOCTL_DEBUG_PRINT - Done\r\n"));
-                break;
-            case IOCTL_INIT_OREGANO:
-                KdPrint(("Oregano: on_device_control: IOCTL_INIT_OREGANO\r\n"));
-                return_ntstatus = io_control_init_oregano(
-                        irp, io_stack_irp, input_buffer, output_buffer );
-                KdPrint(("Oregano: on_device_control: IOCTL_INIT_OREGANO - Done\r\n"));
-                break;
-            case IOCTL_ADD_TRACE_RANGE:
-                KdPrint(("Oregano: on_device_control: IOCTL_ADD_TRACE_RANGE\r\n"));
-                return_ntstatus = io_control_add_trace_range( 
-                        irp, io_stack_irp, input_buffer, output_buffer );
-                KdPrint(("Oregano: on_device_control: IOCTL_ADD_TRACE_RANGE - Done\r\n"));
-                break;
-            case IOCTL_SET_PROCESS_INFO:
-                KdPrint(("Oregano: on_device_control: IOCTL_SET_PROCESS_ID\r\n"));
-                return_ntstatus = io_control_set_process_info( 
-                        irp, io_stack_irp, input_buffer, output_buffer );
-                KdPrint(("Oregano: on_device_control: IOCTL_SET_PROCESS_ID - Done\r\n"));
-                break;
-            case IOCTL_START_TRACE:
-                KdPrint(("Oregano: on_device_control: IOCTL_START_TRACE\r\n"));
-                return_ntstatus = io_control_start_trace( 
-                        irp, io_stack_irp, input_buffer, output_buffer );
-                KdPrint(("Oregano: on_device_control: IOCTL_START_TRACE - Done\r\n"));
-                break;
-            case IOCTL_STOP_TRACE:
-                KdPrint(("Oregano: on_device_control: IOCTL_STOP_TRACE\r\n"));
-                return_ntstatus = io_control_stop_trace( 
-                        irp, io_stack_irp, input_buffer, output_buffer );
-                KdPrint(("Oregano: on_device_control: IOCTL_STOP_TRACE - Done\r\n"));
-                break;
-            case IOCTL_GET_LAST_BREAK_POINT_INFO:
-                KdPrint(("Oregano: on_device_control: IOCTL_GET_LAST_BREAK_POINT_INFO\r\n"));
-                return_ntstatus = io_control_get_last_break_point_info( 
-                        irp, io_stack_irp, input_buffer, output_buffer );
-                KdPrint(("Oregano: on_device_control: IOCTL_GET_LAST_BREAK_POINT_INFO - Done\r\n"));
-                break;
-            case IOCTL_PROBE_TRACE:
-                //KdPrint(("Oregano: on_device_control: IOCTL_PROBE_TRACE\r\n"));
-                return_ntstatus = io_control_probe_trace( 
-                        irp, io_stack_irp, input_buffer, output_buffer );
-                //KdPrint(("Oregano: on_device_control: IOCTL_PROBE_TRACE - Done\r\n"));
-                break;
-            /* 
-             * TOBD: Maybe I should let the driver write the log to disk
-             */
-            case IOCTL_READ_BUFFER:
-                // KdPrint(("Oregano: on_device_control: IOCTL_READ_BUFFER\r\n"));
-                if( 0 == targetProcessId ) {
-                    goto ON_DEVICE_CONTROL_IO_BUFFERS_ERROR;
-                }
-                return_ntstatus = io_control_read_buffer( 
-                        irp, io_stack_irp, input_buffer, output_buffer );
-                // KdPrint(("Oregano: on_device_control: IOCTL_READ_BUFFER - Done\r\n"));
-                break;
-            default:
-                KdPrint(( "Oregano: on_device_control: Unknown io control code %d\r\n", io_control_code ));
-        }
-
-    } __except( EXCEPTION_EXECUTE_HANDLER ) {
-        KdPrint(( "Oregano: on_device_control: got an exception\r\n" ));
-        return_ntstatus = GetExceptionCode();
-        KdBreakPoint();
-        goto ON_DEVICE_CONTROL_EXCEPTION_ERROR;
-    } /* __except */
-    
-
-    /* Function epilog */
+    /* Function epilogue */
 ON_DEVICE_CONTROL_IO_GET_CURRENT_IRP_STACK_LOCATION_ERROR:
 ON_DEVICE_CONTROL_IO_BUFFERS_ERROR:
-ON_DEVICE_CONTROL_EXCEPTION_ERROR:
     irp->IoStatus.Status = return_ntstatus;
     
     /* We are done with this irp, lets pass it to the I/O manger,
-     * The IO_NO_INCREMENT meens that we do not mess around with the
+     * The IO_NO_INCREMENT means that we do not mess around with the
      * Scheduler. */
     IoCompleteRequest( irp, IO_NO_INCREMENT );
 
