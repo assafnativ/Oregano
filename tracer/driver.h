@@ -4,12 +4,12 @@
 
 /* Bullshit stuff */
 #include "GlobalDefines.h"
-/* Defines the io control codes */
+/* Defines the IO control codes */
 #include "iocontrolCodes.h"
-/* Defines structs that holds information about needed Windows offsets */
+/* Defines structures that holds information about needed Windows offsets */
 #include "offsets.h"
 
-/* Oregano fine tuning consts */
+/* Oregano fine tuning constants */
 /* NOTICE!
  * 	values here must match the values in the trap_interrupt.asm source and the PyOregano file */
 #define LOG_BUFFER_SIZE					(0x4000)
@@ -23,12 +23,12 @@
 
 #define MAX_LOG_RANGES                  (0x80)
 
-/* Program consts & strings */
+/* Program constants & strings */
 #define DRIVER_NAME			(L"\\Device\\Oregano")
 #define DOS_DEVICE_NAME		(L"\\DosDevices\\Oregano")
 #define OREGANO_MEMORY_TAG	((ULONG)'oNaG')
 
-/* Structers declarations */
+/* Structures declarations */
 #ifdef AMD64
 typedef struct ThreadContext_t {
     UINT64  ID;     /* 0x00 */
@@ -102,7 +102,7 @@ NTSTATUS	DriverEntry(	PDRIVER_OBJECT	driver_object,
 /*
  * default_irp_handler
  * 
- * This proc handles all the major functions that we do not implements.
+ * This procedure handles all the major functions that we do not implements.
  * 
  * 	Args:
  * 		device_object
@@ -124,7 +124,7 @@ NTSTATUS on_close( PDEVICE_OBJECT device_object, PIRP irp );
  * on_create
  * 
  * Called when instance of the driver is created (CreateFile).
- * This function settes the int1 (Trap interrupt) hook.
+ * This function sets the int1 (Trap interrupt) hook.
  * 
  * 	Args:
  * 		device_object
