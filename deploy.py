@@ -46,6 +46,23 @@ def getConnection(target=None):
     return rpyc.classic.connect(target)
     
 
+def getTargetFromInf(infFile):
+    lines = file(infFile, 'rb').readlines()
+    result = None
+    for line in lines:
+        if line.startswith('InstallDir='):
+            start = line.find('"')
+            if -1 == start:
+                raise Exception("Target not found")
+            start += 1
+            end = line.find('"', start)
+            if -1 == end:
+                raise Exception("Target end not found")
+            result = line[start:end]
+    if None == result:
+        raise Exception("No target in inf file")
+    return result
+
 @baker.command
 def updateDriver(target=None, debug=True):
     FILES_TO_DEPLOY = ['Oregano.sys', 'Oregano.pdb', 'Oregano.inf']
@@ -62,9 +79,9 @@ def updateDriver(target=None, debug=True):
         binaryDir += 'Debug\\'
     else:
         binaryDir += 'Release\\'
-    targetDir = 'C:\\Program Files\\'
+    targetDir = "c:\\" + getTargetFromInf("Oregano\\Oregano.inf")
     for fileName in FILES_TO_DEPLOY:
-        uploadFile(binaryDir + fileName, targetDir + fileName, remote)
+        uploadFile(binaryDir + fileName, targetDir + os.sep + fileName, remote)
     remote.modules.os.system('c:\System32\InfDefaultInstall.exe %soregano.inf' % targetDir)
     remote.modules.os.system('sc start oregano')
     remote.close()

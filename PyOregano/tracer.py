@@ -120,7 +120,7 @@ class PyOregano( MemoryReader ):
             if( 0xffffffff == oregano_handle ):
                 print('Open device timeout!')
                 raise WinError()
-            print('Device is open handle = {0:08X}'.format(oregano_handle))
+            print('Device - open handle = {0:08X}'.format(oregano_handle))
             self._oregano_handle = oregano_handle
         
             self.initOregano()
