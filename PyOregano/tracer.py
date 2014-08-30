@@ -133,6 +133,9 @@ class PyOregano( MemoryReader ):
             self.unloadDriver()
             traceback.print_exc( sys.exc_info )
 
+    def __del__(self):
+        self.unloadDriver()
+
     def getSyscallIndex( self, procAddr ):
         firstByte = c_uint8.from_address(procAddr).value
         if firstByte == self.REX_PREFIX:
