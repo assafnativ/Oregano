@@ -10,27 +10,53 @@
 /* Local functions */
 VOID clearTrapFlagAPC( IN PKAPC Apc, IN PKNORMAL_ROUTINE *NormalRoutine, IN PVOID *NormalContext, IN PVOID *SystemArgument1, IN PVOID *SystemArgument2 );
 VOID setTrapFlagAPC( IN PKAPC Apc, IN PKNORMAL_ROUTINE *NormalRoutine, IN PVOID *NormalContext, IN PVOID *SystemArgument1, IN PVOID *SystemArgument2 );
-void changeTraceFlagForThread( ADDRESS ethread, int setTheFlag );
-NTSTATUS setProcessForInterfering( HANDLE process_id, ADDRESS * process, PLIST_ENTRY * threadListHead );
+void changeTrapFlagForThread( ADDRESS ethread, int setTheFlag );
+void changeTrapFlag(ADDRESS ethread, int setTheFlag);
+NTSTATUS setProcessForInterfering(HANDLE process_id, ADDRESS * process, PLIST_ENTRY * threadListHead);
 NTSTATUS doneInterferingWithProcess( HANDLE process_id, ADDRESS * process );
 NTSTATUS setThreadForInterfering( HANDLE process_id, HANDLE thread_id, ADDRESS * thread );
 NTSTATUS doneInterferingWithThread( HANDLE process_id, HANDLE thread_id, ADDRESS * thread );
-NTSTATUS changeTraceFlagForThreadId( HANDLE process_id, HANDLE thread_id, int setTheFlag );
-NTSTATUS changeTraceFlagForAllThreads( HANDLE process_id, int setTheFlag );
+NTSTATUS changeTrapFlagForThreadId( HANDLE process_id, HANDLE thread_id, int setTheFlag );
+NTSTATUS changeTrapFlagForAllThreads( HANDLE process_id, int setTheFlag );
 
 #pragma alloc_text( PAGE, clearTrapFlagAPC )
 #pragma alloc_text( PAGE, setTrapFlagAPC )
-#pragma alloc_text( PAGE, changeTraceFlagForThread )
+#pragma alloc_text( PAGE, changeTrapFlagForThread )
+#pragma alloc_text( PAGE, changeTrapFlag )
 #pragma alloc_text( PAGE, setProcessForInterfering )
 #pragma alloc_text( PAGE, doneInterferingWithProcess )
 #pragma alloc_text( PAGE, setThreadForInterfering )
 #pragma alloc_text( PAGE, doneInterferingWithThread )
-#pragma alloc_text( PAGE, changeTraceFlagForThreadId )
-#pragma alloc_text( PAGE, changeTraceFlagForAllThreads )
+#pragma alloc_text( PAGE, changeTrapFlagForThreadId )
+#pragma alloc_text( PAGE, changeTrapFlagForAllThreads )
+#pragma alloc_text( PAGE, setTrapFlagForAllThreads )
+#pragma alloc_text( PAGE, unsetTrapFlagForAllThreads )
+#pragma alloc_text( PAGE, setTrapFlagForThread )
 
-#pragma alloc_text( PAGE, setTraceFlagForAllThreads )
-#pragma alloc_text( PAGE, unsetTraceFlagForAllThreads )
-#pragma alloc_text( PAGE, setTraceFlagForThread )
+void changeTrapFlag(ADDRESS ethread, int setTheFlag)
+{
+    ADDRESS     eflags = NULL;
+    ADDRESS     threadKStack = *(ADDRESS *)(ethread + offsets->ethread.InitialStack);
+
+    threadKStack -= offsets->thread_context.ktrap_frame_size;
+    DbgPrint("Oregano: clearTrapFlagAPC: Trap frame is %x\r\n", threadKStack);
+
+    /* The kernel stack is unpagable! */
+
+    eflags = threadKStack + offsets->thread_context.eflags;
+    DbgPrint("Oregano: changeTrapFlag: EFlags = %x\r\n", *((UINT32 *)eflags));
+    if (setTheFlag)
+    {
+        /* Set the flag */
+        *((UINT32 *)eflags) |= TRAP_FLAG;
+    }
+    else
+    {
+        /* Clear the flag */
+        *((UINT32 *)eflags) &= ~TRAP_FLAG;
+    }
+    DbgPrint("Oregano: changeTrapFlag: EFlags new value = %x\r\n", *((UINT32 *)eflags));
+}
 
 VOID clearTrapFlagAPC(
     IN PKAPC Apc,
@@ -39,28 +65,21 @@ VOID clearTrapFlagAPC(
     IN PVOID *SystemArgument1,
     IN PVOID *SystemArgument2 )
 {
-    ADDRESS     eflags = NULL;
     ADDRESS     ethread = (ADDRESS)Apc->SystemArgument1;
     KEVENT *    operationComplete = (KEVENT *)Apc->SystemArgument2;
-    ADDRESS     threadKStack = *(ADDRESS *)(ethread + offsets->ethread.InitialStack);
 
     UNREFERENCED_PARAMETER(NormalRoutine);
     UNREFERENCED_PARAMETER(NormalContext);
     UNREFERENCED_PARAMETER(SystemArgument1);
     UNREFERENCED_PARAMETER(SystemArgument2);
 
-    threadKStack -= offsets->thread_context.ktrap_frame_size;
-    DbgPrint("Oregano: clearTrapFlagAPC: Trap frame is %x\r\n", threadKStack);
+    changeTrapFlag(ethread, 0);
 
-    /* The kernel stack is unpagable! */
-
-    /* Clear the flag */
-    eflags = threadKStack + offsets->thread_context.eflags;
-    DbgPrint("Oregano: clearTrapFlagAPC: EFlags = %x\r\n", *((UINT32 *)eflags));
-    *((UINT32 *)eflags) &= ~TRAP_FLAG;
-    DbgPrint("Oregano: clearTrapFlagAPC: EFlags new value = %x\r\n", *((UINT32 *)eflags));
-
-    KeSetEvent(operationComplete, 0, FALSE);
+	/* Signal operation complete */
+	if (NULL != operationComplete)
+	{
+		KeSetEvent(operationComplete, 0, FALSE);
+	}
 }
 
 /* Changing the thread context should be done from within the thread */
@@ -73,78 +92,19 @@ VOID setTrapFlagAPC(
 {
     ADDRESS     ethread = (ADDRESS)Apc->SystemArgument1;
     KEVENT *    operationComplete = (KEVENT *)Apc->SystemArgument2;
-    ADDRESS     threadKStack = *(ADDRESS *)(ethread + offsets->ethread.InitialStack);
-    ADDRESS     eflags = NULL;
-    ThreadContext * threadCtx = NULL;
-    UINT32      hashIndex = 0;
 
     UNREFERENCED_PARAMETER(NormalRoutine);
     UNREFERENCED_PARAMETER(NormalContext);
     UNREFERENCED_PARAMETER(SystemArgument1);
     UNREFERENCED_PARAMETER(SystemArgument2);
 
-    threadKStack -= offsets->thread_context.ktrap_frame_size;
-    DbgPrint("Oregano: setTrapFlagAPC: Trap frame is %x\r\n", threadKStack);
-
-    /* The kernel stack is unpagable! */
-
-#pragma warning( disable : 4305 )
-    /* Find a free entry in the Hash table */
-    hashIndex = (((UINT32)ethread) & THREAD_ID_MASK) >> THREAD_ID_IGNORED_BITS;
-    DbgPrint( "Oregano: setTrapFlagAPC: Ethread %x hash id %x\r\n", ethread, hashIndex);
-    while( 0 != threads[hashIndex].ID ) {
-        hashIndex = (hashIndex + 1) % THREAD_CONTEXT_MAX_THREADS;
-    }
-    threadCtx = &threads[hashIndex];
-#pragma warning( default : 4305 )
-#ifdef AMD64
-    threadCtx->ID       = (UINT64)ethread;
-    threadCtx->RDI      = UNKNOWN_QWORD_VALUE;
-    threadCtx->RSI      = UNKNOWN_QWORD_VALUE;
-    threadCtx->RBP      = UNKNOWN_QWORD_VALUE;
-    threadCtx->RBX      = UNKNOWN_QWORD_VALUE;
-    threadCtx->RDX      = UNKNOWN_QWORD_VALUE;
-    threadCtx->RCX      = UNKNOWN_QWORD_VALUE;
-    threadCtx->RAX      = UNKNOWN_QWORD_VALUE;
-    threadCtx->R8       = UNKNOWN_QWORD_VALUE;
-    threadCtx->R9       = UNKNOWN_QWORD_VALUE;
-    threadCtx->R10      = UNKNOWN_QWORD_VALUE;
-    threadCtx->R11      = UNKNOWN_QWORD_VALUE;
-    threadCtx->R12      = UNKNOWN_QWORD_VALUE;
-    threadCtx->R13      = UNKNOWN_QWORD_VALUE;
-    threadCtx->R14      = UNKNOWN_QWORD_VALUE;
-    threadCtx->R15      = UNKNOWN_QWORD_VALUE;
-    threadCtx->RIP      = (ADDRESS)0;
-    threadCtx->RCS      = UNKNOWN_QWORD_VALUE;
-    threadCtx->RFLAGS   = UNKNOWN_QWORD_VALUE;
-    threadCtx->RSP      = UNKNOWN_QWORD_VALUE;
-#else
-    /* Set the flag */
-    threadCtx->ID       = (UINT32)ethread;
-    threadCtx->EDI      = UNKNOWN_DWORD_VALUE;
-    threadCtx->ESI      = UNKNOWN_DWORD_VALUE;
-    threadCtx->EBP      = UNKNOWN_DWORD_VALUE;
-    threadCtx->EBX      = UNKNOWN_DWORD_VALUE;
-    threadCtx->EDX      = UNKNOWN_DWORD_VALUE;
-    threadCtx->ECX      = UNKNOWN_DWORD_VALUE;
-    threadCtx->EAX      = UNKNOWN_DWORD_VALUE;
-    threadCtx->EIP      = (ADDRESS)0;
-    threadCtx->ECS      = UNKNOWN_DWORD_VALUE;
-    threadCtx->EFLAGS   = UNKNOWN_DWORD_VALUE;
-    threadCtx->ESP      = UNKNOWN_DWORD_VALUE;
-#endif
-
-    /* Set the trap flag */
-    eflags = threadKStack + offsets->thread_context.eflags;
-    DbgPrint("Oregano: setTrapFlagAPC: EFlags = %x\r\n", *((UINT32 *)eflags));
-    *((UINT32 *)eflags) |= TRAP_FLAG;
-    DbgPrint("Oregano: setTrapFlagAPC: EFlags new value = %x\r\n", *((UINT32 *)eflags));
+    changeTrapFlag(ethread, 1);
 
     KeSetEvent(operationComplete, 0, FALSE);
 }
 
 
-void changeTraceFlagForThread( ADDRESS ethread, int setTheFlag )
+void changeTrapFlagForThread( ADDRESS ethread, int setTheFlag )
 {
     /* Is this a system thread, because if so, I have no interest in it. */
     /* System thread has teb == NULL */
@@ -169,21 +129,87 @@ void changeTraceFlagForThread( ADDRESS ethread, int setTheFlag )
                                 ethread, 
                                 threadKStack);
             if (NULL != threadKStack) {
+                UINT32 hashIndex = 0;
                 KAPC apc = {0};
                 KEVENT operationComplete = {0};
                 KeInitializeEvent(&operationComplete, NotificationEvent, FALSE);
 
-                /* Setting the trace flag and save context */
-                if (FALSE == setTheFlag) {
-                    KeInitializeApc(&apc, (PKTHREAD)ethread, OriginalApcEnvironment, clearTrapFlagAPC, NULL, NULL, KernelMode, NULL);
-                } else {  /* if (false == setTheFlag) */
-                    KeInitializeApc(&apc, (PKTHREAD)ethread, OriginalApcEnvironment, setTrapFlagAPC, NULL, NULL, KernelMode, NULL);
-                } /* else (false == setTheFlag) */
-                if (!KeInsertQueueApc(&apc, (PVOID)ethread, (PVOID)&operationComplete, 2)) {
-                    DbgPrint("Oregano: changeTraceFlagForThread: APC for setting trap flag failed");
+                if (FALSE != setTheFlag)
+                {
+                    ThreadContext * threadCtx = NULL;
+#pragma warning( disable : 4305 )
+                    /* Find a free entry in the Hash table */
+                    hashIndex = (((UINT32)ethread) & THREAD_ID_MASK) >> THREAD_ID_IGNORED_BITS;
+                    DbgPrint("Oregano: setTrapFlagAPC: EThread %x hash id %x\r\n", ethread, hashIndex);
+                    while (0 != threads[hashIndex].ID) {
+                        hashIndex = (hashIndex + 1) % THREAD_CONTEXT_MAX_THREADS;
+                    }
+                    threadCtx = &threads[hashIndex];
+#pragma warning( default : 4305 )
+#ifdef AMD64
+                    threadCtx->ID = (UINT64)ethread;
+                    threadCtx->RDI = UNKNOWN_QWORD_VALUE;
+                    threadCtx->RSI = UNKNOWN_QWORD_VALUE;
+                    threadCtx->RBP = UNKNOWN_QWORD_VALUE;
+                    threadCtx->RBX = UNKNOWN_QWORD_VALUE;
+                    threadCtx->RDX = UNKNOWN_QWORD_VALUE;
+                    threadCtx->RCX = UNKNOWN_QWORD_VALUE;
+                    threadCtx->RAX = UNKNOWN_QWORD_VALUE;
+                    threadCtx->R8 = UNKNOWN_QWORD_VALUE;
+                    threadCtx->R9 = UNKNOWN_QWORD_VALUE;
+                    threadCtx->R10 = UNKNOWN_QWORD_VALUE;
+                    threadCtx->R11 = UNKNOWN_QWORD_VALUE;
+                    threadCtx->R12 = UNKNOWN_QWORD_VALUE;
+                    threadCtx->R13 = UNKNOWN_QWORD_VALUE;
+                    threadCtx->R14 = UNKNOWN_QWORD_VALUE;
+                    threadCtx->R15 = UNKNOWN_QWORD_VALUE;
+                    threadCtx->RIP = (ADDRESS)0;
+                    threadCtx->RCS = UNKNOWN_QWORD_VALUE;
+                    threadCtx->RFLAGS = UNKNOWN_QWORD_VALUE;
+                    threadCtx->RSP = UNKNOWN_QWORD_VALUE;
+#else
+                    /* Set the flag */
+                    threadCtx->ID = (UINT32)ethread;
+                    threadCtx->EDI = UNKNOWN_DWORD_VALUE;
+                    threadCtx->ESI = UNKNOWN_DWORD_VALUE;
+                    threadCtx->EBP = UNKNOWN_DWORD_VALUE;
+                    threadCtx->EBX = UNKNOWN_DWORD_VALUE;
+                    threadCtx->EDX = UNKNOWN_DWORD_VALUE;
+                    threadCtx->ECX = UNKNOWN_DWORD_VALUE;
+                    threadCtx->EAX = UNKNOWN_DWORD_VALUE;
+                    threadCtx->EIP = (ADDRESS)0;
+                    threadCtx->ECS = UNKNOWN_DWORD_VALUE;
+                    threadCtx->EFLAGS = UNKNOWN_DWORD_VALUE;
+                    threadCtx->ESP = UNKNOWN_DWORD_VALUE;
+#endif
                 }
-                KeWaitForSingleObject(&operationComplete, Executive, KernelMode, FALSE, NULL);
-                DbgPrint("Oregano: changeTraceFlagForThread: Done thread");
+                else
+                {
+                    /* TODO: Need to remove thread from threads hash table, and reorder the table. */
+                }
+
+                /* Setting the trace flag and save context */
+				if (ethread == (ADDRESS)PsGetCurrentThread())
+				{
+					/* We are attached to the right thread, just change the eflags */
+					changeTrapFlag(ethread, setTheFlag);
+					
+					DbgPrint("Oregano: changeTraceFlagForThread: Done thread");
+				}
+				else {
+					/* Not attached to the right thread, invoke an APC to change the eflags */
+					if (FALSE == setTheFlag) {
+						KeInitializeApc(&apc, (PKTHREAD)ethread, OriginalApcEnvironment, clearTrapFlagAPC, NULL, NULL, KernelMode, NULL);
+					}
+					else {  /* if (false == setTheFlag) */
+						KeInitializeApc(&apc, (PKTHREAD)ethread, OriginalApcEnvironment, setTrapFlagAPC, NULL, NULL, KernelMode, NULL);
+					} /* else (false == setTheFlag) */
+					if (!KeInsertQueueApc(&apc, (PVOID)ethread, (PVOID)&operationComplete, 2)) {
+						DbgPrint("Oregano: changeTraceFlagForThread: APC for setting trap flag failed");
+					}
+					KeWaitForSingleObject(&operationComplete, Executive, KernelMode, FALSE, NULL);
+					DbgPrint("Oregano: changeTraceFlagForThread: Done thread using APC");
+				}
 
             } /* If system thread */
             else {
@@ -203,7 +229,7 @@ NTSTATUS setProcessForInterfering( HANDLE process_id, ADDRESS * process, PLIST_E
 {
     NTSTATUS functionResult = STATUS_SUCCESS;
 
-    /* Getting the handle to the process from the procees id */
+    /* Getting the handle to the process from the process id */
     functionResult = PsLookupProcessByProcessId( process_id, (PEPROCESS *)process );
     if( FALSE != NT_SUCCESS(functionResult) ) {
         /* The threads list is build in the following way:
@@ -258,7 +284,7 @@ NTSTATUS doneInterferingWithThread( HANDLE process_id, HANDLE thread_id, ADDRESS
     return functionResult;
 }
 
-NTSTATUS changeTraceFlagForThreadId( HANDLE process_id, HANDLE thread_id, int setTheFlag )
+NTSTATUS changeTrapFlagForThreadId( HANDLE process_id, HANDLE thread_id, int setTheFlag )
 {
     NTSTATUS        functionResult  = STATUS_SUCCESS;
     ADDRESS         thread = NULL;
@@ -284,7 +310,7 @@ NTSTATUS changeTraceFlagForThreadId( HANDLE process_id, HANDLE thread_id, int se
 
     functionResult = setThreadForInterfering( process_id, thread_id, &thread );
     if (FALSE != NT_SUCCESS(functionResult)) {
-        changeTraceFlagForThread( thread, setTheFlag );
+        changeTrapFlagForThread( thread, setTheFlag );
 
         functionResult = doneInterferingWithThread( process_id, thread_id, &thread );
         if (FALSE != NT_SUCCESS(functionResult)) {
@@ -309,7 +335,7 @@ NTSTATUS changeTraceFlagForThreadId( HANDLE process_id, HANDLE thread_id, int se
  * of a specific process, without debugging it.
  */
 #pragma warning (disable:4305)
-NTSTATUS changeTraceFlagForAllThreads( HANDLE process_id, int setTheFlag )
+NTSTATUS changeTrapFlagForAllThreads( HANDLE process_id, int setTheFlag )
 {
     NTSTATUS        functionResult  = STATUS_SUCCESS;
     ADDRESS         process         = NULL;
@@ -344,7 +370,7 @@ NTSTATUS changeTraceFlagForAllThreads( HANDLE process_id, int setTheFlag )
             ethread = ((ADDRESS)threadsIter - offsets->ethread.ThreadListEntry);
             KdPrint(( "Oregano: changeTraceFlagForAllThreads: EThread %x (Teb: %x, CrossThreadFalgs: %x)\r\n", ethread, *(ADDRESS *)(ethread + offsets->ethread.Teb), *(UINT32 *)(ethread + offsets->ethread.CrossThreadFlags)));
 
-            changeTraceFlagForThread( ethread, setTheFlag );
+            changeTrapFlagForThread( ethread, setTheFlag );
 
             KdPrint(( "Oregano: changeTraceFlagForAllThreads: Found new thread %x\r\n", ethread ));
         } /* For */
@@ -377,31 +403,31 @@ NTSTATUS changeTraceFlagForAllThreads( HANDLE process_id, int setTheFlag )
  * The following function is made to set the trace flag of all threads in a specific process, 
  * without debugging it.
  */
-NTSTATUS setTraceFlagForAllThreads( HANDLE process_id )
+NTSTATUS setTrapFlagForAllThreads( HANDLE process_id )
 {
-    return changeTraceFlagForAllThreads( process_id, TRUE );
+    return changeTrapFlagForAllThreads( process_id, TRUE );
 }
 
 /* 
  * The following function is made to unset the trace flag of all threads in a specific process, 
  * without debugging it.
  */
-NTSTATUS unsetTraceFlagForAllThreads( HANDLE process_id )
+NTSTATUS unsetTrapFlagForAllThreads( HANDLE process_id )
 {
-    return changeTraceFlagForAllThreads( process_id, FALSE );
+    return changeTrapFlagForAllThreads( process_id, FALSE );
 }
 
-NTSTATUS setTraceFlagForThread( HANDLE process_id, HANDLE thread_id )
+NTSTATUS setTrapFlagForThread( HANDLE process_id, HANDLE thread_id )
 {
     NTSTATUS functionResult = STATUS_SUCCESS;
 
-    functionResult = changeTraceFlagForThreadId( process_id, thread_id, TRUE );
+    functionResult = changeTrapFlagForThreadId( process_id, thread_id, TRUE );
     if ( FALSE != NT_SUCCESS(functionResult) )
     {
         // This is done because on most of Windows versions when we get the notification about the new thread,
-        // the thread is not found in the global linked list yet, and PsLookupThreadByThreadId would fail.
+        // the thread is not found in the global linked list yet, and PsLookupThreadByThreadId will fail.
        KdPrint(( "Oregano: setTraceFlagForThread: Failed to change trace flag per thread, attempt to change all threads using threads linked list\r\n" ));
-       functionResult = setTraceFlagForAllThreads(process_id);
+       functionResult = setTrapFlagForAllThreads(process_id);
     }
     return functionResult;
 }

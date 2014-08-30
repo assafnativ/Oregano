@@ -72,18 +72,18 @@ void new_thread_handler(
     if (0 == targetProcessId) {
         return;
     }
+	if (targetProcessId != processId) {
+		/* Not our target process */
+		return;
+	}
 	if (FALSE == create) {
 		/* We only care about new threads */
 		return;
 	}
-    if (targetProcessId != processId) {
-        /* Not our target process */
-        return;
-    }
 
     /* Set TRACE flag for the new thread */
 	KdPrint(( "Oregano: new_thread_handler: Found new thread to log\r\n" ));
-    setTraceFlagForThread(processId, threadId);
+    setTrapFlagForThread(processId, threadId);
 
     return;
 }
@@ -96,11 +96,11 @@ void new_thread_handler(
  */
 NTSTATUS allocBuffersPoll()
 {
-    /* Init output buffers vars */
+    /* Initialize output buffers vars */
     unsigned int        i = 0;
     void *              new_log_buffer = NULL;
 
-    /* Init the buffers list */
+    /* Initialize the buffers list */
     KdPrint(( "Oregano: allocBuffersPool: Allocating buffers poll\r\n" ));
     for( i = 0; LOG_BUFFER_NUM_OF_BUFFERS > i; ++i ) {
         if( NULL != log_buffer_item[i] ) {
@@ -544,7 +544,7 @@ NTSTATUS io_control_start_trace(
 
     /* Set the trace flag */
     KdPrint( ("Oregano: io_control_start_trace: setting trace flag for process %d\r\n", targetProcessId) );
-    setTraceFlagForAllThreads(targetProcessId);
+    setTrapFlagForAllThreads(targetProcessId);
     /* Set notify routine to install hooks on new threads,
         Iff it is not installed already, and we set the trace all threads */
     if ((FALSE == is_new_thread_handler_installed) && (0 == target_thread_id)) {
@@ -556,7 +556,7 @@ NTSTATUS io_control_start_trace(
             KdPrint(( "Oregano: io_control_start_trace: Can't set new thread notifier\r\n" ));
         }
     }
-    
+
     return return_ntstatus;
 }
 
@@ -758,7 +758,7 @@ void stopTracing()
         KdPrint(( "Oregano: stopTracing: Not new thread notifier\r\n" ));
     }
     if (0 != targetProcessId) {
-        unsetTraceFlagForAllThreads(targetProcessId);
+        unsetTrapFlagForAllThreads(targetProcessId);
         targetProcessId = 0;
     }
     if (NULL != targetEProcess) {
@@ -886,9 +886,9 @@ NTSTATUS on_create( PDEVICE_OBJECT device_object, PIRP irp )
     active_log_buffer = 0;
     next_free_log_buffer = 0;
 
-    /* Init threads context saving array */
+    /* Initialize threads context saving array */
     RtlZeroMemory( threads, sizeof(threads) );
-    /* Init logging ranges array */
+    /* Initialize logging ranges array */
     RtlZeroMemory( loggingRanges, sizeof(loggingRanges) );
 
     if (0 == orgTrapInterrupt) {

@@ -57,8 +57,8 @@
 #define TRAP_FLAG						(0x100)
 /* TODO: Whats the EFLAGS offset? */
 
-NTSTATUS setTraceFlagForAllThreads  ( HANDLE process_id );
-NTSTATUS unsetTraceFlagForAllThreads( HANDLE process_id );
-NTSTATUS setTraceFlagForThread      ( HANDLE process_id, HANDLE thread_id );
+NTSTATUS setTrapFlagForAllThreads  ( HANDLE process_id );
+NTSTATUS unsetTrapFlagForAllThreads( HANDLE process_id );
+NTSTATUS setTrapFlagForThread      ( HANDLE process_id, HANDLE thread_id );
 
 #endif /* _CONTROL_THREAD_CONTEXT_H_ */
