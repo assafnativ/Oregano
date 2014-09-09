@@ -29,7 +29,7 @@ void load_idt( OUT idt_t * idt )
 	}
 
 	KdPrint((
-			"Oregano: load_idt: IDT was loaded limit = %X, base = %X\r\n",
+			"Oregano: load_idt: IDT was loaded limit = %X, base = %p\r\n",
 			idt->limit,
 			idt->base ));
 
@@ -135,12 +135,15 @@ unsigned char       InterruptToHook = 0;
 interrupt_info_t *  NewInterruptInfo = NULL;
 unsigned int        NumOfHookedProcessors = 0;
 
-void hookInterruptFromGlobalInfo()
+KSTART_ROUTINE hookInterruptFromGlobalInfo;
+void hookInterruptFromGlobalInfo(_In_ PVOID startContext)
 {
     idt_t               idtr = {0};
     interrupt_info_t    currentInterruptInfo;
     ADDRESS             currentInterruptAddress;
     ADDRESS             hookInterruptAddress;
+
+    UNREFERENCED_PARAMETER(startContext);
 
     #ifndef AMD64
     load_idt( &idtr );
@@ -208,22 +211,33 @@ void hookAllCPUs(
     NewInterruptInfo = newInterrupt;
     NumOfHookedProcessors = 0;
     KeInitializeEvent( &InterruptsHookSyncEvent, SynchronizationEvent, FALSE );
-    while( NumOfHookedProcessors < numOfProcessors ) {
-        PsCreateSystemThread(
-                &threadHandle,
-                (ACCESS_MASK)0,
-                NULL,
-                NULL,
-                NULL,
-                (PKSTART_ROUTINE)hookInterruptFromGlobalInfo,
-                NULL );
+    while( NumOfHookedProcessors < numOfProcessors )
+    {
+        NTSTATUS apiResult = PsCreateSystemThread(
+                                        &threadHandle,
+                                        (ACCESS_MASK)0,
+                                        NULL,
+                                        NULL,
+                                        NULL,
+                                        (PKSTART_ROUTINE)hookInterruptFromGlobalInfo,
+                                        NULL );
+        if (!NT_SUCCESS(apiResult))
+        {
+            KdPrint(("Oregano: hookAllCPUs: Failed to create thread!\r\n"));
+            break;
+        }
         /* Don't lunch a new thread until the last one is done */
-        KeWaitForSingleObject(
-                &InterruptsHookSyncEvent,
-                Executive,
-                KernelMode,
-                FALSE,
-                NULL );
+        apiResult = KeWaitForSingleObject(
+                        &InterruptsHookSyncEvent,
+                        Executive,
+                        KernelMode,
+                        FALSE,
+                        NULL );
+        if (!NT_SUCCESS(apiResult))
+        {
+            KdPrint(("Oregano: hookAllCPUs: Failed to wait on single object!\r\n"));
+            break;
+        }
     }
 
     KeSetEvent(&InterruptsHookSyncEvent, 0, FALSE);

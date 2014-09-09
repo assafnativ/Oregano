@@ -14,24 +14,15 @@
  * which means The system can delete the page after we done with it.
  */
 #pragma alloc_text( INIT, DriverEntry )
-DRIVER_INITIALIZE DriverEntry;
-
-/*
- * The unload function is needed in the end, so we can not discard it
- * until then.
- */
-#pragma alloc_text( PAGE_CODE_LOCKED, DriverUnload )
-DRIVER_UNLOAD DriverUnload;
-
 
 /* Functions definitions */
 /* See header file for descriptions */
 NTSTATUS	DriverEntry(	PDRIVER_OBJECT	driver_object,
 	   						PUNICODE_STRING	registry_path )
 {
-	/* Not guilty till proven other wise */
+	/* Not guilty till proved other wise */
 	NTSTATUS		return_ntstatus	= STATUS_SUCCESS;
-	/* Used for not so imporetent functions */
+	/* Used for not so important functions */
 	NTSTATUS		function_result = STATUS_SUCCESS;
 
 	/* Would hold the information about the device, been allocated by the IoCreateDevice proc */
@@ -76,12 +67,14 @@ NTSTATUS	DriverEntry(	PDRIVER_OBJECT	driver_object,
 	/* Set the driver IRP_MJ functions */
 	/* First set them all to a default handler */
 	for( i = 0; i < IRP_MJ_MAXIMUM_FUNCTION; ++i ) {
+#pragma warning(suppress: 28169)
+#pragma warning(suppress: 28023)
 		driver_object->MajorFunction[i] = default_irp_handler;
 	}
 	/* Now set all the none default handlers, we set all the functions needed for IO control access type. */
-	driver_object->MajorFunction[IRP_MJ_CLOSE]			= on_close;
-	driver_object->MajorFunction[IRP_MJ_CREATE]			= on_create;
-	driver_object->MajorFunction[IRP_MJ_DEVICE_CONTROL]	= on_device_control;
+	driver_object->MajorFunction[IRP_MJ_CLOSE]			= onClose;
+	driver_object->MajorFunction[IRP_MJ_CREATE]			= onCreate;
+	driver_object->MajorFunction[IRP_MJ_DEVICE_CONTROL]	= onDeviceControl;
 	/* Set the unload function */
 	driver_object->DriverUnload = DriverUnload;
 
@@ -134,16 +127,20 @@ RETURN_IO_CREATE_DEVICE_FAILD:
 	return( return_ntstatus );
 } /* DriverEntry */
 
-
-
+/*
+* The unload function is needed in the end, so we can not discard it
+* until then.
+*/
+#pragma alloc_text( PAGE_CODE_LOCKED, DriverUnload )
 void DriverUnload( PDRIVER_OBJECT	driver_object )
 {
-
 	/* Hold hold functions return codes */
 	NTSTATUS	function_result = STATUS_SUCCESS;
 	
 	/* Would hold the dos device name, needed for deleting of the symbolic link */
 	UNICODE_STRING	dos_device_name;
+
+    PAGED_CODE_LOCKED();
 
 	KdPrint(( "Oregano: DriverUnload\r\n" ));
 

@@ -30,7 +30,7 @@ void deallocBuffersPoll();
 
 /* Private functions */
 NTSTATUS find_SystemServiceTable(ADDRESS * KeServiceDescriptorTable_ptr);
-void new_thread_handler(
+void newThreadHandler(
         IN HANDLE processId,
         IN HANDLE threadId,
         IN BOOLEAN create );
@@ -43,11 +43,11 @@ void new_thread_handler(
 #pragma alloc_text( PAGE, deallocBuffersPoll )
 #pragma alloc_text( PAGE, default_irp_handler )
 #pragma alloc_text( PAGE, stopTracing )
-#pragma alloc_text( PAGE, on_close )
-#pragma alloc_text( PAGE, on_create )
-#pragma alloc_text( PAGE, on_device_control )
+#pragma alloc_text( PAGE, onClose )
+#pragma alloc_text( PAGE, onCreate )
+#pragma alloc_text( PAGE, onDeviceControl )
 #pragma alloc_text( PAGE, find_SystemServiceTable )
-#pragma alloc_text( PAGE, new_thread_handler )
+#pragma alloc_text( PAGE, newThreadHandler )
 
 /* Private globals */
 static ADDRESS       targetEProcess = NULL;
@@ -63,11 +63,13 @@ static ADDRESS ntos_base = NULL;
  *  IN HANDLE threadId
  *  IN HANDLE BOOLEAN create
  */
-void new_thread_handler(
+void newThreadHandler(
         IN HANDLE processId,
         IN HANDLE threadId,
         IN BOOLEAN create )
 {
+    PAGED_CODE();
+
     /* Do we have a target to log */
     if (0 == targetProcessId) {
         return;
@@ -96,6 +98,8 @@ void new_thread_handler(
  */
 NTSTATUS allocBuffersPoll()
 {
+    PAGED_CODE();
+
     /* Initialize output buffers vars */
     unsigned int        i = 0;
     void *              new_log_buffer = NULL;
@@ -129,6 +133,8 @@ NTSTATUS allocBuffersPoll()
  */
 void deallocBuffersPoll()
 {
+    PAGED_CODE();
+
     /* Iterator for deallocating of log buffers. */
     unsigned int    i = 0;
     void *          buffer_to_free = NULL;
@@ -200,6 +206,8 @@ IO_CONTROL_DEBUG_PRINT_RETURN:
  */
 NTSTATUS find_SystemServiceTable(ADDRESS * KeServiceDescriptorTable_ptr)
 {
+    PAGED_CODE();
+
 #ifdef AMD64
     /* A anchor function that would use me to find both the NTOS base address and the offset to
      * the KeServuceDescriptorTabke
@@ -500,8 +508,17 @@ NTSTATUS io_control_set_process_info(
     targetProcessId   = (HANDLE)processInfo->processId;
     target_thread_id  = (HANDLE)processInfo->threadId;
     
+    targetEProcess = NULL;
+    target_process = NULL;
     function_result = PsLookupProcessByProcessId( targetProcessId, (PEPROCESS *)(&targetEProcess) );
-    target_process = *(void **)(targetEProcess + offsets->eprocess.DirectoryTableBase);
+    if (NT_SUCCESS(function_result) && (NULL != targetEProcess))
+    {
+        target_process = *(void **)(targetEProcess + offsets->eprocess.DirectoryTableBase);
+    }
+    else
+    {
+        KdPrint(("Oregano: io_control_set_process_info: Failed to query target process %p\r\n", targetProcessId));
+    }
 
 IO_CONTROL_SET_PROCESS_ID_INVALID_ARG:
 IO_CONTROL_SET_PROCESS_ID_DONE:
@@ -543,13 +560,13 @@ NTSTATUS io_control_start_trace(
     lastContext = &unknownThread;
 
     /* Set the trace flag */
-    KdPrint( ("Oregano: io_control_start_trace: setting trace flag for process %d\r\n", targetProcessId) );
+    KdPrint( ("Oregano: io_control_start_trace: setting trace flag for process %p\r\n", targetProcessId) );
     setTrapFlagForAllThreads(targetProcessId);
     /* Set notify routine to install hooks on new threads,
         Iff it is not installed already, and we set the trace all threads */
     if ((FALSE == is_new_thread_handler_installed) && (0 == target_thread_id)) {
 		KdPrint(( "Oregano: io_control_start_trace: Setting new thread notifier\r\n" ));
-        return_ntstatus = PsSetCreateThreadNotifyRoutine( new_thread_handler );
+        return_ntstatus = PsSetCreateThreadNotifyRoutine( newThreadHandler );
         if (FALSE != NT_SUCCESS(return_ntstatus)) {
             is_new_thread_handler_installed = TRUE;
         } else {
@@ -644,17 +661,16 @@ NTSTATUS io_control_probe_trace(
         trace_info->trace_counter       = 0; // call_counter;
         trace_info->buffer              = log_buffer;
         trace_info->buffer_index        = active_log_buffer;
-        trace_info->used_buffers        = used_buffers;
+        trace_info->used_buffers        = InterlockedExchange((LONG *)&used_buffers, 0);
         trace_info->is_trace_stopped    = 0;
-        KdPrint(("Oregano: io_control_probe_trace: Probe info buffer pos: %x buffer %p buffer index %x used buffers %x\r\n", *(unsigned int *)log_buffer, log_buffer, active_log_buffer, used_buffers));
+        KdPrint(("Oregano: io_control_probe_trace: Probe info buffer pos: %x buffer %p buffer index %x used buffers %x\r\n", *(unsigned int *)log_buffer, log_buffer, active_log_buffer, trace_info->used_buffers));
 
         /* Restart the buffers use counting */
-        if (used_buffers > LOG_BUFFER_NUM_OF_BUFFERS) {
-            KdPrint(( "Oregano: io_control_probe_trace: Buffer usage overrun!!!\r\n" ));
+        if (trace_info->used_buffers > LOG_BUFFER_NUM_OF_BUFFERS) {
+            KdPrint(("Oregano: io_control_probe_trace: Buffer usage overrun!!!\r\n"));
         }
-        InterlockedExchange((LONG *)&used_buffers, 0);
 
-        irp->IoStatus.Information   = sizeof(trace_info_t);
+        irp->IoStatus.Information = sizeof(trace_info_t);
 
     } except (EXCEPTION_EXECUTE_HANDLER) {
         KdPrint(( "Oregano: io_control_probe_trace: Failed to read buffer\r\n" ));
@@ -699,7 +715,7 @@ NTSTATUS io_control_read_buffer(
 
         buffer_number = (*((UINT32 *)input_buffer)) & LOG_BUFFER_NUM_OF_BUFFERS_MASK;
         requested_log_buffer = log_buffer_item[buffer_number];
-        KdPrint(("Oregano: io_control_read_buffer: Copying buffer %x (%x) to user buffer\r\n", 
+        KdPrint(("Oregano: io_control_read_buffer: Copying buffer %x (%p) to user buffer\r\n", 
                     buffer_number, requested_log_buffer));
         RtlCopyMemory( output_buffer, requested_log_buffer, LOG_BUFFER_SIZE );
         irp->IoStatus.Information   = LOG_BUFFER_SIZE;
@@ -718,7 +734,6 @@ NTSTATUS io_control_read_buffer(
 
 /* See header file for descriptions */
 /* TODO: I get this IRP quite a lot, need to find out why */
-DRIVER_DISPATCH default_irp_handler;
 NTSTATUS default_irp_handler( PDEVICE_OBJECT device_object, PIRP irp )
 {
     /* Default return code is STATUS_NOT_SUPPORTED */
@@ -752,7 +767,7 @@ void stopTracing()
 
     KdPrint( ("Oregano: stopTracing: Got a stop trace command\r\n") );
     if (TRUE == is_new_thread_handler_installed) {
-        PsRemoveCreateThreadNotifyRoutine(new_thread_handler);
+        PsRemoveCreateThreadNotifyRoutine(newThreadHandler);
         is_new_thread_handler_installed = FALSE;
     } else {
         KdPrint(( "Oregano: stopTracing: Not new thread notifier\r\n" ));
@@ -776,8 +791,7 @@ void stopTracing()
     return;
 }
 
-DRIVER_DISPATCH on_close;
-NTSTATUS on_close( PDEVICE_OBJECT device_object, PIRP irp )
+NTSTATUS onClose(PDEVICE_OBJECT device_object, PIRP irp)
 {
     /* Would hold the return code of the function */
     NTSTATUS    return_ntstatus = STATUS_SUCCESS;
@@ -852,8 +866,7 @@ InterruptHookInfo interruptsHooks[] = {
 };
 #pragma warning( default : 4054 )
 
-DRIVER_DISPATCH on_create;
-NTSTATUS on_create( PDEVICE_OBJECT device_object, PIRP irp )
+NTSTATUS onCreate(PDEVICE_OBJECT device_object, PIRP irp)
 {
     /* Would hold the return code of the function */
     NTSTATUS    return_ntstatus = STATUS_SUCCESS;
@@ -958,8 +971,7 @@ ON_CREATE_ALLOC_ERROR:
 
 
 /* See header file driver.h for descriptions */
-DRIVER_DISPATCH on_device_control;
-NTSTATUS on_device_control( PDEVICE_OBJECT device_object, PIRP irp )
+NTSTATUS onDeviceControl(PDEVICE_OBJECT device_object, PIRP irp)
 {
     /* Would hold the return code of the function */
     NTSTATUS        return_ntstatus = STATUS_SUCCESS;

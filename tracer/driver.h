@@ -89,7 +89,8 @@ windows_offsets * offsets;
  * 		driver_object
  *
  */
-void		DriverUnload(	PDRIVER_OBJECT	driver_object );
+DRIVER_UNLOAD DriverUnload;
+
 /*
  * DriverEntry
  *
@@ -97,8 +98,7 @@ void		DriverUnload(	PDRIVER_OBJECT	driver_object );
  * 			driver_object
  * 			rigistery_path
  */
-NTSTATUS	DriverEntry(	PDRIVER_OBJECT	driver_object,
-	   						PUNICODE_STRING	registry_path );
+DRIVER_INITIALIZE DriverEntry;
 /*
  * default_irp_handler
  * 
@@ -119,7 +119,8 @@ NTSTATUS default_irp_handler( PDEVICE_OBJECT device_object, PIRP irp );
  * 		device_object
  * 		irp
  */
-NTSTATUS on_close( PDEVICE_OBJECT device_object, PIRP irp );
+_Dispatch_type_(IRP_MJ_CLOSE)
+DRIVER_DISPATCH onClose;
 /*
  * on_create
  * 
@@ -130,7 +131,8 @@ NTSTATUS on_close( PDEVICE_OBJECT device_object, PIRP irp );
  * 		device_object
  * 		irp
  */
-NTSTATUS on_create( PDEVICE_OBJECT device_object, PIRP irp );
+_Dispatch_type_(IRP_MJ_CREATE)
+DRIVER_DISPATCH onCreate;
 /*
  * on_device_control
  * 
@@ -140,7 +142,8 @@ NTSTATUS on_create( PDEVICE_OBJECT device_object, PIRP irp );
  * 		device_object
  * 		irp
  */
-NTSTATUS on_device_control( PDEVICE_OBJECT device_object, PIRP irp );
+_Dispatch_type_(IRP_MJ_DEVICE_CONTROL)
+DRIVER_DISPATCH onDeviceControl;
 
 
 #endif /* _DRIVER_H_ */

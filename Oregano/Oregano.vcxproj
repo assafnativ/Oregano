@@ -70,48 +70,64 @@
     <OutDir>$(SolutionDir)output\$(PlatformTarget)\$(ConfigurationName)\</OutDir>
     <IntDir>$(SolutionDir)intermediate\$(ProjectName)_$(PlatformTarget)_$(ConfigurationName)\</IntDir>
     <TargetName>$(TargetName.Replace(' ',''))</TargetName>
+    <RunCodeAnalysis>true</RunCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
     <OutDir>$(SolutionDir)output\$(PlatformTarget)\$(ConfigurationName)\</OutDir>
     <IntDir>$(SolutionDir)intermediate\$(ProjectName)_$(PlatformTarget)_$(ConfigurationName)\</IntDir>
     <TargetName>$(TargetName.Replace(' ',''))</TargetName>
+    <RunCodeAnalysis>true</RunCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
     <OutDir>$(SolutionDir)output\$(PlatformTarget)\$(ConfigurationName)\</OutDir>
     <IntDir>$(SolutionDir)intermediate\$(ProjectName)_$(PlatformTarget)_$(ConfigurationName)\</IntDir>
     <TargetName>$(TargetName.Replace(' ',''))</TargetName>
+    <RunCodeAnalysis>true</RunCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
     <OutDir>$(SolutionDir)output\$(PlatformTarget)\$(ConfigurationName)\</OutDir>
     <IntDir>$(SolutionDir)intermediate\$(ProjectName)_$(PlatformTarget)_$(ConfigurationName)\</IntDir>
     <TargetName>$(TargetName.Replace(' ',''))</TargetName>
+    <RunCodeAnalysis>true</RunCodeAnalysis>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Link>
       <TreatLinkerWarningAsErrors>false</TreatLinkerWarningAsErrors>
       <AdditionalDependencies>Ntstrsafe.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <ClCompile>
+      <EnablePREfast>true</EnablePREfast>
+    </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Link>
       <TreatLinkerWarningAsErrors>false</TreatLinkerWarningAsErrors>
       <AdditionalDependencies>Ntstrsafe.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <ClCompile>
+      <EnablePREfast>true</EnablePREfast>
+    </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Link>
       <TreatLinkerWarningAsErrors>false</TreatLinkerWarningAsErrors>
       <AdditionalDependencies>Ntstrsafe.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <ClCompile>
+      <EnablePREfast>true</EnablePREfast>
+    </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Link>
       <TreatLinkerWarningAsErrors>false</TreatLinkerWarningAsErrors>
       <AdditionalDependencies>Ntstrsafe.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <ClCompile>
+      <EnablePREfast>true</EnablePREfast>
+    </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <Inf Include="Oregano.inf" />

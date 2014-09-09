@@ -38,8 +38,10 @@ void changeTrapFlag(ADDRESS ethread, int setTheFlag)
     ADDRESS     eflags = NULL;
     ADDRESS     threadKStack = *(ADDRESS *)(ethread + offsets->ethread.InitialStack);
 
+    PAGED_CODE();
+
     threadKStack -= offsets->thread_context.ktrap_frame_size;
-    DbgPrint("Oregano: clearTrapFlagAPC: Trap frame is %x\r\n", threadKStack);
+    DbgPrint("Oregano: clearTrapFlagAPC: Trap frame is %p\r\n", threadKStack);
 
     /* The kernel stack is unpagable! */
 
@@ -73,6 +75,8 @@ VOID clearTrapFlagAPC(
     UNREFERENCED_PARAMETER(SystemArgument1);
     UNREFERENCED_PARAMETER(SystemArgument2);
 
+    PAGED_CODE();
+
     changeTrapFlag(ethread, 0);
 
 	/* Signal operation complete */
@@ -98,6 +102,8 @@ VOID setTrapFlagAPC(
     UNREFERENCED_PARAMETER(SystemArgument1);
     UNREFERENCED_PARAMETER(SystemArgument2);
 
+    PAGED_CODE();
+
     changeTrapFlag(ethread, 1);
 
     KeSetEvent(operationComplete, 0, FALSE);
@@ -106,6 +112,8 @@ VOID setTrapFlagAPC(
 
 void changeTrapFlagForThread( ADDRESS ethread, int setTheFlag )
 {
+    PAGED_CODE();
+
     /* Is this a system thread, because if so, I have no interest in it. */
     /* System thread has teb == NULL */
     if (
@@ -122,10 +130,10 @@ void changeTrapFlagForThread( ADDRESS ethread, int setTheFlag )
             (0 == target_thread_id) ||
             (target_thread_id == thread_id) ) {
 
-            DbgPrint("Oregano: This thread is in target %x\r\n", target_thread_id);
+            DbgPrint("Oregano: This thread is in target %p\r\n", target_thread_id);
             /* Find the kernel stack of the thread */
             threadKStack = *(ADDRESS *)(ethread + offsets->ethread.InitialStack);
-            DbgPrint("Oregano: changeTraceFlagForThread: Initial stack for thread %x is %x\r\n", 
+            DbgPrint("Oregano: changeTraceFlagForThread: Initial stack for thread %p is %p\r\n", 
                                 ethread, 
                                 threadKStack);
             if (NULL != threadKStack) {
@@ -140,7 +148,7 @@ void changeTrapFlagForThread( ADDRESS ethread, int setTheFlag )
 #pragma warning( disable : 4305 )
                     /* Find a free entry in the Hash table */
                     hashIndex = (((UINT32)ethread) & THREAD_ID_MASK) >> THREAD_ID_IGNORED_BITS;
-                    DbgPrint("Oregano: setTrapFlagAPC: EThread %x hash id %x\r\n", ethread, hashIndex);
+                    DbgPrint("Oregano: setTrapFlagAPC: EThread %p hash id %x\r\n", ethread, hashIndex);
                     while (0 != threads[hashIndex].ID) {
                         hashIndex = (hashIndex + 1) % THREAD_CONTEXT_MAX_THREADS;
                     }
@@ -229,6 +237,8 @@ NTSTATUS setProcessForInterfering( HANDLE process_id, ADDRESS * process, PLIST_E
 {
     NTSTATUS functionResult = STATUS_SUCCESS;
 
+    PAGED_CODE();
+
     /* Getting the handle to the process from the process id */
     functionResult = PsLookupProcessByProcessId( process_id, (PEPROCESS *)process );
     if( FALSE != NT_SUCCESS(functionResult) ) {
@@ -251,6 +261,8 @@ NTSTATUS doneInterferingWithProcess( HANDLE process_id, ADDRESS * process )
 
     UNREFERENCED_PARAMETER( process_id );
 
+    PAGED_CODE();
+
     ObDereferenceObject( (void *)(*process) );
 
     return functionResult;
@@ -262,10 +274,12 @@ NTSTATUS setThreadForInterfering( HANDLE process_id, HANDLE thread_id, ADDRESS *
 
     UNREFERENCED_PARAMETER( process_id );
 
+    PAGED_CODE();
+
     /* Getting the handle to the thread from the thread id */
     functionResult = PsLookupThreadByThreadId( thread_id, (PETHREAD *)thread );
     if( FALSE == NT_SUCCESS(functionResult) ) {
-        KdPrint(( "Oregano: control_thread_context: Failed to get the thread by PsLookupThreadByThreadId(0x%08x) (%08x), probebly new thread that is not in the list yet\r\n", 
+        KdPrint(( "Oregano: control_thread_context: Failed to get the thread by PsLookupThreadByThreadId(0x%p) (%08x), probebly new thread that is not in the list yet\r\n", 
             thread_id, functionResult ));
     }
 
@@ -279,6 +293,8 @@ NTSTATUS doneInterferingWithThread( HANDLE process_id, HANDLE thread_id, ADDRESS
     UNREFERENCED_PARAMETER( process_id );
     UNREFERENCED_PARAMETER( thread_id );
 
+    PAGED_CODE();
+
     ObDereferenceObject( (void *)(*thread) );
 
     return functionResult;
@@ -290,6 +306,8 @@ NTSTATUS changeTrapFlagForThreadId( HANDLE process_id, HANDLE thread_id, int set
     ADDRESS         thread = NULL;
 
     KIRQL           OldIrql = 0;
+
+    PAGED_CODE();
 
     // Sanity checks
     if (0 == process_id)
@@ -346,6 +364,8 @@ NTSTATUS changeTrapFlagForAllThreads( HANDLE process_id, int setTheFlag )
 
     KIRQL           OldIrql = 0;
 
+    PAGED_CODE();
+
     /* I'll try something new.
         Instead of suspending the process and threads, I'll just raise the IRQL */
     OldIrql = KeGetCurrentIrql();
@@ -356,7 +376,7 @@ NTSTATUS changeTrapFlagForAllThreads( HANDLE process_id, int setTheFlag )
     functionResult = setProcessForInterfering( process_id, &process, &threadListHead );
     if (FALSE != NT_SUCCESS(functionResult)) {
 
-        KdPrint(( "Oregano: changeTraceFlagForAllThreads: Thread head is %x for EProcess %x\r\n", threadListHead, process ));
+        KdPrint(( "Oregano: changeTraceFlagForAllThreads: Thread head is %p for EProcess %p\r\n", threadListHead, process ));
 
         /* Try to enum all threads in process.
             We start on pointing to the threadListHead on the EPROCESS (meaning eprocess + 0x180,)
@@ -368,11 +388,11 @@ NTSTATUS changeTrapFlagForAllThreads( HANDLE process_id, int setTheFlag )
                 threadsIter = threadsIter->Flink )
         {
             ethread = ((ADDRESS)threadsIter - offsets->ethread.ThreadListEntry);
-            KdPrint(( "Oregano: changeTraceFlagForAllThreads: EThread %x (Teb: %x, CrossThreadFalgs: %x)\r\n", ethread, *(ADDRESS *)(ethread + offsets->ethread.Teb), *(UINT32 *)(ethread + offsets->ethread.CrossThreadFlags)));
+            KdPrint(( "Oregano: changeTraceFlagForAllThreads: EThread %p (Teb: %p, CrossThreadFalgs: %x)\r\n", ethread, *(ADDRESS *)(ethread + offsets->ethread.Teb), *(UINT32 *)(ethread + offsets->ethread.CrossThreadFlags)));
 
             changeTrapFlagForThread( ethread, setTheFlag );
 
-            KdPrint(( "Oregano: changeTraceFlagForAllThreads: Found new thread %x\r\n", ethread ));
+            KdPrint(( "Oregano: changeTraceFlagForAllThreads: Found new thread %p\r\n", ethread ));
         } /* For */
 
     
@@ -405,7 +425,8 @@ NTSTATUS changeTrapFlagForAllThreads( HANDLE process_id, int setTheFlag )
  */
 NTSTATUS setTrapFlagForAllThreads( HANDLE process_id )
 {
-    return changeTrapFlagForAllThreads( process_id, TRUE );
+    PAGED_CODE();
+    return changeTrapFlagForAllThreads(process_id, TRUE);
 }
 
 /* 
@@ -414,14 +435,17 @@ NTSTATUS setTrapFlagForAllThreads( HANDLE process_id )
  */
 NTSTATUS unsetTrapFlagForAllThreads( HANDLE process_id )
 {
-    return changeTrapFlagForAllThreads( process_id, FALSE );
+    PAGED_CODE();
+    return changeTrapFlagForAllThreads(process_id, FALSE);
 }
 
 NTSTATUS setTrapFlagForThread( HANDLE process_id, HANDLE thread_id )
 {
     NTSTATUS functionResult = STATUS_SUCCESS;
 
-    functionResult = changeTrapFlagForThreadId( process_id, thread_id, TRUE );
+    PAGED_CODE();
+
+    functionResult = changeTrapFlagForThreadId(process_id, thread_id, TRUE);
     if ( FALSE != NT_SUCCESS(functionResult) )
     {
         // This is done because on most of Windows versions when we get the notification about the new thread,
