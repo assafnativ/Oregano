@@ -1,6 +1,6 @@
 
 /*
- * Oragano driver entery
+ * Oragano driver entry
  * Written by Assaf Nativ
  */
 
@@ -21,16 +21,16 @@ NTSTATUS	DriverEntry(	PDRIVER_OBJECT	driver_object,
 	   						PUNICODE_STRING	registry_path )
 {
 	/* Not guilty till proved other wise */
-	NTSTATUS		return_ntstatus	= STATUS_SUCCESS;
+	NTSTATUS        return_ntstatus	= STATUS_SUCCESS;
 	/* Used for not so important functions */
-	NTSTATUS		function_result = STATUS_SUCCESS;
+	NTSTATUS        function_result = STATUS_SUCCESS;
 
 	/* Would hold the information about the device, been allocated by the IoCreateDevice proc */
-	PDEVICE_OBJECT	device_object	= NULL;
+	PDEVICE_OBJECT  device_object	= NULL;
 	
 	/* Would hold the driver name & dos device name, we must init unicode string for that */
-	UNICODE_STRING	driver_name;
-	UNICODE_STRING	dos_device_name;
+	UNICODE_STRING  driver_name;
+	UNICODE_STRING  dos_device_name;
 
 	/* Loop iterator */
 	unsigned int	i = 0;
@@ -47,7 +47,6 @@ NTSTATUS	DriverEntry(	PDRIVER_OBJECT	driver_object,
 	RtlInitUnicodeString( &driver_name,		DRIVER_NAME );
 	RtlInitUnicodeString( &dos_device_name,	DOS_DEVICE_NAME );
 
-
 	/* Create me a device */
 	return_ntstatus = IoCreateDevice(
 							driver_object,
@@ -58,7 +57,7 @@ NTSTATUS	DriverEntry(	PDRIVER_OBJECT	driver_object,
 							FALSE,						/* Exclusive, I think i might need to change it to TRUE !TBD! */
 							&device_object );			/* OUT */
 	if( FALSE == NT_SUCCESS(return_ntstatus) ) {
-		/* Create device faild */
+		/* Create device failed */
 		KdPrint(( "Oregano: IoCreateDevice faild due to %d\r\n", return_ntstatus ));
 		goto RETURN_IO_CREATE_DEVICE_FAILD;
 	}
@@ -83,7 +82,7 @@ NTSTATUS	DriverEntry(	PDRIVER_OBJECT	driver_object,
 	 * I am not so sure about it, if blue screen occurs I'll have to check it
 	 * again !TBD! 
 	 */
-	device_object->Flags |= 0; // Yeah, I know it doesn't do anything, but it is there for me to remmber.
+	device_object->Flags |= 0; // Yeah, I know it doesn't do anything, but it is there for me to remember.
 
 	/*
 	 * We are not required to clear this flag in the DriverEntry as the I/O Manager will
@@ -115,6 +114,9 @@ NTSTATUS	DriverEntry(	PDRIVER_OBJECT	driver_object,
         windows_version[3] ));
     /* Set the offsets global var */
     offsets = find_windows_offsets(windows_version);
+
+    /* TODO: On unload clear the trap on branch flag */
+    isTrapOnBranchSet = 0;
 
 	/* No error occurred */
 	KdPrint(( "Oregano: device n' driver were created and loaded\r\n" ));

@@ -22,7 +22,7 @@ GLOBAL	_lastContext
 GLOBAL  _lastLoggedContext
 GLOBAL	_threads
 GLOBAL  _loggingRanges
-GLOBAL  _is_trap_on_branch_set
+GLOBAL  _isTrapOnBranchSet
 
 %ifdef DEBUG
 GLOBAL	_DebugVar0
@@ -96,13 +96,13 @@ _top_log_address            DD 0
 ; Output buffer
 _log_buffer					DD 0
 ; I got 0x1000 log buffers
-_log_buffer_item			times NUMBER_OF_BUFFERS DD 0
-_active_log_buffer			DD 0
-_used_buffers               DD 0
-_next_free_log_buffer		DD 0
-_lastContext				DD 0
-_lastLoggedContext          DD 0
-_is_trap_on_branch_set      DD 0
+_log_buffer_item      times NUMBER_OF_BUFFERS DD 0
+_active_log_buffer    DD 0
+_used_buffers         DD 0
+_next_free_log_buffer DD 0
+_lastContext		  DD 0 
+_lastLoggedContext    DD 0
+_isTrapOnBranchSet    DD 0
 ; ThreadContext_t is 0x10 dwords (0x40 bytes) and I got a table of 0x1000 entries
 align   16
 _threads                    times 65536 DD 0 
@@ -548,28 +548,36 @@ _trap_interrupt_out_of_range@0:
     mov [ebp + BOTTOM_BOUND], edx
     mov [ebp + TOP_BOUND], ecx
     ; Go back to the beginning of the interrupt
-    ; just skip the PUSHAD, coze I already done that, and besids
-    ; all the registers are now totaly changed.
+    ; just skip the PUSHAD, coze we already done that
     mov DWORD [ebp + SKIP_MEM_LOG], 1
     ; Clear the trap on branch flag
-    mov edx, eax
-    mov ecx, DEBUGCTLMSR_ID
-    xor eax, eax
-    wrmsr
-    mov eax, edx
+    mov edx, DWORD [_isTrapOnBranchSet]
+    test edx, edx
+    jz TRAP_ON_BRANCH_CLEAR
+        push eax
+        xor edx, edx
+        xor eax, eax
+        mov ecx, DEBUGCTLMSR_ID
+        wrmsr
+        pop eax
+    TRAP_ON_BRANCH_CLEAR:
     ; Continue as if nothing happend
     jmp IN_RANGE
 
     NOT_IN_ANY_RANGE:
-    ; Switch to trap on branch, because returning into the logging range, 
-    ; is more likley to happen on branch, and this way I hope to get better
-    ; pref'
-    mov ecx, DEBUGCTLMSR_ID
-    mov eax, BRANCH_TRAP_FLAG
-    ; xor edx, edx - Edx is supposed to be set to zero, but I think it would
-    ; be ok to leave it as is, because DEBUGCTLMSR has only 32 relevent bits.
-    ; If not, I also need to change the code for clearing the flag.
-    wrmsr
+    mov eax, DWORD [_isTrapOnBranchSet]
+    test eax, eax
+    jnz TRAP_ON_BRANCH_SET
+        ; Switch to trap on branch, because returning into the logging range, 
+        ; is more likley to happen on branch, and this way I hope to get better
+        ; pref'
+        mov ecx, DEBUGCTLMSR_ID
+        mov eax, BRANCH_TRAP_FLAG
+        ; xor edx, edx - Edx is supposed to be set to zero, but I think it would
+        ; be ok to leave it as is, because DEBUGCTLMSR has only 32 relevent bits.
+        ; If not, I also need to change the code for clearing the flag.
+        wrmsr
+    TRAP_ON_BRANCH_SET:
     ; When I return to logging, I would have to skip one log cycle
     ; so all registers would get the right values
     ; I have to do it both here and in the range found, because it might

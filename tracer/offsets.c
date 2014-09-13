@@ -33,9 +33,9 @@ windows_offsets * find_windows_offsets(UINT32 * version)
         }
     }
     if (current_delta > 0x100) {
-        KdPrint(( "Oregano: find_windows_offsets: Failed to find matching offsets\r\n" ));
+        KdPrint(( "Oregano: find_windows_offsets: Failed to find matching (Offsets delta %x)\r\n", current_delta ));
     } else {
-        KdPrint(( "Oregano: find_windows_`: Using offsets of version %d %d %d %d\r\n",
+        KdPrint(( "Oregano: find_windows_offsets: Using offsets of version %d %d %d %d\r\n",
                     most_fit->version[0],
                     most_fit->version[1],
                     most_fit->version[2],

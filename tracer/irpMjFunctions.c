@@ -505,8 +505,8 @@ NTSTATUS io_control_set_process_info(
         }
     }
 
-    targetProcessId   = (HANDLE)processInfo->processId;
-    target_thread_id  = (HANDLE)processInfo->threadId;
+    targetProcessId = (HANDLE)processInfo->processId;
+    targetThreadId  = (HANDLE)processInfo->threadId;
     
     targetEProcess = NULL;
     target_process = NULL;
@@ -564,7 +564,7 @@ NTSTATUS io_control_start_trace(
     setTrapFlagForAllThreads(targetProcessId);
     /* Set notify routine to install hooks on new threads,
         Iff it is not installed already, and we set the trace all threads */
-    if ((FALSE == is_new_thread_handler_installed) && (0 == target_thread_id)) {
+    if ((FALSE == is_new_thread_handler_installed) && (0 == targetThreadId)) {
 		KdPrint(( "Oregano: io_control_start_trace: Setting new thread notifier\r\n" ));
         return_ntstatus = PsSetCreateThreadNotifyRoutine( newThreadHandler );
         if (FALSE != NT_SUCCESS(return_ntstatus)) {

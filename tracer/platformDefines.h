@@ -10,7 +10,7 @@
  * EPROCESS->ThreadListHead offset is found on PsGetNextProcessThread
  * ETHREAD->ThreadListHead offset is found on PsGetNextProcessThread
  * ETHREAD->InitialStack offset is found on MmInPageKernelStack
- * Offset of trap fram from initial kstack is defined at PspGetSetContextSpecialApc (PspGetBaseTrapFrame Macro in the WRK)
+ * Offset of trap frame from initial kStack is defined at PspGetSetContextSpecialApc (PspGetBaseTrapFrame Macro in the WRK)
  */
 
 #if WINVER < 0x501 // 0x500 Windows 2000, 0x400 Windows NT 4.0 0x351 Windows NT 3.51

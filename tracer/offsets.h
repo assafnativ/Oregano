@@ -9,7 +9,7 @@ typedef struct kpcrcb_offsets_s {
 } kpcrcb_offsets;
 
 typedef struct thread_context_offsets_s {
-    OFFSET ktrap_frame_size;
+    OFFSET ktrapFrameSize;
     OFFSET eflags;
 } thread_context_offsets;
 
@@ -18,7 +18,9 @@ typedef struct ethread_offsets_s {
     OFFSET Teb;
     OFFSET CrossThreadFlags;
     OFFSET InitialStack;
+    OFFSET TrapFrame;
     OFFSET Cid;
+    OFFSET PreviousMode;
 } ethread_offsets;
 
 typedef struct eprocess_offsets_s {
@@ -29,7 +31,7 @@ typedef struct eprocess_offsets_s {
 typedef struct windows_offsets_s {
     UINT32                  version[4];
     kpcrcb_offsets          kpcrcb;
-    thread_context_offsets  thread_context;
+    thread_context_offsets  threadContext;
     ethread_offsets         ethread;
     eprocess_offsets        eprocess;
 } windows_offsets;

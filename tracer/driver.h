@@ -80,6 +80,7 @@ typedef struct LoggingRange_t {
 
 /* Globals */
 windows_offsets * offsets;
+extern unsigned int isTrapOnBranchSet;
 
 /* Functions declarations */
 /*

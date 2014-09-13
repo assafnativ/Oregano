@@ -22,7 +22,9 @@ class Offsets(object):
             self.Teb = 0
             self.CrossThreadFlags = 0
             self.InitialStack = 0
+            self.TrapFrame = 0
             self.Cid = 0
+            self.PreviousMode = 0
             self.DirectoryTableBase = 0
             self.ThreadListHead = 0
 
@@ -33,7 +35,7 @@ class Offsets(object):
         offsets_code += "\t\t{%d, %d, %d, %d},\n" % tuple(self.version)
         offsets_code += "\t\t{0x%x},\n" % (self.kthread)
         offsets_code += "\t\t{0x%x, 0x%x},\n" % (self.ktrap_frame_size, self.eflags)
-        offsets_code += "\t\t{0x%x, 0x%x, 0x%x, 0x%x, 0x%x},\n" % (self.ThreadListEntry, self.Teb, self.CrossThreadFlags, self.InitialStack, self.Cid)
+        offsets_code += "\t\t{0x%x, 0x%x, 0x%x, 0x%x, 0x%x, 0x%x, 0x%x},\n" % (self.ThreadListEntry, self.Teb, self.CrossThreadFlags, self.InitialStack, self.TrapFrame, self.Cid, self.PreviousMode)
         offsets_code += "\t\t{0x%x, 0x%x},\n"         % (self.DirectoryTableBase, self.ThreadListHead)
         offsets_code += "\t},\n"
         return offsets_code
@@ -110,7 +112,7 @@ def getAllOffsets(filesLocation):
                   getOffset(types, '_KPRCB', 'CurrentThread')
         
         if 'x86' in ntos:
-            offsets.ktrap_frame_size = 0x29c
+            offsets.ktrap_frame_size = 0x8c # 0x29c - I can't recall where this 0x29c came from, but it's wrong
         elif 'x64' in ntos:
             offsets.ktrap_frame_size = getStructSize(types, '_KTRAP_FRAME')
         else:
@@ -120,7 +122,9 @@ def getAllOffsets(filesLocation):
         offsets.Teb                 = getOffset(types, '_KTHREAD',  'Teb')
         offsets.CrossThreadFlags    = getOffset(types, '_ETHREAD',  'CrossThreadFlags')
         offsets.InitialStack        = getOffset(types, '_KTHREAD',  'InitialStack')
+        offsets.TrapFrame           = getOffset(types, '_KTHREAD',  'TrapFrame')
         offsets.Cid                 = getOffset(types, '_ETHREAD',  'Cid')
+        offsets.PreviousMode        = getOffset(types, '_KTHREAD',  'PreviousMode')
         offsets.DirectoryTableBase  = getOffset(types, '_KPROCESS', 'DirectoryTableBase')
         offsets.ThreadListHead      = getOffset(types, '_EPROCESS', 'ThreadListHead')
         # 4. Generate code

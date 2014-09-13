@@ -24,7 +24,7 @@ GLOBAL	lastContext
 GLOBAL  lastLoggedContext
 GLOBAL	threads
 GLOBAL  loggingRanges
-GLOBAL  is_trap_on_branch_set
+GLOBAL  isTrapOnBranchSet
 
 %ifdef DEBUG
 GLOBAL	DebugVar0
