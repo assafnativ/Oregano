@@ -125,14 +125,17 @@ def runTest(testName=None, target=None):
     remote.modules.sys.stdout = sys.stdout
     remote.modules.sys.stdin  = sys.stdin
     remote.modules.sys.stderr = sys.stderr
-    remote.builtins.execfile(remoteFile)
+    print "Executing remotly"
+    remote.modules.subprocess.Popen(
+            "python %s" % remoteFile, 
+            shell=True).communicate()
     remote.modules.sys.stdout = originalStdout
     remote.modules.sys.stdin  = originalStdin
     remote.modules.sys.stderr = originalStderr
     remote.close()
 
 @baker.command
-def restart(target=None):
+def reboot(target=None):
     remote = getConnection(target)
     remote.modules.os.system('shutdown /r /t 1')
     remote.close()
