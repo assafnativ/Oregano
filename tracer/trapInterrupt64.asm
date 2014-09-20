@@ -110,7 +110,7 @@ used_buffers               DQ 0
 next_free_log_buffer		DQ 0
 lastContext				DQ 0
 lastLoggedContext          DQ 0
-is_trap_on_branch_set       DQ 0
+isTrapOnBranchSet       DQ 0
 ; ThreadContext_t is 0x20 qwords (0x100 bytes) and I got a table of 0x1000 entries
 align   16
 threads                    times 131072 DQ 0
