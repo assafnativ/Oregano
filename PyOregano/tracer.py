@@ -276,6 +276,10 @@ class PyOregano( MemoryReader ):
 
             while self.keepReading:
                 while self.keepReading and (self._lastBufferUsed == self._lastBufferRead):
+                    print "oregano_handle: ", self._oregano_handle
+                    print "outputBuffer: ", outputBuffer
+                    print "len(outputBuffer): ", len(outputBuffer)
+                    print "bytesWritten: ", bytesWritten
                     DeviceIoControl(
                             self._oregano_handle,
                             IOCTL_PROBE_TRACE,
