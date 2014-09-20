@@ -842,7 +842,6 @@ NTSTATUS onClose(PDEVICE_OBJECT device_object, PIRP irp)
         trap_interrupt_address >>= 16;
         int1_info.high_offset   = (unsigned long)trap_interrupt_address;
 #endif
-        /* TODO: Unhook everything */
         hookAllCPUs( 1, &int1_info );
         orgTrapInterrupt = NULL;
         KdPrint(( "Oregano: on_close: Unhook done.\r\n" ));
