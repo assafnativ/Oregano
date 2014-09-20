@@ -201,6 +201,7 @@
       <ObjectFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename).obj</ObjectFile>
       <Debug Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</Debug>
       <ObjectFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename).obj</ObjectFile>
+      <Defines Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">DEBUG</Defines>
     </YASM>
     <YASM Include="..\tracer\interruptsHooks64.asm">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
@@ -216,6 +217,7 @@
       <ObjectFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename).obj</ObjectFile>
       <Debug Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</Debug>
       <ObjectFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename).obj</ObjectFile>
+      <Defines Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">DEBUG</Defines>
     </YASM>
     <None Include="..\tracer\platformDefines.asm">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
@@ -241,6 +243,7 @@
       <ObjectFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)%(Filename).obj</ObjectFile>
       <ObjectFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename).obj</ObjectFile>
       <ObjectFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename).obj</ObjectFile>
+      <Defines Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">DEBUG</Defines>
     </YASM>
     <YASM Include="..\tracer\trapInterrupt64.asm">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
@@ -260,6 +263,7 @@
       <Debug Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</Debug>
       <IncludePaths Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)codeGenerator\;%(IncludePaths)</IncludePaths>
       <ObjectFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename).obj</ObjectFile>
+      <Defines Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">DEBUG</Defines>
     </YASM>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
