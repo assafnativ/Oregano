@@ -54,6 +54,7 @@ THREAD_CONTEXT_ARRAY_END    equ 03ffffh
 KERNEL_SPACE_MASK           equ 80000000h ; 2GB
 TRAP_FLAG_MASK              equ 00000100h
 BREAK_SINGLE_STEP_FLAG_MASK equ 00004000h ; AKA BS flag AKA BullShit flag of DR6
+ALL_DR6_FLAGS               equ 0000f00fh ; See page 485 (15-3) @ 24319202.pdf "Intel Architecture Software Developer's Manuaal Volume 3 System Programming"
 BREAK_OTHER_FLAGS           equ 0000a00fh
 ; From Intel Model-Specific Registers PDF
 DEBUGCTLMSR_ID              equ 01D9h
@@ -273,6 +274,10 @@ SAVED_ESS		equ 034h
     %endif
     test eax, BREAK_SINGLE_STEP_FLAG_MASK
     jnz INTERRUPT_COZED_BY_SINGLE_STEP
+    ; Sometimes the dr6 is just cleared and it is still a single step
+    ; I don't quite understand this
+    test eax, ALL_DR6_FLAGS
+    jz INTERRUPT_COZED_BY_SINGLE_STEP
     ; The interupt was not caused for Single Step issues
     %ifdef DEBUG
     mov eax, 1
