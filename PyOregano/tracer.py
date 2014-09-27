@@ -239,7 +239,6 @@ class PyOregano( MemoryReader ):
         buffer_number = pack('=L', x) + ('\x00' * 12)
         outputBuffer = '\x00' * PyOregano.ONE_BUFFER_SIZE
         bytesWritten = c_uint32(0)
-        #print 'Reading buffer %x' % x
         DeviceIoControl(
                     self._oregano_handle,
                     IOCTL_READ_BUFFER,
@@ -253,7 +252,7 @@ class PyOregano( MemoryReader ):
         if 0 == bytesWritten:
             print "Failed to read log buffer %x" % x
             return
-        #print 'Read %x bytes' % bytesWritten
+        print 'Read %x bytes from buffer 0x%x' % (bytesWritten, x)
         bufferEndPoint = unpack('=L', outputBuffer[:4])[0]
         if 4 > bufferEndPoint or bufferEndPoint > bytesWritten:
             raise tracerException('Invalid buffer size 0x%x (%s) (Bytes written 0x%x, buffer size 0x%x)' % 
@@ -276,10 +275,6 @@ class PyOregano( MemoryReader ):
 
             while self.keepReading:
                 while self.keepReading and (self._lastBufferUsed == self._lastBufferRead):
-                    print "oregano_handle: ", self._oregano_handle
-                    print "outputBuffer: ", outputBuffer
-                    print "len(outputBuffer): ", len(outputBuffer)
-                    print "bytesWritten: ", bytesWritten
                     DeviceIoControl(
                             self._oregano_handle,
                             IOCTL_PROBE_TRACE,

@@ -167,6 +167,7 @@ def downloadDriveFile(fileId, target):
     remote.close()
     
 def downloadDlls(url, localDir):
+    somethingNew = False
     url = urllib2.urlopen(url)
     data = url.read()
     url.close()
@@ -177,6 +178,8 @@ def downloadDlls(url, localDir):
     for fileName, fileId in remoteFiles:
         if fileName not in localFiles:
             downloadDriveFile(fileId, localDir + os.sep + fileName)
+            somethingNew = True
+    return somethingNew
     
 def shouldRecreate(outputFile, data):
     searchFor = '// data hash: '
@@ -210,8 +213,11 @@ def makeOffsetsFile(allOffsets, outputFile):
         output.close()
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
-downloadDlls('https://drive.google.com/folderview?id=0B5833Zxi4DMTNk1LOWkyak9OQWM&usp=sharing', 'NtosVersions')
-allOffsets = getAllOffsets('NtosVersions')
-makeOffsetsFile(allOffsets[0], os.sep.join(['..', 'tracer', 'offsets_X86.auto.h']))
-makeOffsetsFile(allOffsets[1], os.sep.join(['..', 'tracer', 'offsets_AMD64.auto.h']))
+somethingNew = downloadDlls('https://drive.google.com/folderview?id=0B5833Zxi4DMTNk1LOWkyak9OQWM&usp=sharing', 'NtosVersions')
+targetX86   = os.sep.join(['..', 'tracer', 'offsets_X86.auto.h'])
+targetAMD64 = os.sep.join(['..', 'tracer', 'offsets_AMD64.auto.h'])
+if somethingNew or (not os.path.isfile(targetX86)) or (not os.path.isfile(targetAMD64)):
+    allOffsets = getAllOffsets('NtosVersions')
+    makeOffsetsFile(allOffsets[0], targetX86)
+    makeOffsetsFile(allOffsets[1], targetAMD64)
 
