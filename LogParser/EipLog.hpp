@@ -6,7 +6,7 @@
 #include "PagedRandomAccess.hpp"
 #include "RegLogIterBase.hpp"
 
-typedef PagedRandomAccess<DWORD> EipLogBase;
+typedef PagedRandomAccess<MACHINE_LONG> EipLogBase;
 
 class EipLog: public EipLogBase
 {

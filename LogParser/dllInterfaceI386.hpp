@@ -16,19 +16,42 @@ extern "C" {
 LOG_PARSER_API LogParser * parseLog(const char * fileName);
 LOG_PARSER_API DWORD getLastCycle(LogParser * logParser);
 LOG_PARSER_API DWORD getProcessorType(LogParser * logParser);
-LOG_PARSER_API DWORD eip(LogParser * logParser, DWORD cycle);
-LOG_PARSER_API DWORD edi(LogParser * logParser, DWORD cycle);
-LOG_PARSER_API DWORD esi(LogParser * logParser, DWORD cycle);
-LOG_PARSER_API DWORD ebp(LogParser * logParser, DWORD cycle);
-LOG_PARSER_API DWORD ebx(LogParser * logParser, DWORD cycle);
-LOG_PARSER_API DWORD edx(LogParser * logParser, DWORD cycle);
-LOG_PARSER_API DWORD ecx(LogParser * logParser, DWORD cycle);
-LOG_PARSER_API DWORD eax(LogParser * logParser, DWORD cycle);
-LOG_PARSER_API DWORD eflags(LogParser * logParser, DWORD cycle);
-LOG_PARSER_API DWORD esp(LogParser * logParser, DWORD cycle);
-LOG_PARSER_API DWORD threadId(LogParser * logParser, DWORD cycle);
+#ifdef X86
+LOG_PARSER_API DWORD getEip(LogParser * logParser, DWORD cycle);
+LOG_PARSER_API DWORD getEdi(LogParser * logParser, DWORD cycle);
+LOG_PARSER_API DWORD getEsi(LogParser * logParser, DWORD cycle);
+LOG_PARSER_API DWORD getEbp(LogParser * logParser, DWORD cycle);
+LOG_PARSER_API DWORD getEbx(LogParser * logParser, DWORD cycle);
+LOG_PARSER_API DWORD getEdx(LogParser * logParser, DWORD cycle);
+LOG_PARSER_API DWORD getEcx(LogParser * logParser, DWORD cycle);
+LOG_PARSER_API DWORD getEax(LogParser * logParser, DWORD cycle);
+LOG_PARSER_API DWORD getEflags(LogParser * logParser, DWORD cycle);
+LOG_PARSER_API DWORD getEsp(LogParser * logParser, DWORD cycle);
+#elif AMD64
+LOG_PARSER_API QWORD getRip(LogParser * logParser, DWORD cycle);
+LOG_PARSER_API QWORD getRdi(LogParser * logParser, DWORD cycle);
+LOG_PARSER_API QWORD getRsi(LogParser * logParser, DWORD cycle);
+LOG_PARSER_API QWORD getRbp(LogParser * logParser, DWORD cycle);
+LOG_PARSER_API QWORD getRbx(LogParser * logParser, DWORD cycle);
+LOG_PARSER_API QWORD getRdx(LogParser * logParser, DWORD cycle);
+LOG_PARSER_API QWORD getRcx(LogParser * logParser, DWORD cycle);
+LOG_PARSER_API QWORD getRax(LogParser * logParser, DWORD cycle);
+LOG_PARSER_API QWORD getR8 (LogParser * logParser, DWORD cycle);
+LOG_PARSER_API QWORD getR9 (LogParser * logParser, DWORD cycle);
+LOG_PARSER_API QWORD getR10(LogParser * logParser, DWORD cycle);
+LOG_PARSER_API QWORD getR11(LogParser * logParser, DWORD cycle);
+LOG_PARSER_API QWORD getR12(LogParser * logParser, DWORD cycle);
+LOG_PARSER_API QWORD getR13(LogParser * logParser, DWORD cycle);
+LOG_PARSER_API QWORD getR14(LogParser * logParser, DWORD cycle);
+LOG_PARSER_API QWORD getR15(LogParser * logParser, DWORD cycle);
+LOG_PARSER_API QWORD getRcs(LogParser * logParser, DWORD cycle);
+LOG_PARSER_API QWORD getRflags(LogParser * logParser, DWORD cycle);
+LOG_PARSER_API QWORD getRsp(LogParser * logParser, DWORD cycle);
+LOG_PARSER_API QWORD getRss(LogParser * logParser, DWORD cycle);
+#endif
+LOG_PARSER_API DWORD getThreadId(LogParser * logParser, DWORD cycle);
 LOG_PARSER_API DWORD findEffectiveCycle(LogParser * logParser, DWORD regId, DWORD cycle);
-LOG_PARSER_API DWORD getRegValue(LogParser * logParser, DWORD regId, DWORD cycle);
+LOG_PARSER_API MACHINE_LONG getRegValue(LogParser * logParser, DWORD regId, DWORD cycle);
 
 LOG_PARSER_API BYTE	 getByte (LogParser * logParser, DWORD cycle, DWORD addr);
 LOG_PARSER_API WORD	 getWord (LogParser * logParser, DWORD cycle, DWORD addr);
@@ -57,11 +80,11 @@ LOG_PARSER_API void		findDataRestartSearch(FindData * ctx);
 LOG_PARSER_API void		findDataDelete(FindData * ctx);
 
 LOG_PARSER_API RegLogIterBase * regLogIter( LogParser * logParser, DWORD regId, DWORD cycle );
-LOG_PARSER_API DWORD    regLogIterGetValue(RegLogIterBase * ctx);
-LOG_PARSER_API DWORD    regLogIterGetCycle(RegLogIterBase * ctx);
-LOG_PARSER_API void     regLogIterNext(RegLogIterBase * ctx);
-LOG_PARSER_API void     regLogIterPrev(RegLogIterBase * ctx);
-LOG_PARSER_API BOOL     regLogIterIsLastCycle(RegLogIterBase * ctx);
-LOG_PARSER_API void     regLogIterDelete(RegLogIterBase * ctx);
+LOG_PARSER_API MACHINE_LONG regLogIterGetValue(RegLogIterBase * ctx);
+LOG_PARSER_API DWORD        regLogIterGetCycle(RegLogIterBase * ctx);
+LOG_PARSER_API void         regLogIterNext(RegLogIterBase * ctx);
+LOG_PARSER_API void         regLogIterPrev(RegLogIterBase * ctx);
+LOG_PARSER_API BOOL         regLogIterIsLastCycle(RegLogIterBase * ctx);
+LOG_PARSER_API void         regLogIterDelete(RegLogIterBase * ctx);
 
 }; // extern "C" 

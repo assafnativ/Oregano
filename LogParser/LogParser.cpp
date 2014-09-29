@@ -94,6 +94,7 @@ LogParser::LogParser(const char * logFile)
 void LogParser::initContext()
 {
     eipLog = new EipLog(rootPage->eipRootPage, dataContainer);
+#ifdef X86
 	reg[REG_ID_EIP] = NULL; /* eip */
 	reg[REG_ID_EDI] = new RegLog("edi",       rootPage->ediRootPage,      dataContainer);
 	reg[REG_ID_ESI] = new RegLog("esi",       rootPage->esiRootPage,      dataContainer);
@@ -106,6 +107,28 @@ void LogParser::initContext()
 	reg[REG_ID_EFLAGS] = new RegLog("eflags", rootPage->eflagsRootPage,   dataContainer);
 	reg[REG_ID_ESP] = new RegLog("esp",       rootPage->espRootPage,      dataContainer);
     reg[REG_ID_ESS] = NULL; // ess
+#elif AMD64
+    reg[REG_ID_RIP] = new RegLog("rip",       rootPage->eipRootPage,    dataContainer);
+    reg[REG_ID_RDI] = new RegLog("rdi",       rootPage->rdiRootPage,    dataContainer);
+    reg[REG_ID_RSI] = new RegLog("rsi",       rootPage->rsiRootPage,    dataContainer);
+    reg[REG_ID_RBP] = new RegLog("rbp",       rootPage->rbpRootPage,    dataContainer);
+    reg[REG_ID_RBX] = new RegLog("rbx",       rootPage->rbxRootPage,    dataContainer);
+    reg[REG_ID_RDX] = new RegLog("rdx",       rootPage->rdxRootPage,    dataContainer);
+    reg[REG_ID_RCX] = new RegLog("rcx",       rootPage->rcxRootPage,    dataContainer);
+    reg[REG_ID_RAX] = new RegLog("rax",       rootPage->raxRootPage,    dataContainer);
+    reg[REG_ID_R8]  = new RegLog("r8",        rootPage->r8RootPage,     dataContainer);
+    reg[REG_ID_R9]  = new RegLog("r9",        rootPage->r9RootPage,     dataContainer);
+    reg[REG_ID_R10] = new RegLog("r10",       rootPage->r10RootPage,    dataContainer);
+    reg[REG_ID_R11] = new RegLog("r11",       rootPage->r11RootPage,    dataContainer);
+    reg[REG_ID_R12] = new RegLog("r12",       rootPage->r12RootPage,    dataContainer);
+    reg[REG_ID_R13] = new RegLog("r13",       rootPage->r13RootPage,    dataContainer);
+    reg[REG_ID_R14] = new RegLog("r14",       rootPage->r14RootPage,    dataContainer);
+    reg[REG_ID_R15] = new RegLog("r15",       rootPage->r15RootPage,    dataContainer);
+    reg[REG_ID_RCS] = new RegLog("rcs",       rootPage->rcsRootPage,    dataContainer);
+    reg[REG_ID_RFLAGS] = new RegLog("rflags", rootPage->rflagsRootPage, dataContainer);
+    reg[REG_ID_RSP] = new RegLog("rsp",       rootPage->rspRootPage,    dataContainer);
+    reg[REG_ID_RSS] = new RegLog("rss",       rootPage->rssRootPage,    dataContainer);
+#endif
 	reg[THREAD_ID]  = new RegLog("thread",    rootPage->threadIdRootPage, dataContainer);
 }
 
@@ -296,6 +319,7 @@ BOOL LogParser::parseTrace(FileReader &log)
 				reg[THREAD_ID]->append( regValue );
 			}
 			break;
+#ifdef X86
 			case REG_ID_EDI:
 			case REG_ID_ESI:
 			case REG_ID_EBP:
@@ -306,6 +330,27 @@ BOOL LogParser::parseTrace(FileReader &log)
 			case REG_ID_ECS:
 			case REG_ID_EFLAGS:
 			case REG_ID_ESP:
+#elif AMD64
+            case REG_ID_RDI:
+            case REG_ID_RSI:
+            case REG_ID_RBP:
+            case REG_ID_RBX:
+            case REG_ID_RDX:
+            case REG_ID_RCX:
+            case REG_ID_RAX:
+            case REG_ID_R8:
+            case REG_ID_R9:
+            case REG_ID_R10:
+            case REG_ID_R11:
+            case REG_ID_R12:
+            case REG_ID_R13:
+            case REG_ID_R14:
+            case REG_ID_R15:
+            case REG_ID_RCS:
+            case REG_ID_RFLAGS:
+            case REG_ID_RSP:
+            case REG_ID_RSS:
+#endif
 			{
 				regId = changeType;
 				regValue.cycle = *lastCycle;

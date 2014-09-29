@@ -16,9 +16,9 @@ static const BYTE UNKNOWN_BYTE(0x3f);
 static const WORD UNKNOWN_WORD(0x3f3f);
 static const DWORD UNKNOWN_DWORD(0x3f3f3f3f);
 
+static const DWORD REG_ID_EIP(0x00);
 #ifdef X86
 static const MACHINE_LONG UNKNOWN_MACHINE_LONG(0x3f3f3f3f);
-static const DWORD REG_ID_EIP(0x00);
 static const DWORD REG_ID_EDI(0x01);
 static const DWORD REG_ID_ESI(0x02);
 static const DWORD REG_ID_EBP(0x03);

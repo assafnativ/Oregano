@@ -25,20 +25,43 @@ class LogParser
 	public:
 		LogParser(const char * logFile);
 		~LogParser();
-        DWORD getLastCycle()            {return *lastCycle;};
-        DWORD eip(DWORD cycle)			{return eipLog->getItem(cycle);};
-		DWORD edi(DWORD cycle)			{return getRegValue<REG_ID_EDI>(cycle);};
-		DWORD esi(DWORD cycle)			{return getRegValue<REG_ID_ESI>(cycle);};
-		DWORD ebp(DWORD cycle)			{return getRegValue<REG_ID_EBP>(cycle);};
-		DWORD ebx(DWORD cycle)			{return getRegValue<REG_ID_EBX>(cycle);};
-		DWORD edx(DWORD cycle)			{return getRegValue<REG_ID_EDX>(cycle);};
-		DWORD ecx(DWORD cycle)			{return getRegValue<REG_ID_ECX>(cycle);};
-		DWORD eax(DWORD cycle)			{return getRegValue<REG_ID_EAX>(cycle);};
-		DWORD ecs(DWORD cycle)			{return getRegValue<REG_ID_ECS>(cycle);};
-		DWORD eflags(DWORD cycle)		{return getRegValue<REG_ID_EFLAGS>(cycle);};
-		DWORD esp(DWORD cycle)			{return getRegValue<REG_ID_ESP>(cycle);};
-		DWORD threadId(DWORD cycle)		{return getRegValue<THREAD_ID>(cycle);};
-		DWORD findEffectiveCycle(DWORD regId, DWORD cycle);
+        DWORD getLastCycle()        {return *lastCycle;}
+#ifdef X86
+        DWORD eip(DWORD cycle)		{return eipLog->getItem(cycle);}
+        DWORD edi(DWORD cycle)		{return getRegValue<REG_ID_EDI>(cycle);}
+		DWORD esi(DWORD cycle)		{return getRegValue<REG_ID_ESI>(cycle);}
+		DWORD ebp(DWORD cycle)		{return getRegValue<REG_ID_EBP>(cycle);}
+		DWORD ebx(DWORD cycle)		{return getRegValue<REG_ID_EBX>(cycle);}
+		DWORD edx(DWORD cycle)		{return getRegValue<REG_ID_EDX>(cycle);}
+		DWORD ecx(DWORD cycle)		{return getRegValue<REG_ID_ECX>(cycle);}
+		DWORD eax(DWORD cycle)		{return getRegValue<REG_ID_EAX>(cycle);}
+		DWORD ecs(DWORD cycle)		{return getRegValue<REG_ID_ECS>(cycle);}
+		DWORD eflags(DWORD cycle)	{return getRegValue<REG_ID_EFLAGS>(cycle);}
+		DWORD esp(DWORD cycle)		{return getRegValue<REG_ID_ESP>(cycle);}
+#elif AMD64
+        QWORD rip(DWORD cycle)      {return eipLog->getItem(cycle);}
+        QWORD rdi(DWORD cycle)      {return getRegValue<REG_ID_RDI>(cycle);}
+        QWORD rsi(DWORD cycle)      {return getRegValue<REG_ID_RSI>(cycle);}
+        QWORD rbp(DWORD cycle)      {return getRegValue<REG_ID_RBP>(cycle);}
+        QWORD rbx(DWORD cycle)      {return getRegValue<REG_ID_RBX>(cycle);}
+        QWORD rdx(DWORD cycle)      {return getRegValue<REG_ID_RDX>(cycle);}
+        QWORD rcx(DWORD cycle)      {return getRegValue<REG_ID_RCX>(cycle);}
+        QWORD rax(DWORD cycle)      {return getRegValue<REG_ID_RAX>(cycle);}
+        QWORD r8 (DWORD cycle)      {return getRegValue<REG_ID_R8> (cycle);}
+        QWORD r9 (DWORD cycle)      {return getRegValue<REG_ID_R9> (cycle);}
+        QWORD r10(DWORD cycle)      {return getRegValue<REG_ID_R10>(cycle);}
+        QWORD r11(DWORD cycle)      {return getRegValue<REG_ID_R11>(cycle);}
+        QWORD r12(DWORD cycle)      {return getRegValue<REG_ID_R12>(cycle);}
+        QWORD r13(DWORD cycle)      {return getRegValue<REG_ID_R13>(cycle);}
+        QWORD r14(DWORD cycle)      {return getRegValue<REG_ID_R14>(cycle);}
+        QWORD r15(DWORD cycle)      {return getRegValue<REG_ID_R15>(cycle);}
+        QWORD rcs(DWORD cycle)      {return getRegValue<REG_ID_RCS>(cycle);}
+        QWORD rflags(DWORD cycle)   {return getRegValue<REG_ID_RFLAGS>(cycle);}
+        QWORD rsp(DWORD cycle)      {return getRegValue<REG_ID_RSP>(cycle);}
+        QWORD rss(DWORD cycle)      {return getRegValue<REG_ID_RSS>(cycle);}
+#endif
+        DWORD threadId(DWORD cycle) {return (DWORD)(getRegValue<THREAD_ID>(cycle));}
+        DWORD findEffectiveCycle(DWORD regId, DWORD cycle);
         MACHINE_LONG getRegValueById(DWORD regId, DWORD cycle);
 		DWORD findCycleWithEipValue(DWORD targetEip, DWORD startCycle, DWORD endCycle);
 		DWORD findCycleWithRegValue(DWORD regId, DWORD targetValue, DWORD startCycle, DWORD endCycle);
@@ -83,7 +106,7 @@ class LogParser
 #endif
 	protected:
 		template <int REG_ID>
-		inline DWORD getRegValue(DWORD cycle)
+		inline MACHINE_LONG getRegValue(DWORD cycle)
 		{
 			DWORD index = reg[REG_ID]->findEffectiveIndex(cycle);
 			if (index >= reg[REG_ID]->getNumItems()) {
