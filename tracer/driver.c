@@ -7,6 +7,7 @@
 /* Includes */
 #include <wdm.h>
 #include "driver.h"
+#include "trapInterrupt.h"
 
 /* Set the functions types */
 /* 
@@ -25,7 +26,7 @@ NTSTATUS	DriverEntry(	PDRIVER_OBJECT	driver_object,
 	/* Used for not so important functions */
 	NTSTATUS        function_result = STATUS_SUCCESS;
 
-	/* Would hold the information about the device, been allocated by the IoCreateDevice proc */
+	/* Would hold the information about the device, been allocated by the IoCreateDevice procedure */
 	PDEVICE_OBJECT  device_object	= NULL;
 	
 	/* Would hold the driver name & dos device name, we must init unicode string for that */
@@ -114,6 +115,11 @@ NTSTATUS	DriverEntry(	PDRIVER_OBJECT	driver_object,
         windows_version[3] ));
     /* Set the offsets global var */
     offsets = find_windows_offsets(windows_version);
+
+    for (unsigned int i = 0; i < LOG_BUFFER_NUM_OF_BUFFERS; ++i)
+    {
+        log_buffer_item[i] = NULL;
+    }
 
     /* TODO: On unload clear the trap on branch flag */
     isTrapOnBranchSet = 0;

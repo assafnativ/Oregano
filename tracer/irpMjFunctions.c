@@ -110,16 +110,15 @@ NTSTATUS allocBuffersPoll()
         if( NULL != log_buffer_item[i] ) {
             KdPrint(( "! Oregano: allocBuffersPoll: log buffer is already allocated!\r\n" ));
             break;
-        } else {
-            new_log_buffer = ExAllocatePoolWithTag( NonPagedPool, LOG_BUFFER_SIZE, OREGANO_MEMORY_TAG ); 
-            //KdPrint(( "Oregano: on_create: Create buffer %x at %p\r\n", i, new_log_buffer ));
-            if( NULL == new_log_buffer ) {
-                KdPrint(( "! Oregano: allocBuffersPoll: Failed to allocate memory for log buffer %x\r\n", i ));
-                return STATUS_INSUFFICIENT_RESOURCES;
-            }
-            RtlZeroMemory( new_log_buffer, LOG_BUFFER_SIZE );
-            log_buffer_item[i] = new_log_buffer;
-        } /* else */
+        }
+        new_log_buffer = ExAllocatePoolWithTag( NonPagedPool, LOG_BUFFER_SIZE, OREGANO_MEMORY_TAG ); 
+        //KdPrint(( "Oregano: on_create: Create buffer %x at %p\r\n", i, new_log_buffer ));
+        if( NULL == new_log_buffer ) {
+            KdPrint(( "! Oregano: allocBuffersPoll: Failed to allocate memory for log buffer %x\r\n", i ));
+            return STATUS_INSUFFICIENT_RESOURCES;
+        }
+        RtlZeroMemory( new_log_buffer, LOG_BUFFER_SIZE );
+        log_buffer_item[i] = new_log_buffer;
     } /* for */
     
     return STATUS_SUCCESS;
