@@ -2,7 +2,8 @@ import time
 import os
 from hashlib import sha1
 
-os.chdir(os.path.dirname(__file__))
+if '' != os.path.dirname(__file__):
+    os.chdir(os.path.dirname(__file__))
 startTime = time.time()
 DISASM_SCRIPT_NAME = 'disasmTablesGenerator.py'
 THIS_SCRIP = os.path.basename(__file__)
@@ -237,7 +238,7 @@ NEXT_BYTE_ACCORDING_TO_TABLE_CODE = """
     mov cl, BYTE [#CODE_POINTER#]
     inc #CODE_POINTER#
     #EXTRA_LOADING_CODE#
-    jmp #POINTER_SIZE_NAME# [#TABLE_NAME# + #ECX_MAX_SIZE# * 4]
+    jmp #POINTER_SIZE_NAME# [#TABLE_NAME# + #ECX_MAX_SIZE# * #POINTER_SIZE#]
 """[1:]
 
 WRITE_ACCESS_ID_CODE = """
@@ -597,6 +598,25 @@ class OreganoCodeGenerator(object):
         self.highestTableId += 1
         return self.highestTableId
 
+    def getMoveType(self, displacementSize, is64=False):
+        if False == is64:
+            if 'DWORD' == displacementSize:
+                return 'mov'
+            elif displacementSize in ['WORD', 'BYTE']:
+                return 'movsx'
+            else:
+                raise Exception("Unknwon displacementSize %s" % displacementSize)
+        else:
+            if 'QWORD' == displacementSize:
+                return 'mov'
+            elif 'DWORD' == displacementSize:
+                return 'movsxd'
+            elif displacementSize in ['WORD', 'BYTE']:
+                return 'movsx'
+            else:
+                raise Exception("Unknwon displacementSize %s" % displacementSize)
+        raise Exception("WTF")
+
     def genCodeForEffect(self, effect, is64=False):
         pos = effect.find('_')
         if -1 == pos:
@@ -753,28 +773,8 @@ class OreganoCodeGenerator(object):
                 self.allKindsOfEffects[effect] = None
 
                 displacementSize = SIZE_NAME_OF_DISPLACEMENT[effectParts[1]]
-                if False == is64:
-                    if 'DWORD' != displacementSize:
-                        movType = 'movsx'
-                    else:
-                        movType = 'mov'
-                    offsetReg = OFFSET_REG
-                else:
-                    if 'DWORD' == displacementSize:
-                        offsetReg = 'edx'
-                        movType = 'mov'
-                    elif 'WORD' == displacementSize:
-                        offsetReg = 'edx'
-                        movType = 'movsx'
-                    elif 'BYTE' == displacementSize:
-                        offsetReg = 'edx'
-                        movType = 'movsx'
-                    elif 'QWORD' == displacementSize:
-                        offsetReg = 'rdx'
-                        movType = 'mov'
-                    else:
-                        raise Exception('Invalid displacement %s' % displacementSize)
-
+                offsetReg = OFFSET_REG
+                movType = self.getMoveType(displacementSize, is64=is64)
                 baseReg = effectParts[2]
                 indexReg = effectParts[3]
                 scale = effectParts[4]
@@ -825,27 +825,8 @@ class OreganoCodeGenerator(object):
                 self.allKindsOfEffects[effect] = None
 
                 displacementSize = SIZE_NAME_OF_DISPLACEMENT[effectParts[1]]
-                if False == is64:
-                    if 'DWORD' != displacementSize:
-                        movType = 'movsx'
-                    else:
-                        movType = 'mov'
-                    offsetReg = OFFSET_REG
-                else:
-                    if 'DWORD' == displacementSize:
-                        offsetReg = 'edx'
-                        movType = 'mov'
-                    elif 'WORD' == displacementSize:
-                        offsetReg = 'edx'
-                        movType = 'movsx'
-                    elif 'BYTE' == displacementSize:
-                        offsetReg = 'edx'
-                        movType = 'movsx'
-                    elif 'QWORD' == displacementSize:
-                        offsetReg = 'rdx'
-                        movType = 'mov'
-                    else:
-                        raise Exception('Invalid displacement %s' % displacementSize)
+                offsetReg = OFFSET_REG
+                movType = self.getMoveType(displacementSize, is64=is64)
 
                 indexReg = effectParts[3]
                 scale = effectParts[4]
@@ -948,27 +929,8 @@ class OreganoCodeGenerator(object):
             memRegSize = SIZE_NAME[REGISTERS_SIZES[memReg]]
             memPointerPart = ECX_PART_BY_MEMORY_ACCESS_SIZE[memRegSize]
             displacementSize = SIZE_NAME_OF_DISPLACEMENT[effectParts[1]]
-            if False == is64:
-                if 'DWORD' != displacementSize:
-                    movType = 'movsx'
-                else:
-                    movType = 'mov'
-                offsetReg = OFFSET_REG
-            else:
-                if 'DWORD' == displacementSize:
-                    offsetReg = 'edx'
-                    movType = 'mov'
-                elif 'WORD' == displacementSize:
-                    offsetReg = 'edx'
-                    movType = 'movsx'
-                elif 'BYTE' == displacementSize:
-                    offsetReg = 'edx'
-                    movType = 'movsx'
-                elif 'QWORD' == displacementSize:
-                    offsetReg = 'rdx'
-                    movType = 'mov'
-                else:
-                    raise Exception('Invalid displacement %s' % displacementSize)
+            offsetReg = OFFSET_REG
+            movType = self.getMoveType(displacementSize, is64=is64)
 
             code = effect + '_LOG:'
             code += self.genFunction(LOG_MOD_MEM_DISPLACEMENT_FUNCTION, {
@@ -1023,12 +985,14 @@ class OreganoCodeGenerator(object):
     def genJumpTable(self, table, opcode = '', is64=False):
         tableId = self.getHighestTableId()
         if is64:
+            POINTER_SIZE = 0x8
             CODE_POINTER = 'rbx'
             CODE_POINTER_SIZE_NAME = 'QWORD'
             EXTRA_LOADING_CODE = "lea rdx, QWORD [TABLE_ID_%04X]" % tableId
             TABLE_NAME = 'rdx'
             ECX_MAX_SIZE = 'rcx'
         else:
+            POINTER_SIZE = 0x4
             CODE_POINTER = 'ebx'
             CODE_POINTER_SIZE_NAME = 'DWORD'
             TABLE_NAME = 'TABLE_ID_%04X' % tableId
@@ -1039,6 +1003,7 @@ class OreganoCodeGenerator(object):
         # Gen code to jump according to table
         code += 'NEXT_BYTE_ACCORDING_TO_TABLE_%04X:' % tableId
         code += self.genFunction( NEXT_BYTE_ACCORDING_TO_TABLE_CODE, {
+                        '#POINTER_SIZE#'        : POINTER_SIZE,
                         '#TABLE_NAME#'          : TABLE_NAME,
                         '#ECX_MAX_SIZE#'        : ECX_MAX_SIZE,
                         '#CODE_POINTER#'        : CODE_POINTER,

@@ -48,11 +48,11 @@ class DisasmGenerator( object ):
         self.insts.append((12, (0, [0x66], ["op_size"], [OperandType.PREFIX], 0)))
         self.insts.append((12, (0, [0x67], ["address_size"], [OperandType.PREFIX], 0)))
 
-        self.REGS8_IDS   = ['AL',  'CL',  'DL',  'BL',  'AH',  'CH',  'DH',  'BH']
-        self.REGS16_IDS  = ['AX',  'CX',  'DX',  'BX',  'SP',  'BP',  'SI',  'DI']
-        self.REGS32_IDS  = ['EAX', 'ECX', 'EDX', 'EBX', 'ESP', 'EBP', 'ESI', 'EDI']
-        self.REGS64_IDS  = ['RAX', 'RCX', 'RDX', 'RBX', 'RSP', 'RBP', 'RSI', 'RDI']
-        self.DISP16_IDS  = ['BX_PLUS_SI', 'BX_PLUS_DI', 'BP_PLUS_SI', 'BP_PLUS_DI', 'SI', 'DI', 'BP', 'BX']
+        self.REGS8_IDS   = ['AL',  'CL',  'DL',  'BL',  'AH',  'CH',  'DH',  'BH',  'R8B', 'R9B', 'R10B', 'R11B', 'R12B', 'R13B', 'R14B', 'R15B']
+        self.REGS16_IDS  = ['AX',  'CX',  'DX',  'BX',  'SP',  'BP',  'SI',  'DI',  'R8W', 'R9W', 'R10W', 'R11W', 'R12W', 'R13W', 'R14W', 'R15W']
+        self.REGS32_IDS  = ['EAX', 'ECX', 'EDX', 'EBX', 'ESP', 'EBP', 'ESI', 'EDI', 'R8D', 'R9D', 'R10D', 'R11D', 'R12D', 'R13D', 'R14D', 'R15D']
+        self.REGS64_IDS  = ['RAX', 'RCX', 'RDX', 'RBX', 'RSP', 'RBP', 'RSI', 'RDI', 'R8', 'R9', 'R10', 'R11', 'R12', 'R13', 'R14', 'R15']
+        self.DISP16_IDS  = ['BX_PLUS_SI', 'BX_PLUS_DI', 'BP_PLUS_SI', 'BP_PLUS_DI', 'SI', 'DI', 'BP', 'BX', 'R8W', 'R9W', 'R10W', 'R11W', 'R12W', 'R13W', 'R14W', 'R15W']
         self.REGS8A_IDS  = ['R8B', 'R9B', 'R10B', 'R11B', 'R12B', 'R13B', 'R14B', 'R15B']
         self.REGS16A_IDS = ['R8W', 'R9W', 'R10W', 'R11W', 'R12W', 'R13W', 'R14W', 'R15W']
         self.REGS32A_IDS = ['R8D', 'R9D', 'R10D', 'R11D', 'R12D', 'R13D', 'R14D', 'R15D']
@@ -708,18 +708,22 @@ class DisasmGenerator( object ):
                 self.rm32Effects    [src_dst]  = 'DWORDPTR_' + self.REGS32_IDS[dst]
                 self.rm32PfEffects  [src_dst]  = 'DWORDPTR_' + self.DISP16_IDS[dst]
                 for rex in range(0x10):
-                    self.rm8On64Effects    [rex][src_dst] = 'BYTEPTR_'  + self.REGS64_IDS[dst]
-                    self.rm16On64Effects   [rex][src_dst] = 'WORDPTR_'  + self.REGS64_IDS[dst]
-                    self.rm32On64Effects   [rex][src_dst] = 'DWORDPTR_' + self.REGS64_IDS[dst]
-                    self.rm8On64PfEffects  [rex][src_dst] = 'BYTEPTR_'  + self.REGS32_IDS[dst]
-                    self.rm16On64PfEffects [rex][src_dst] = 'WORDPTR_'  + self.REGS32_IDS[dst]
-                    self.rm32On64PfEffects [rex][src_dst] = 'DWORDPTR_' + self.REGS32_IDS[dst]
-                    if rex & 8:
-                        self.rm64Effects   [rex][src_dst] = 'QWORDPTR_' + self.REGS64_IDS[dst]
-                        self.rm64PfEffects [rex][src_dst] = 'QWORDPTR_' + self.REGS32_IDS[dst]
+                    if rex & 1:
+                        rexTheDst = 8
                     else:
-                        self.rm64Effects   [rex][src_dst] = 'DWORDPTR_' + self.REGS64_IDS[dst]
-                        self.rm64PfEffects [rex][src_dst] = 'DWORDPTR_' + self.REGS32_IDS[dst]
+                        rexTheDst = 0
+                    self.rm8On64Effects    [rex][src_dst] = 'BYTEPTR_'  + self.REGS64_IDS[dst + rexTheDst]
+                    self.rm16On64Effects   [rex][src_dst] = 'WORDPTR_'  + self.REGS64_IDS[dst + rexTheDst]
+                    self.rm32On64Effects   [rex][src_dst] = 'DWORDPTR_' + self.REGS64_IDS[dst + rexTheDst]
+                    self.rm8On64PfEffects  [rex][src_dst] = 'BYTEPTR_'  + self.REGS32_IDS[dst + rexTheDst]
+                    self.rm16On64PfEffects [rex][src_dst] = 'WORDPTR_'  + self.REGS32_IDS[dst + rexTheDst]
+                    self.rm32On64PfEffects [rex][src_dst] = 'DWORDPTR_' + self.REGS32_IDS[dst + rexTheDst]
+                    if rex & 8:
+                        self.rm64Effects   [rex][src_dst] = 'QWORDPTR_' + self.REGS64_IDS[dst + rexTheDst]
+                        self.rm64PfEffects [rex][src_dst] = 'QWORDPTR_' + self.REGS32_IDS[dst + rexTheDst]
+                    else:
+                        self.rm64Effects   [rex][src_dst] = 'DWORDPTR_' + self.REGS64_IDS[dst + rexTheDst]
+                        self.rm64PfEffects [rex][src_dst] = 'DWORDPTR_' + self.REGS32_IDS[dst + rexTheDst]
                 
                 # Overwrite for no register flag
                 if 0x05 == dst:
@@ -758,28 +762,32 @@ class DisasmGenerator( object ):
                 self.rm32PfEffects      [0x40 + src_dst]   = 'DWORDPTR_DISPLACEMENT8_'  + self.DISP16_IDS[dst]
                 self.rm32PfEffects      [0x80 + src_dst]   = 'DWORDPTR_DISPLACEMENT16_' + self.DISP16_IDS[dst]
                 for rex in range(0x10):
-                    self.rm8On64Effects    [rex][0x40 + src_dst] = 'BYTEPTR_DISPLACEMENT8_'   + self.REGS64_IDS[dst]
-                    self.rm8On64Effects    [rex][0x80 + src_dst] = 'BYTEPTR_DISPLACEMENT32_'  + self.REGS64_IDS[dst]
-                    self.rm16On64Effects   [rex][0x40 + src_dst] = 'WORDPTR_DISPLACEMENT8_'   + self.REGS64_IDS[dst]
-                    self.rm16On64Effects   [rex][0x80 + src_dst] = 'WORDPTR_DISPLACEMENT32_'  + self.REGS64_IDS[dst]
-                    self.rm32On64Effects   [rex][0x40 + src_dst] = 'DWORDPTR_DISPLACEMENT8_'  + self.REGS64_IDS[dst]
-                    self.rm32On64Effects   [rex][0x80 + src_dst] = 'DWORDPTR_DISPLACEMENT32_' + self.REGS64_IDS[dst]
-                    self.rm8On64PfEffects  [rex][0x40 + src_dst] = 'BYTEPTR_DISPLACEMENT8_'   + self.REGS32_IDS[dst]
-                    self.rm8On64PfEffects  [rex][0x80 + src_dst] = 'BYTEPTR_DISPLACEMENT32_'  + self.REGS32_IDS[dst]
-                    self.rm16On64PfEffects [rex][0x40 + src_dst] = 'WORDPTR_DISPLACEMENT8_'   + self.REGS32_IDS[dst]
-                    self.rm16On64PfEffects [rex][0x80 + src_dst] = 'WORDPTR_DISPLACEMENT32_'  + self.REGS32_IDS[dst]
-                    self.rm32On64PfEffects [rex][0x40 + src_dst] = 'DWORDPTR_DISPLACEMENT8_'  + self.REGS32_IDS[dst]
-                    self.rm32On64PfEffects [rex][0x80 + src_dst] = 'DWORDPTR_DISPLACEMENT32_' + self.REGS32_IDS[dst]
-                    if rex & 8:
-                        self.rm64Effects    [rex][0x40 + src_dst] = 'QWORDPTR_DISPLACEMENT8_'  + self.REGS64_IDS[dst]
-                        self.rm64Effects    [rex][0x80 + src_dst] = 'QWORDPTR_DISPLACEMENT32_' + self.REGS64_IDS[dst]
-                        self.rm64PfEffects  [rex][0x40 + src_dst] = 'QWORDPTR_DISPLACEMENT8_'  + self.REGS32_IDS[dst]
-                        self.rm64PfEffects  [rex][0x80 + src_dst] = 'QWORDPTR_DISPLACEMENT32_' + self.REGS32_IDS[dst]
+                    if rex & 1:
+                        rexTheDst = 8
                     else:
-                        self.rm64Effects    [rex][0x40 + src_dst] = 'DWORDPTR_DISPLACEMENT8_'  + self.REGS64_IDS[dst]
-                        self.rm64Effects    [rex][0x80 + src_dst] = 'DWORDPTR_DISPLACEMENT32_' + self.REGS64_IDS[dst]
-                        self.rm64PfEffects  [rex][0x40 + src_dst] = 'DWORDPTR_DISPLACEMENT8_'  + self.REGS32_IDS[dst]
-                        self.rm64PfEffects  [rex][0x80 + src_dst] = 'DWORDPTR_DISPLACEMENT32_' + self.REGS32_IDS[dst]
+                        rexTheDst = 0
+                    self.rm8On64Effects    [rex][0x40 + src_dst] = 'BYTEPTR_DISPLACEMENT8_'   + self.REGS64_IDS[dst + rexTheDst]
+                    self.rm8On64Effects    [rex][0x80 + src_dst] = 'BYTEPTR_DISPLACEMENT32_'  + self.REGS64_IDS[dst + rexTheDst]
+                    self.rm16On64Effects   [rex][0x40 + src_dst] = 'WORDPTR_DISPLACEMENT8_'   + self.REGS64_IDS[dst + rexTheDst]
+                    self.rm16On64Effects   [rex][0x80 + src_dst] = 'WORDPTR_DISPLACEMENT32_'  + self.REGS64_IDS[dst + rexTheDst]
+                    self.rm32On64Effects   [rex][0x40 + src_dst] = 'DWORDPTR_DISPLACEMENT8_'  + self.REGS64_IDS[dst + rexTheDst]
+                    self.rm32On64Effects   [rex][0x80 + src_dst] = 'DWORDPTR_DISPLACEMENT32_' + self.REGS64_IDS[dst + rexTheDst]
+                    self.rm8On64PfEffects  [rex][0x40 + src_dst] = 'BYTEPTR_DISPLACEMENT8_'   + self.REGS32_IDS[dst + rexTheDst]
+                    self.rm8On64PfEffects  [rex][0x80 + src_dst] = 'BYTEPTR_DISPLACEMENT32_'  + self.REGS32_IDS[dst + rexTheDst]
+                    self.rm16On64PfEffects [rex][0x40 + src_dst] = 'WORDPTR_DISPLACEMENT8_'   + self.REGS32_IDS[dst + rexTheDst]
+                    self.rm16On64PfEffects [rex][0x80 + src_dst] = 'WORDPTR_DISPLACEMENT32_'  + self.REGS32_IDS[dst + rexTheDst]
+                    self.rm32On64PfEffects [rex][0x40 + src_dst] = 'DWORDPTR_DISPLACEMENT8_'  + self.REGS32_IDS[dst + rexTheDst]
+                    self.rm32On64PfEffects [rex][0x80 + src_dst] = 'DWORDPTR_DISPLACEMENT32_' + self.REGS32_IDS[dst + rexTheDst]
+                    if rex & 8:
+                        self.rm64Effects    [rex][0x40 + src_dst] = 'QWORDPTR_DISPLACEMENT8_'  + self.REGS64_IDS[dst + rexTheDst]
+                        self.rm64Effects    [rex][0x80 + src_dst] = 'QWORDPTR_DISPLACEMENT32_' + self.REGS64_IDS[dst + rexTheDst]
+                        self.rm64PfEffects  [rex][0x40 + src_dst] = 'QWORDPTR_DISPLACEMENT8_'  + self.REGS32_IDS[dst + rexTheDst]
+                        self.rm64PfEffects  [rex][0x80 + src_dst] = 'QWORDPTR_DISPLACEMENT32_' + self.REGS32_IDS[dst + rexTheDst]
+                    else:
+                        self.rm64Effects    [rex][0x40 + src_dst] = 'DWORDPTR_DISPLACEMENT8_'  + self.REGS64_IDS[dst + rexTheDst]
+                        self.rm64Effects    [rex][0x80 + src_dst] = 'DWORDPTR_DISPLACEMENT32_' + self.REGS64_IDS[dst + rexTheDst]
+                        self.rm64PfEffects  [rex][0x40 + src_dst] = 'DWORDPTR_DISPLACEMENT8_'  + self.REGS32_IDS[dst + rexTheDst]
+                        self.rm64PfEffects  [rex][0x80 + src_dst] = 'DWORDPTR_DISPLACEMENT32_' + self.REGS32_IDS[dst + rexTheDst]
 
                 # Overwrite for SIB
                 if 0x04 == dst:
@@ -854,18 +862,22 @@ class DisasmGenerator( object ):
                 self.oo32Effects        [opc_dst]  = 'DWORDPTR_' + self.REGS32_IDS[dst]
                 self.oo32PfEffects      [opc_dst]  = 'DWORDPTR_' + self.DISP16_IDS[dst]
                 for rex in range(0x10):
-                    self.oo8On64Effects    [rex][opc_dst]  = 'BYTEPTR_' +  self.REGS64_IDS[dst]
-                    self.oo8On64PfEffects  [rex][opc_dst]  = 'BYTEPTR_' +  self.REGS32_IDS[dst]
-                    self.oo16On64Effects   [rex][opc_dst]  = 'WORDPTR_' +  self.REGS64_IDS[dst]
-                    self.oo16On64PfEffects [rex][opc_dst]  = 'WORDPTR_' +  self.REGS32_IDS[dst]
-                    self.oo32On64Effects   [rex][opc_dst]  = 'DWORDPTR_' + self.REGS64_IDS[dst]
-                    self.oo32On64PfEffects [rex][opc_dst]  = 'DWORDPTR_' + self.REGS32_IDS[dst]
-                    if rex & 8:
-                        self.oo64Effects    [rex][opc_dst]  = 'QWORDPTR_' + self.REGS64_IDS[dst]
-                        self.oo64PfEffects  [rex][opc_dst]  = 'QWORDPTR_' + self.REGS32_IDS[dst]
+                    if rex & 1:
+                        rexTheDst = 8
                     else:
-                        self.oo64Effects    [rex][opc_dst]  = 'DWORDPTR_' + self.REGS32_IDS[dst]
-                        self.oo64PfEffects  [rex][opc_dst]  = 'DWORDPTR_' + self.REGS32_IDS[dst]
+                        rexTheDst = 0
+                    self.oo8On64Effects    [rex][opc_dst]  = 'BYTEPTR_' +  self.REGS64_IDS[dst + rexTheDst]
+                    self.oo8On64PfEffects  [rex][opc_dst]  = 'BYTEPTR_' +  self.REGS32_IDS[dst + rexTheDst]
+                    self.oo16On64Effects   [rex][opc_dst]  = 'WORDPTR_' +  self.REGS64_IDS[dst + rexTheDst]
+                    self.oo16On64PfEffects [rex][opc_dst]  = 'WORDPTR_' +  self.REGS32_IDS[dst + rexTheDst]
+                    self.oo32On64Effects   [rex][opc_dst]  = 'DWORDPTR_' + self.REGS64_IDS[dst + rexTheDst]
+                    self.oo32On64PfEffects [rex][opc_dst]  = 'DWORDPTR_' + self.REGS32_IDS[dst + rexTheDst]
+                    if rex & 8:
+                        self.oo64Effects    [rex][opc_dst]  = 'QWORDPTR_' + self.REGS64_IDS[dst + rexTheDst]
+                        self.oo64PfEffects  [rex][opc_dst]  = 'QWORDPTR_' + self.REGS32_IDS[dst + rexTheDst]
+                    else:
+                        self.oo64Effects    [rex][opc_dst]  = 'DWORDPTR_' + self.REGS32_IDS[dst + rexTheDst]
+                        self.oo64PfEffects  [rex][opc_dst]  = 'DWORDPTR_' + self.REGS32_IDS[dst + rexTheDst]
                 # Overwrite for no register flag
                 if 0x05 == dst:
                     self.oo8Effects         [opc_dst]  = 'BYTEPTR_'      + 'DISPLACEMENT32'
@@ -903,28 +915,32 @@ class DisasmGenerator( object ):
                 self.oo32PfEffects [0x40 + opc_dst]   = 'DWORDPTR_DISPLACEMENT8_'  + self.DISP16_IDS[dst]
                 self.oo32PfEffects [0x80 + opc_dst]   = 'DWORDPTR_DISPLACEMENT16_' + self.DISP16_IDS[dst]
                 for rex in range(0x10):
-                    self.oo8On64Effects   [rex][0x40 + opc_dst]  = 'BYTEPTR_DISPLACEMENT8_'   + self.REGS32_IDS[dst]
-                    self.oo8On64Effects   [rex][0x80 + opc_dst]  = 'BYTEPTR_DISPLACEMENT32_'  + self.REGS32_IDS[dst]
-                    self.oo8On64PfEffects [rex][0x40 + opc_dst]  = 'BYTEPTR_DISPLACEMENT8_'   + self.DISP16_IDS[dst]
-                    self.oo8On64PfEffects [rex][0x80 + opc_dst]  = 'BYTEPTR_DISPLACEMENT16_'  + self.DISP16_IDS[dst]
-                    self.oo16On64Effects  [rex][0x40 + opc_dst]  = 'WORDPTR_DISPLACEMENT8_'   + self.REGS32_IDS[dst]
-                    self.oo16On64Effects  [rex][0x80 + opc_dst]  = 'WORDPTR_DISPLACEMENT32_'  + self.REGS32_IDS[dst]
-                    self.oo16On64PfEffects[rex][0x40 + opc_dst]  = 'WORDPTR_DISPLACEMENT8_'   + self.DISP16_IDS[dst]
-                    self.oo16On64PfEffects[rex][0x80 + opc_dst]  = 'WORDPTR_DISPLACEMENT16_'  + self.DISP16_IDS[dst]
-                    self.oo32On64Effects  [rex][0x40 + opc_dst]  = 'DWORDPTR_DISPLACEMENT8_'  + self.REGS32_IDS[dst]
-                    self.oo32On64Effects  [rex][0x80 + opc_dst]  = 'DWORDPTR_DISPLACEMENT32_' + self.REGS32_IDS[dst]
-                    self.oo32On64PfEffects[rex][0x40 + opc_dst]  = 'DWORDPTR_DISPLACEMENT8_'  + self.DISP16_IDS[dst]
-                    self.oo32On64PfEffects[rex][0x80 + opc_dst]  = 'DWORDPTR_DISPLACEMENT16_' + self.DISP16_IDS[dst]
-                    if rex & 8:
-                        self.oo64Effects  [rex][0x40 + opc_dst]  = 'QWORDPTR_DISPLACEMENT8_'  + self.REGS64_IDS[dst]
-                        self.oo64Effects  [rex][0x80 + opc_dst]  = 'QWORDPTR_DISPLACEMENT32_' + self.REGS64_IDS[dst]
-                        self.oo64PfEffects[rex][0x40 + opc_dst]  = 'QWORDPTR_DISPLACEMENT8_'  + self.DISP16_IDS[dst]
-                        self.oo64PfEffects[rex][0x80 + opc_dst]  = 'QWORDPTR_DISPLACEMENT16_' + self.DISP16_IDS[dst]
+                    if rex & 1:
+                        rexTheDst = 8
                     else:
-                        self.oo64Effects  [rex][0x40 + opc_dst]  = 'DWORDPTR_DISPLACEMENT8_'  + self.REGS64_IDS[dst]
-                        self.oo64Effects  [rex][0x80 + opc_dst]  = 'DWORDPTR_DISPLACEMENT32_' + self.REGS64_IDS[dst]
-                        self.oo64PfEffects[rex][0x40 + opc_dst]  = 'DWORDPTR_DISPLACEMENT8_'  + self.DISP16_IDS[dst]
-                        self.oo64PfEffects[rex][0x80 + opc_dst]  = 'DWORDPTR_DISPLACEMENT16_' + self.DISP16_IDS[dst]
+                        rexTheDst = 0
+                    self.oo8On64Effects   [rex][0x40 + opc_dst]  = 'BYTEPTR_DISPLACEMENT8_'   + self.REGS32_IDS[dst + rexTheDst]
+                    self.oo8On64Effects   [rex][0x80 + opc_dst]  = 'BYTEPTR_DISPLACEMENT32_'  + self.REGS32_IDS[dst + rexTheDst]
+                    self.oo8On64PfEffects [rex][0x40 + opc_dst]  = 'BYTEPTR_DISPLACEMENT8_'   + self.DISP16_IDS[dst + rexTheDst]
+                    self.oo8On64PfEffects [rex][0x80 + opc_dst]  = 'BYTEPTR_DISPLACEMENT16_'  + self.DISP16_IDS[dst + rexTheDst]
+                    self.oo16On64Effects  [rex][0x40 + opc_dst]  = 'WORDPTR_DISPLACEMENT8_'   + self.REGS32_IDS[dst + rexTheDst]
+                    self.oo16On64Effects  [rex][0x80 + opc_dst]  = 'WORDPTR_DISPLACEMENT32_'  + self.REGS32_IDS[dst + rexTheDst]
+                    self.oo16On64PfEffects[rex][0x40 + opc_dst]  = 'WORDPTR_DISPLACEMENT8_'   + self.DISP16_IDS[dst + rexTheDst]
+                    self.oo16On64PfEffects[rex][0x80 + opc_dst]  = 'WORDPTR_DISPLACEMENT16_'  + self.DISP16_IDS[dst + rexTheDst]
+                    self.oo32On64Effects  [rex][0x40 + opc_dst]  = 'DWORDPTR_DISPLACEMENT8_'  + self.REGS32_IDS[dst + rexTheDst]
+                    self.oo32On64Effects  [rex][0x80 + opc_dst]  = 'DWORDPTR_DISPLACEMENT32_' + self.REGS32_IDS[dst + rexTheDst]
+                    self.oo32On64PfEffects[rex][0x40 + opc_dst]  = 'DWORDPTR_DISPLACEMENT8_'  + self.DISP16_IDS[dst + rexTheDst]
+                    self.oo32On64PfEffects[rex][0x80 + opc_dst]  = 'DWORDPTR_DISPLACEMENT16_' + self.DISP16_IDS[dst + rexTheDst]
+                    if rex & 8:
+                        self.oo64Effects  [rex][0x40 + opc_dst]  = 'QWORDPTR_DISPLACEMENT8_'  + self.REGS64_IDS[dst + rexTheDst]
+                        self.oo64Effects  [rex][0x80 + opc_dst]  = 'QWORDPTR_DISPLACEMENT32_' + self.REGS64_IDS[dst + rexTheDst]
+                        self.oo64PfEffects[rex][0x40 + opc_dst]  = 'QWORDPTR_DISPLACEMENT8_'  + self.DISP16_IDS[dst + rexTheDst]
+                        self.oo64PfEffects[rex][0x80 + opc_dst]  = 'QWORDPTR_DISPLACEMENT16_' + self.DISP16_IDS[dst + rexTheDst]
+                    else:
+                        self.oo64Effects  [rex][0x40 + opc_dst]  = 'DWORDPTR_DISPLACEMENT8_'  + self.REGS64_IDS[dst + rexTheDst]
+                        self.oo64Effects  [rex][0x80 + opc_dst]  = 'DWORDPTR_DISPLACEMENT32_' + self.REGS64_IDS[dst + rexTheDst]
+                        self.oo64PfEffects[rex][0x40 + opc_dst]  = 'DWORDPTR_DISPLACEMENT8_'  + self.DISP16_IDS[dst + rexTheDst]
+                        self.oo64PfEffects[rex][0x80 + opc_dst]  = 'DWORDPTR_DISPLACEMENT16_' + self.DISP16_IDS[dst + rexTheDst]
 
                 # Overwrite for SIB
                 if 0x04 == dst:
