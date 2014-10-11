@@ -17,6 +17,7 @@ class FileReader
         inline ADDRESS  readPointer() {return readType<ADDRESS>(); };
         DWORD           ReadNullTermString(BYTE * output);
         void            readData(BYTE * outputBuffer, DWORD length);
+        void            aligenReadTo4();
 		inline BOOL		isEof()		{return totalBytesRead >= fileSize; };
 		inline DWORD	tell()		{return totalBytesRead;};
 		inline void		closeFile()		{CloseHandle(file);};

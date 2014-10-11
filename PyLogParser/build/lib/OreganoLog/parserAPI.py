@@ -4,12 +4,13 @@ from os import sep as osSep
 
 class CAddress(Structure):
     _fields_ = [
-            ('addr',    c_uint32),
+            ('addr',    c_void_p),
             ('cycle',   c_uint32) ]
 
 class API(object):
     INVALID_CYCLE = 0xffffffffl
     INVALID_VALUE = 0xffffffffl
+    UNKNOWN_QWORD = 0x3f3f3f3f3f3f3f3fl
     UNKNOWN_DWORD = 0x3f3f3f3fl
     UNKNOWN_WORD  = 0x3f3f
     UNKNOWN_BYTE  = 0x3f
@@ -18,12 +19,12 @@ class API(object):
 
     class Address( Structure ):
         _fields_ = [
-                ('addr',    c_uint32),
+                ('addr',    c_void_p),
                 ('cycle',   c_uint32) ]
 
     class ByteInTime( Structure ):
         _fields_ = [
-                ('addr',    c_uint32),
+                ('addr',    c_void_p),
                 ('cycle',   c_uint32),
                 ('value',   c_uint8) ]
 
@@ -96,8 +97,8 @@ class API(object):
             self.defineFunction('getRdx',    [c_void_p, c_uint32], c_uint64)
             self.defineFunction('getRcx',    [c_void_p, c_uint32], c_uint64)
             self.defineFunction('getRax',    [c_void_p, c_uint32], c_uint64)
-            self.defineFunction('getR8 ',    [c_void_p, c_uint32], c_uint64)
-            self.defineFunction('getR9 ',    [c_void_p, c_uint32], c_uint64)
+            self.defineFunction('getR8',     [c_void_p, c_uint32], c_uint64)
+            self.defineFunction('getR9',     [c_void_p, c_uint32], c_uint64)
             self.defineFunction('getR10',    [c_void_p, c_uint32], c_uint64)
             self.defineFunction('getR11',    [c_void_p, c_uint32], c_uint64)
             self.defineFunction('getR12',    [c_void_p, c_uint32], c_uint64)

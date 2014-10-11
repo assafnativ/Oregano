@@ -53,21 +53,21 @@ LOG_PARSER_API DWORD getThreadId(LogParser * logParser, DWORD cycle);
 LOG_PARSER_API DWORD findEffectiveCycle(LogParser * logParser, DWORD regId, DWORD cycle);
 LOG_PARSER_API MACHINE_LONG getRegValue(LogParser * logParser, DWORD regId, DWORD cycle);
 
-LOG_PARSER_API BYTE	 getByte (LogParser * logParser, DWORD cycle, DWORD addr);
-LOG_PARSER_API WORD	 getWord (LogParser * logParser, DWORD cycle, DWORD addr);
-LOG_PARSER_API DWORD getDword(LogParser * logParser, DWORD cycle, DWORD addr);
-LOG_PARSER_API QWORD getQword(LogParser * logParser, DWORD cycle, DWORD addr);
+LOG_PARSER_API BYTE	 getByte (LogParser * logParser, DWORD cycle, ADDRESS addr);
+LOG_PARSER_API WORD	 getWord (LogParser * logParser, DWORD cycle, ADDRESS addr);
+LOG_PARSER_API DWORD getDword(LogParser * logParser, DWORD cycle, ADDRESS addr);
+LOG_PARSER_API QWORD getQword(LogParser * logParser, DWORD cycle, ADDRESS addr);
 
 LOG_PARSER_API void deleteLogParserObject(LogParser * logParser);
 
-LOG_PARSER_API FindCycleWithEipValue * findCycleWithEipValue( LogParser * logParser, DWORD target, DWORD startCycle, DWORD endCycle );
+LOG_PARSER_API FindCycleWithEipValue * findCycleWithEipValue( LogParser * logParser, ADDRESS target, DWORD startCycle, DWORD endCycle );
 LOG_PARSER_API void 	findCycleWithEipValueObjectNext(FindCycleWithEipValue * ctx);
 LOG_PARSER_API DWORD	findCycleWithEipValueObjectCurrent(FindCycleWithEipValue * ctx);
 LOG_PARSER_API BOOL     findCycleWithEipValueIsEndOfSearch(FindCycleWithEipValue * ctx);
 LOG_PARSER_API void		findCycleWithEipValueObjectRestartSearch(FindCycleWithEipValue * ctx);
 LOG_PARSER_API void		findCycleWithEipValueDelete(FindCycleWithEipValue * ctx);
 
-LOG_PARSER_API FindChangingCycles * findChangingCycles( LogParser * logParser, DWORD addr, DWORD startCycle, DWORD endCycle) ;
+LOG_PARSER_API FindChangingCycles * findChangingCycles( LogParser * logParser, ADDRESS addr, DWORD startCycle, DWORD endCycle) ;
 LOG_PARSER_API void  	findChangingCyclesNext(FindChangingCycles * ctx);
 LOG_PARSER_API Cycle 	findChangingCyclesCurrent(FindChangingCycles * ctx);
 LOG_PARSER_API void		findChangingCyclesRestartSearch(FindChangingCycles * ctx);

@@ -2,6 +2,7 @@
 import struct
 import io
 import time
+import sys
 
 import distorm3
 
@@ -28,7 +29,8 @@ def parseLog(fileName, timeIt=False, maxCycle=0x7fffffff, isVerbose=False):
 
 class Log(MemReaderBase, DebuggerBase, GUIDisplayBase):
     def __init__(self, logFile, maxCycle=0x7fffffff, isVerbose=False):
-        self.API = API(True)
+        self._is64Bit = '64 bit' in sys.version
+        self.API = API(not self._is64Bit)
         self.DEFAULT_DATA_SIZE = 4
         MemReaderBase.__init__(self)
         self.isVerbose = isVerbose
@@ -81,7 +83,6 @@ class Log(MemReaderBase, DebuggerBase, GUIDisplayBase):
             self.POINTER_SIZE = 4
         elif self.API.PROCESSOR_TYPE_AMD64 == self._processor:
             self.POINTER_SIZE = 8
-            raise Exception("Not implemented yet")
         else:
             raise Exception("Unknown CPU type")
         self.lastCycle = self.API.getLastCycle(self._log)
@@ -271,7 +272,7 @@ class Log(MemReaderBase, DebuggerBase, GUIDisplayBase):
         ctx = self.API.findData( self._log, data, len(data), startCycle, endCycle )
         itemPtr = self.API.findDataCurrent(ctx)
         while None != itemPtr:
-            item    = self.API.Address.from_address(itemPtr)
+            item = self.API.Address.from_address(itemPtr)
             if self.API.INVALID_CYCLE == item.cycle:
                 break
             yield Address(item.cycle, item.addr)

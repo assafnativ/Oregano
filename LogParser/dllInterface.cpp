@@ -3,7 +3,14 @@
 
 LogParser * parseLog(const char * fileName)
 {
-    return new LogParser(fileName);
+   LogParser * result = new LogParser(fileName);
+   if (0 == result->getLastCycle())
+   {
+       delete result;
+       result = NULL;
+       return NULL;
+   }
+   return result;
 }
 DWORD getLastCycle(LogParser * logParser) {return logParser->getLastCycle();}
 DWORD getProcessorType(LogParser * logParser) {return logParser->getProcessorType();}
@@ -49,7 +56,7 @@ DWORD getDword(LogParser * logParser, DWORD cycle, ADDRESS addr) { return logPar
 QWORD getQword(LogParser * logParser, DWORD cycle, ADDRESS addr) { return logParser->getQword(cycle, addr); }
 void deleteLogParserObject(LogParser * logParser) {delete logParser;}
 
-FindCycleWithEipValue * findCycleWithEipValue( LogParser * logParser, DWORD target, DWORD startCycle, DWORD endCycle )
+FindCycleWithEipValue * findCycleWithEipValue( LogParser * logParser, ADDRESS target, DWORD startCycle, DWORD endCycle )
 {
 	FindCycleWithEipValue * newFinder = new FindCycleWithEipValue(logParser);
 	newFinder->newSearch(target, startCycle, endCycle);
@@ -61,14 +68,14 @@ BOOL    findCycleWithEipValueIsEndOfSearch(FindCycleWithEipValue * ctx)       {r
 void	findCycleWithEipValueObjectRestartSearch(FindCycleWithEipValue * ctx) {ctx->restartSearch();}
 void	findCycleWithEipValueDelete(FindCycleWithEipValue * ctx)              {delete ctx;}
 
-FindChangingCycles * findChangingCycles( LogParser * logParser, DWORD addr, DWORD startCycle, DWORD endCycle)
+FindChangingCycles * findChangingCycles( LogParser * logParser, ADDRESS addr, DWORD startCycle, DWORD endCycle)
 {
     return logParser->findChangingCycles(addr, startCycle, endCycle);
 }
-void            findChangingCyclesNext(FindChangingCycles * ctx)          {ctx->next();}
-Cycle           findChangingCyclesCurrent(FindChangingCycles * ctx)       {return ctx->current();}
-void	        findChangingCyclesRestartSearch(FindChangingCycles * ctx) {ctx->restartSearch();}
-void	        findChangingCyclesDelete(FindChangingCycles * ctx)        {delete ctx;}
+void    findChangingCyclesNext(FindChangingCycles * ctx)          {ctx->next();}
+Cycle   findChangingCyclesCurrent(FindChangingCycles * ctx)       {return ctx->current();}
+void	findChangingCyclesRestartSearch(FindChangingCycles * ctx) {ctx->restartSearch();}
+void	findChangingCyclesDelete(FindChangingCycles * ctx)        {delete ctx;}
 
 FindData * findData( LogParser * logParser, const BYTE * data, DWORD dataLength, DWORD startCycle, DWORD endCycle )
 {

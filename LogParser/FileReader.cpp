@@ -59,3 +59,23 @@ void FileReader::readData( BYTE * outputBuffer, DWORD length )
     assert(bytesRead == length);
     return;
 }
+
+void FileReader::aligenReadTo4()
+{
+    DWORD bytesRead;
+    char outputBuffer[4];
+    DWORD paddingBytes = 4 - totalBytesRead & 3;
+    if (4 == paddingBytes)
+    {
+        return;
+    }
+    ReadFile(
+        file,
+        (LPVOID)(&outputBuffer),
+        paddingBytes,
+        &bytesRead,
+        NULL);
+    totalBytesRead += paddingBytes;
+    assert(bytesRead == paddingBytes);
+    return;
+}

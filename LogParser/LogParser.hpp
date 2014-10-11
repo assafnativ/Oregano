@@ -80,7 +80,7 @@ class LogParser
         BYTE * getStaticMemoryPointer(ADDRESS addr) {return memory->getStaticMemoryPointer(addr);};
         DWORD getProcessorType() { return *processorType; };
         RegLogIterBase * getRegLogIter(DWORD regId, DWORD cycle);
-        FindChangingCycles * findChangingCycles(DWORD addr, DWORD startCycle, DWORD endCycle) {
+        FindChangingCycles * findChangingCycles(ADDRESS addr, DWORD startCycle, DWORD endCycle) {
             return new FindChangingCycles(memory, addr, startCycle, endCycle);
         }
         FindData * findData(const BYTE * data, DWORD dataLength, DWORD startCycle, DWORD endCycle) {
@@ -156,7 +156,7 @@ class FindCycleWithEipValue
 	public:
 		FindCycleWithEipValue(LogParser * logParser);
 		void restartSearch();
-		void newSearch( DWORD target, DWORD startCycle, DWORD endCycle );
+		void newSearch( ADDRESS target, DWORD startCycle, DWORD endCycle );
 		BOOL isEndOfSearch() {return isDone;};
 		void next();
         void prev();
@@ -165,7 +165,7 @@ class FindCycleWithEipValue
         void findNext();
         void findPrev();
 		LogParser *	logParser;
-        DWORD       target;
+        ADDRESS     target;
 		DWORD		currentCycle;
 		DWORD		bottomCycle;
 		DWORD		topCycle;

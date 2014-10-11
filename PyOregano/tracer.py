@@ -359,10 +359,15 @@ class PyOregano( MemoryReader ):
                     continue
                 loggedModules.append(module)
         for module in loggedModules:
+            moduleName = module[1]
+            moduleAddress = module[0]
+            moduleSize = module[2]
             modulesInfo += self._makeAtom('MODL', \
-                    module[1] + '\x00' + \
+                    pack('=L', len(moduleName)) + \
+                    moduleName + \
+                    '\x00' * abs(len(moduleName) % -4) + \
                     pack('=' + self.POINTER_PACK, module[0]) + \
-                    pack('=' + self.POINTER_PACK, module[2]) + \
+                    pack('=L', module[2]) + \
                     self.readMemory(module[0], module[2]) )
         self._writeAtom('MDLS', pack('=L', len(loggedModules)) + modulesInfo)
         rangesInfo = ''

@@ -36,7 +36,8 @@ LogParser::LogParser(const char * logFile)
 		:
         opcodesSideEffects(NULL),
         log(logFile),
-        eipLog(NULL)
+        eipLog(NULL),
+        lastCycle(0)
 
 {
     // Init what I can't init above
@@ -46,6 +47,11 @@ LogParser::LogParser(const char * logFile)
     // Validate input
     if (strlen(logFile) > (MAX_FILE_NAME - strlen(LOG_DB_EXTENTION) - 1)) {
         // Fuck this shit
+        return;
+    }
+    // Is empty file, or invalid file
+    if (log.isEof())
+    {
         return;
     }
     char dbFileName[MAX_FILE_NAME] = {0};
@@ -258,9 +264,10 @@ BOOL LogParser::parseModulesInfo(FileReader &log)
         DWORD tagName = readSectionTag();
         assert('MODL' == tagName);
         char moduleName[0x100];
-        log.ReadNullTermString((BYTE *)moduleName);
-        /* TODO fix me */
-        ADDRESS moduleAddress   = log.readDword();
+        DWORD moduleNameLen = log.readDword();
+        log.readData((BYTE *)moduleName, moduleNameLen);
+        log.aligenReadTo4();
+        ADDRESS moduleAddress   = log.readPointer();
         DWORD moduleSize        = log.readDword();
         Address address(0, moduleAddress);
         BYTE * moduleData = new BYTE[moduleSize];
@@ -281,8 +288,8 @@ BOOL LogParser::parseRangesInfo(FileReader &log)
         DWORD tagSize = log.readDword();
         DWORD tagName = readSectionTag();
         if ('RNGE' == tagName) {
-            DWORD rangeStart = log.readDword();
-            DWORD rangeEnd   = log.readDword();
+            ADDRESS rangeStart = log.readPointer();
+            ADDRESS rangeEnd   = log.readPointer();
             assert(rangeStart < rangeEnd);
         } else {
             /* Invalid tag */
@@ -530,7 +537,7 @@ void FindCycleWithEipValue::restartSearch()
     findNext();
 }
 
-void FindCycleWithEipValue::newSearch( DWORD searchTarget, DWORD startCycle, DWORD endCycle )
+void FindCycleWithEipValue::newSearch( ADDRESS searchTarget, DWORD startCycle, DWORD endCycle )
 {
 	bottomCycle = startCycle;
 	topCycle = endCycle;
