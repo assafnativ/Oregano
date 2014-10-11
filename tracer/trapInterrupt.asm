@@ -446,7 +446,6 @@ LOG_BUFFER_HAS_SPACE:
 _trap_interrupt_perform_mem_log@0:
 PERFORM_MEM_LOG:
 	; Parse Opcode
-	%include "opcodeSideEffects.auto.asm"
 	movzx ecx, BYTE [ebx]
 	inc ebx
 	jmp [TABLE_ID_0001 + ecx * SIZE_OF_POINTER]
@@ -593,6 +592,7 @@ _trap_interrupt_out_of_range@0:
     ; because I want the trace to overwrite this cycle
     RETURN_FROM_INTERRUPT_WITH_CHECK
 
+%include "opcodeSideEffects.auto.asm"
 ;_trap_interrupt@0 ENDP
 
 ;END
