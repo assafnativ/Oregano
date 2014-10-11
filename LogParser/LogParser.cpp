@@ -543,7 +543,7 @@ void FindCycleWithEipValue::findNext()
 {
     while (currentCycle < topCycle)
     {
-        DWORD currentValue = eipLog->getItem(currentCycle);
+        MACHINE_LONG currentValue = eipLog->getItem(currentCycle);
         if (target == currentValue)
         {
             return;
@@ -557,7 +557,7 @@ void FindCycleWithEipValue::findPrev()
 {
     while (bottomCycle < currentCycle)
     {
-        DWORD currentValue = eipLog->getItem(currentCycle);
+        MACHINE_LONG currentValue = eipLog->getItem(currentCycle);
         if (target == currentValue)
         {
             return;
