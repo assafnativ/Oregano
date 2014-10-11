@@ -72,7 +72,7 @@ def updateDriver(target=None, debug=True):
     is64 = '64' in remote.modules.platform.machine()
     binaryDir = 'output\\'
     if is64:
-        binaryDir += 'AMD64\\'
+        binaryDir += 'x64\\'
     else:
         binaryDir += 'x86\\'
     if debug:
