@@ -102,6 +102,9 @@
       <EnablePREfast>true</EnablePREfast>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
     </ClCompile>
+    <PreBuildEvent>
+      <Command>python $(SolutionDir)codeGenerator\codeGenerator.py</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Link>
@@ -112,6 +115,9 @@
       <EnablePREfast>true</EnablePREfast>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
     </ClCompile>
+    <PreBuildEvent>
+      <Command>python $(SolutionDir)codeGenerator\codeGenerator.py</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Link>
@@ -122,6 +128,9 @@
       <EnablePREfast>true</EnablePREfast>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
     </ClCompile>
+    <PreBuildEvent>
+      <Command>python $(SolutionDir)codeGenerator\codeGenerator.py</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Link>
@@ -132,6 +141,9 @@
       <EnablePREfast>true</EnablePREfast>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
     </ClCompile>
+    <PreBuildEvent>
+      <Command>python $(SolutionDir)codeGenerator\codeGenerator.py</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <Inf Include="Oregano.inf" />
