@@ -33,5 +33,6 @@
 *.ilk
 *.idb
 *.exp
+*.bak
 intermediate/*
 output/*
