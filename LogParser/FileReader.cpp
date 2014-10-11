@@ -43,7 +43,7 @@ DWORD FileReader::ReadNullTermString(BYTE * output)
         ++output;
     } while( 0 != byteRead );
 
-    return output - startPoint;
+    return (DWORD)(output - startPoint);
 }
 
 void FileReader::readData( BYTE * outputBuffer, DWORD length )
