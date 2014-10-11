@@ -1,5 +1,5 @@
 
-#include "dllInterfaceI386.hpp"
+#include "dllInterface.hpp"
 
 LogParser * parseLog(const char * fileName)
 {

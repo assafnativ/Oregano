@@ -18,12 +18,6 @@
     <ClCompile Include="ByteInTime.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="dllDebugInterfaceI386.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="dllInterfaceI386.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="EipLog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -54,6 +48,12 @@
     <ClCompile Include="RegLog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="dllDebugInterface.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="dllInterface.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Address.hpp">
@@ -63,12 +63,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DBRootPage.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="dllDebugInterfaceI386.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="dllInterfaceI386.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="EipLog.hpp">
@@ -132,6 +126,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="StatisticsInfo.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="dllDebugInterface.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="dllInterface.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

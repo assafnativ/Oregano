@@ -143,8 +143,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ByteInTime.cpp" />
-    <ClCompile Include="dllDebugInterfaceI386.cpp" />
-    <ClCompile Include="dllInterfaceI386.cpp" />
+    <ClCompile Include="dllDebugInterface.cpp" />
+    <ClCompile Include="dllInterface.cpp" />
     <ClCompile Include="EipLog.cpp" />
     <ClCompile Include="FileReader.cpp" />
     <ClCompile Include="LogParser.cpp" />
@@ -160,8 +160,8 @@
     <ClInclude Include="Address.hpp" />
     <ClInclude Include="ByteInTime.hpp" />
     <ClInclude Include="DBRootPage.hpp" />
-    <ClInclude Include="dllDebugInterfaceI386.hpp" />
-    <ClInclude Include="dllInterfaceI386.hpp" />
+    <ClInclude Include="dllDebugInterface.hpp" />
+    <ClInclude Include="dllInterface.hpp" />
     <ClInclude Include="EipLog.hpp" />
     <ClInclude Include="FileReader.hpp" />
     <ClInclude Include="GlobalDefines.hpp" />

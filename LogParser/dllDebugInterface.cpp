@@ -1,5 +1,5 @@
 
-#include "dllDebugInterfaceI386.hpp"
+#include "dllDebugInterface.hpp"
 
 #ifdef _DEBUG
 
