@@ -12,10 +12,15 @@ import time
 from struct import pack, unpack
 import thread
 import sys
+import os
 import traceback
 import exceptions
 
-def attach(target_process, target_thread=0, outputPath='C:\\Debugging'):
+def attach(target_process, target_thread=0, outputPath=None):
+    if None == outputPath:
+        outputPath = 'C:\\Debugging'
+    if not os.path.isdir(outputPath):
+        os.makedirs(outputPath)
     if int == type(target_process) or long == type(target_process):
         return PyOregano(target_process, target_thread, outputPath=outputPath)
     elif str == type(target_process):
@@ -82,8 +87,7 @@ class PyOregano( MemoryReader ):
             oreganoDriverFile = os.path.sep.join(__file__.split(os.path.sep)[:-1])
             oreganoDriverFile = os.path.sep.join([oreganoDriverFile, self.OREGANO_FILE])
             print("Using oregano driver file {0}".format(oreganoDriverFile))
-            oreganoService = self.OREGANO_FILE
-            oreganoService = oreganoService[:oreganoService.find('.')]
+            oreganoService = 'Oregano'
             oreganoDisplayName = oreganoService + ' Driver'
             print('Loading driver {0} (Display name: {1})'.format(oreganoDriverFile, oreganoDisplayName))
             service = OpenService(
@@ -99,6 +103,7 @@ class PyOregano( MemoryReader ):
             e = WinError()
             # 1056 is the service is already running error
             if 0 == startServiceRC and 1056 != e.winerror:
+                print repr(e)
                 raise e
             print('Service started 0x%x' % startServiceRC)
             
@@ -130,8 +135,8 @@ class PyOregano( MemoryReader ):
             self._lastBufferUsed = 0 
         except:
             print('Failed to create Oregano instance')
-            self.unloadDriver()
             traceback.print_exc( sys.exc_info )
+            self.unloadDriver()
 
     def __del__(self):
         self.unloadDriver()
@@ -147,30 +152,40 @@ class PyOregano( MemoryReader ):
             raise tracerException("Failed to find sysgate for 0x%x" % procAddr)
         return procIndex
 
+    def findProcAddress(self, procName):
+        LoadLibrary = windll.kernel32.LoadLibraryA
+        LoadLibrary.restype = c_void_p
+        LoadLibrary.argtypes = [c_char_p]
+        ntdll       = LoadLibrary('ntdll.dll')
+        getProcAddress = windll.kernel32.GetProcAddress
+        GetProcAddress.restype = c_void_p
+        GetProcAddress.argtypes = [c_void_p, c_char_p]
+        for prefix in ['Nt', 'Zw']:
+            try:
+                procAddress = windll.kernel32.GetProcAddress(ntdll, prefix + procName)
+                if 0 != procAddress and None != procAddress:
+                    break
+            except exceptions.WindowsError, e:
+                if 126 == e.winerror:
+                    pass
+                else:
+                    raise e
+        else:
+            raise Exception("Proc %s not found" % procName)
+        print("Found %s at 0x%x" % (procName, procAddress))
+        return procAddress
+
     def initOregano( self ):
         # Find the system services index of NtSuspendProcess and NtResumeProcess
-        ntdll = windll.kernel32.LoadLibraryA('ntdll.dll')
-        try:
-            NtSuspendProcess    = windll.kernel32.GetProcAddress(ntdll, 'NtSuspendProcess')
-            NtResumeProcess     = windll.kernel32.GetProcAddress(ntdll, 'NtResumeProcess')
-            NtSuspendThread     = windll.kernel32.GetProcAddress(ntdll, 'NtSuspendThread')
-            NtResumeThread      = windll.kernel32.GetProcAddress(ntdll, 'NtResumeThread')
-        except exceptions.WindowsError, e:
-            # Sometimes the function is prefixed by Zw and not Nt, god knows what goes inside the
-            # the head of the common MS developer.
-            if 126 == e.winerror:
-                NtSuspendProcess    = windll.kernel32.GetProcAddress(ntdll, 'ZwSuspendProcess')
-                NtResumeProcess     = windll.kernel32.GetProcAddress(ntdll, 'ZwResumeProcess')
-                NtSuspendThread     = windll.kernel32.GetProcAddress(ntdll, 'ZwSuspendThread')
-                NtResumeThread      = windll.kernel32.GetProcAddress(ntdll, 'ZwResumeThread')
-            else:
-                raise e
-
-        apisInfo  = pack('=L', 4)
-        apisInfo += pack('=L', self.getSyscallIndex(NtSuspendProcess))
-        apisInfo += pack('=L', self.getSyscallIndex(NtResumeProcess))
-        apisInfo += pack('=L', self.getSyscallIndex(NtSuspendThread))
-        apisInfo += pack('=L', self.getSyscallIndex(NtResumeThread))
+        NtSuspendProcess = self.findProcAddress('SuspendProcess')
+        NtResumeProcess  = self.findProcAddress('ResumeProcess')
+        NtSuspendThread  = self.findProcAddress('SuspendThread')
+        NtResumeThread   = self.findProcAddress('ResumeThread')
+        apisInfo  = pack(self.POINTER_PACK, 4)
+        apisInfo += pack(self.POINTER_PACK, self.getSyscallIndex(NtSuspendProcess))
+        apisInfo += pack(self.POINTER_PACK, self.getSyscallIndex(NtResumeProcess))
+        apisInfo += pack(self.POINTER_PACK, self.getSyscallIndex(NtSuspendThread))
+        apisInfo += pack(self.POINTER_PACK, self.getSyscallIndex(NtResumeThread))
 
         outputBuffer = '\x00' * 1000
         bytesWritten = c_uint32(0)
@@ -199,7 +214,9 @@ class PyOregano( MemoryReader ):
                 None )
 
     def unloadDriver( self ):
+        print "Unloading driver"
         if None != self._oregano_handle:
+            print "Closing handle to driver"
             CloseHandle( self._oregano_handle )
         if None != self._service:
             ss = SERVICE_STATUS()
@@ -208,6 +225,7 @@ class PyOregano( MemoryReader ):
             except:
                 pass
             CloseServiceHandle( self._service )
+        print "Done unloading"
 
     def probeInfoAndRead( self ):
         # TODO:
@@ -343,8 +361,8 @@ class PyOregano( MemoryReader ):
         for module in loggedModules:
             modulesInfo += self._makeAtom('MODL', \
                     module[1] + '\x00' + \
-                    pack('=L', module[0]) + \
-                    pack('=L', module[2]) + \
+                    pack('=' + self.POINTER_PACK, module[0]) + \
+                    pack('=' + self.POINTER_PACK, module[2]) + \
                     self.readMemory(module[0], module[2]) )
         self._writeAtom('MDLS', pack('=L', len(loggedModules)) + modulesInfo)
         rangesInfo = ''
