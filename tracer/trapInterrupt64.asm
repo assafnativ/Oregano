@@ -511,7 +511,9 @@ LOG_BUFFER_HAS_SPACE:
 trap_interrupt_perform_mem_log:
 PERFORM_MEM_LOG:
     ; Parse Opcode
+    %ifdef DEBUG
     mov [DebugVar6], rbx
+    %endif
     movzx ecx, BYTE [rbx]
     inc rbx
     lea rdx, QWORD [TABLE_ID_0001]

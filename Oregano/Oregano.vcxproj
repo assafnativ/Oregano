@@ -136,6 +136,7 @@
     <ClCompile>
       <EnablePREfast>true</EnablePREfast>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <PreprocessorDefinitions>_X86_=1;i386=1;STD_CALL;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <PreBuildEvent>
       <Command>python $(SolutionDir)codeGenerator\codeGenerator.py</Command>
@@ -149,6 +150,7 @@
     <ClCompile>
       <EnablePREfast>true</EnablePREfast>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <PreprocessorDefinitions>_WIN64;_AMD64_;AMD64;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <PreBuildEvent>
       <Command>python $(SolutionDir)codeGenerator\codeGenerator.py</Command>

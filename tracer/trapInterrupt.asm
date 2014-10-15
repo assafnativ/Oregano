@@ -308,7 +308,9 @@ _trap_interrupt_target_process@0:
     mov dr6, eax
 %ifdef DEBUG
     mov eax, 1
+    %ifdef DEBUG
     mov [_DebugVar0], eax
+    %endif
 %endif
 
     ; Is in range
