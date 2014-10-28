@@ -11,7 +11,7 @@ class PagedRandomAccess
 public:
     static const DWORD PAGE_ITEMS_CAPACITY      = PAGE_SIZE / sizeof(T);
     static const DWORD PAGE_ROOT_ITEMS_CAPACITY = PAGE_ITEMS_CAPACITY * (PAGE_INDEXES_CAPACITY - 1);
-    PagedRandomAccess(PageIndex rootIndex, PagedDataContainer * dc)
+    PagedRandomAccess(PageIndex rootIndex, PagedDataContainer * dc, DWORD tag)
         : 
             dataContainer(dc),
             rootPageIndex(rootIndex),
@@ -20,11 +20,13 @@ public:
             lastPageIndex(INVALID_PAGE_INDEX),
             numItems(NULL)
     {
+        DEBUG_ONLY(_tag = tag);
         for (int i = 0; i < PAGE_INDEXES_CAPACITY; ++i) {
             level2Pages[i] = NULL;
         }
 
         rootPage = (PageIndex *)dataContainer->obtainPage(rootPageIndex);
+        DEBUG_ONLY(dataContainer->setPageTag(rootPageIndex, tag));
         numItems = &rootPage[PAGE_INDEXES_CAPACITY - 1];
         // Load the level2 pages
         if (0 != *numItems)
@@ -33,6 +35,7 @@ public:
             for (DWORD i = 0; i <= rootIndexs; ++i)
             {
                 level2Pages[i] = (DWORD *)dataContainer->obtainPage(rootPage[i]);
+                DEBUG_ONLY(dataContainer->setPageTag(rootPage[i], tag + 1));
             }
         }
     }
@@ -59,6 +62,7 @@ public:
     {
         PageIndex pageIndex = getPageIndex(itemIndex);
         T * page = (T *)dataContainer->obtainPage(pageIndex);
+        DEBUG_ONLY(dataContainer->setPageTag(pageIndex, _tag + 1));
 
         DWORD pageOffset = itemIndex % PAGE_ITEMS_CAPACITY;
         T result = page[pageOffset];
@@ -93,6 +97,7 @@ public:
         }
         releaseLastPage();
         lastPage = (T *)dataContainer->obtainPage(pageIndex);
+        DEBUG_ONLY(dataContainer->setPageTag(pageIndex, _tag + 2));
         lastPageIndex = pageIndex;
         return lastPage;
     }
@@ -158,6 +163,7 @@ protected:
     T *          lastPage;
     PageIndex    lastPageIndex;
     DWORD *      numItems;
+    DEBUG_ONLY(DWORD _tag);
 
     DWORD getPageIndex(PageIndex itemIndex)
     {

@@ -35,6 +35,9 @@ protected:
     PagedDataContainer * dataContainer;
     DWORD numItems;
     DWORD maxItems;
+#ifdef _DEBUG
+    DWORD _tag;
+#endif
 
     LinkedListPageFormat<T> * firstPage;
     LinkedListPageFormat<T> * lastPage;
@@ -43,16 +46,20 @@ protected:
 
     template<class T> friend class PagedLinkedListIter;
 public:
-    PagedLinkedList(DWORD anchorIndex, PagedDataContainer * dc)
+    PagedLinkedList(DWORD anchorIndex, PagedDataContainer * dc, DWORD tag)
         :
             dataContainer(dc),
             firstPageIndex(anchorIndex)
     {
         assert(INVALID_PAGE_INDEX != firstPageIndex);
         numItems = 0;
+        // Obtain twice so we will keep the first page always in
+        // TODO: Check this code
         firstPage = (LinkedListPageFormat<T> *)dataContainer->obtainPage(firstPageIndex);
         LinkedListPageFormat<T> * pageIter = (LinkedListPageFormat<T> *)dataContainer->obtainPage(firstPageIndex);
         assert(NULL != pageIter);
+        DEBUG_ONLY(_tag = tag);
+        DEBUG_ONLY(dataContainer->setPageTag(firstPageIndex, _tag));
         DWORD pageIndexIter = firstPageIndex;
         while (0 != pageIter->nextPage) {
             numItems += PAGE_ITEMS_CAPACITY;
@@ -60,6 +67,7 @@ public:
             dataContainer->releasePage(pageIndexIter);
             pageIndexIter   = nextPage;
             pageIter        = (LinkedListPageFormat<T> *)dataContainer->obtainPage(pageIndexIter);
+            DEBUG_ONLY(dataContainer->setPageTag(pageIndexIter, _tag + 1));
         }
         lastPageIndex   = pageIndexIter;
         lastPage        = pageIter;
@@ -101,6 +109,7 @@ public:
         DWORD pageNumber = index / PAGE_ITEMS_CAPACITY;
         DWORD pageIndex = getPageIndexForItemIndex(index);
         LinkedListPageFormat<T> * page = (LinkedListPageFormat<T> *)dataContainer->obtainPage(pageIndex);
+        DEBUG_ONLY(dataContainer->setPageTag(pageIndex, _tag));
         DWORD inPageIndex = getInPageItemIndex(index);
         T * result = &page->data[inPageIndex];
         return result;
@@ -117,10 +126,12 @@ public:
         DWORD pageNumber = itemIndex / PAGE_ITEMS_CAPACITY;
         DWORD pageIndexIter = firstPageIndex;
         LinkedListPageFormat<T> * pageIter = (LinkedListPageFormat<T> *)dataContainer->obtainPage(pageIndexIter);
+        DEBUG_ONLY(dataContainer->setPageTag(pageIndexIter, _tag + 1));
         for (DWORD i = 0; i < pageNumber; ++i) {
             DWORD nextPageIndex = pageIter->nextPage;
             dataContainer->releasePage(pageIndexIter);
             pageIter = (LinkedListPageFormat<T> *)dataContainer->obtainPage(nextPageIndex);
+            DEBUG_ONLY(dataContainer->setPageTag(nextPageIndex, _tag + 2));
         }
         dataContainer->releasePage(pageIndexIter);
         return pageIndexIter;
@@ -153,15 +164,17 @@ public:
 template <class T>
 class PagedLinkedListIter {
 public:
-    PagedLinkedListIter( PagedLinkedList<T> * linkedList )
+    PagedLinkedListIter( PagedLinkedList<T> * linkedList, DWORD tag )
         : 
         parent(linkedList),
         dataContainer(parent->dataContainer),
         numItems(parent->getNumItems())
     {
+        DEBUG_ONLY(_tag = tag);
         if (0 < numItems) {
             pageIndex = parent->firstPageIndex;
             page = (LinkedListPageFormat<T> *)dataContainer->obtainPage(pageIndex);
+            DEBUG_ONLY(dataContainer->setPageTag(pageIndex, _tag));
             itemIndex = 0;
             inPageIndex = 0;
         } else {
@@ -171,18 +184,21 @@ public:
             inPageIndex = 0;
         }
     }
-    PagedLinkedListIter( PagedLinkedList<T> * linkedList, DWORD startIndex )
+    PagedLinkedListIter( PagedLinkedList<T> * linkedList, DWORD startIndex, DWORD tag )
         : 
         parent(linkedList),
         dataContainer(parent->dataContainer),
         numItems(parent->getNumItems())
     {
+        DEBUG_ONLY(_tag = tag);
         if (startIndex < numItems) {
             itemIndex   = startIndex;
             pageIndex   = parent->getPageIndexForItemIndex(itemIndex);
             inPageIndex = parent->getInPageItemIndex(itemIndex);
             page = (LinkedListPageFormat<T> *)dataContainer->obtainPage(pageIndex);
-        } else {
+            DEBUG_ONLY(dataContainer->setPageTag(pageIndex, _tag + 1));
+        }
+        else {
             page = NULL;
             itemIndex = numItems + 1;
         }
@@ -202,6 +218,7 @@ public:
                 releaseCurrentPage();
                 if (INVALID_PAGE_INDEX != nextPageIndex) {
                     page = (LinkedListPageFormat<T> *)dataContainer->obtainPage(nextPageIndex);
+                    DEBUG_ONLY(dataContainer->setPageTag(nextPageIndex, _tag + 2));
                 }
                 pageIndex = nextPageIndex;
             }
@@ -234,5 +251,6 @@ protected:
     PageIndex pageIndex;
     LinkedListPageFormat<T> * page;
     T item;
+    DEBUG_ONLY(DWORD _tag);
 };
 

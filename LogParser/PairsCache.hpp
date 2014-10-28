@@ -24,7 +24,7 @@ typedef PagedLinkedListIter<Address> PairsBucketIter;
 class PairsCache
 {
 	public:
-		PairsCache(PageIndex rootPage, PagedDataContainer * dc);
+		PairsCache(PageIndex rootPage, PagedDataContainer * dc, DWORD tag);
 		~PairsCache();
 		void                append(DWORD pair, Address address) {cache[pair]->append(address);};
         void                append(DWORD pair, Cycle cycle, ADDRESS addr) {Address tempAddress(cycle, addr); append(pair, tempAddress);};
@@ -43,6 +43,7 @@ class PairsCache
         PairsCacheRootPage * rootPage;
 		PairsBucket * cache[PAIRS_CACHE_SIZE];
         PageIndex * BucketsIndexes;
+        DEBUG_ONLY(DWORD _tag);
 
         void CreateRootPage();
 
@@ -69,4 +70,5 @@ class PairCacheIter
         Cycle topCycle;
         DWORD startIndex;
         Address const * currentItem;
+        DEBUG_ONLY(DWORD _tag);
 };

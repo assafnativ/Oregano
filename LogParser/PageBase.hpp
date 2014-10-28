@@ -11,11 +11,12 @@ public:
     volatile long refCount;
     DWORD accessCount;
     QWORD lastAccess;
+    DWORD tag;
 
     virtual BYTE * getData() = 0;
     virtual DWORD getDataLength() = 0;
 
-    PageBase(PageIndex index) : 
+    PageBase(PageIndex index) :
         index(index),
         next(NULL),
         prev(NULL),
@@ -23,6 +24,7 @@ public:
         accessCount(0),
         lastAccess(0)
     {
+        DEBUG_ONLY((tag = 0));
     };
 
     virtual ~PageBase(void) {};

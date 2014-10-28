@@ -58,6 +58,7 @@ LogParser::LogParser(const char * logFile)
     sprintf_s(dbFileName, MAX_FILE_NAME, "%s%s", logFile, LOG_DB_EXTENTION);
     dataContainer = new PagedDataContainer(dbFileName);
     rootPage = (DBRootPage *)dataContainer->obtainPage(0);
+    dataContainer->setPageTag(0, 'ROOT');
     if (rootPage->oreganoMagic != DB_OREGANO_MAGIC) {
         // This is a new DB
         rootPage->oreganoMagic  = DB_OREGANO_MAGIC;
@@ -65,9 +66,11 @@ LogParser::LogParser(const char * logFile)
         PageIndex * regsIndexsPtr = &rootPage->eipRootPage;
         for (DWORD i = 0; NUMBER_OF_REGS > i; ++i) {
             dataContainer->newPage(regsIndexsPtr);
+            dataContainer->setPageTag(*regsIndexsPtr, 'REG0' + i);
             regsIndexsPtr++;
         }
         dataContainer->newPage(&rootPage->memoryRootPage);
+        dataContainer->setPageTag(rootPage->memoryRootPage, 'MEM_');
         logVersion    = &rootPage->logVersion;
         processorType = &rootPage->processorType;
         logHasMemory  = &rootPage->logHasMemory;
@@ -102,40 +105,40 @@ void LogParser::initContext()
     eipLog = new EipLog(rootPage->eipRootPage, dataContainer);
 #ifdef X86
 	reg[REG_ID_EIP] = NULL; /* eip */
-	reg[REG_ID_EDI] = new RegLog("edi",       rootPage->ediRootPage,      dataContainer);
-	reg[REG_ID_ESI] = new RegLog("esi",       rootPage->esiRootPage,      dataContainer);
-	reg[REG_ID_EBP] = new RegLog("ebp",       rootPage->ebpRootPage,      dataContainer);
-	reg[REG_ID_EBX] = new RegLog("ebx",       rootPage->ebxRootPage,      dataContainer);
-	reg[REG_ID_EDX] = new RegLog("edx",       rootPage->edxRootPage,      dataContainer);
-	reg[REG_ID_ECX] = new RegLog("ecx",       rootPage->ecxRootPage,      dataContainer);
-	reg[REG_ID_EAX] = new RegLog("eax",       rootPage->eaxRootPage,      dataContainer);
-	reg[REG_ID_ECS] = new RegLog("ecs",       rootPage->ecsRootPage,      dataContainer);
-	reg[REG_ID_EFLAGS] = new RegLog("eflags", rootPage->eflagsRootPage,   dataContainer);
-	reg[REG_ID_ESP] = new RegLog("esp",       rootPage->espRootPage,      dataContainer);
+	reg[REG_ID_EDI] = new RegLog("edi",       rootPage->ediRootPage,      dataContainer, 'edi0');
+	reg[REG_ID_ESI] = new RegLog("esi",       rootPage->esiRootPage,      dataContainer, 'esi0');
+	reg[REG_ID_EBP] = new RegLog("ebp",       rootPage->ebpRootPage,      dataContainer, 'ebp0');
+	reg[REG_ID_EBX] = new RegLog("ebx",       rootPage->ebxRootPage,      dataContainer, 'ebx0');
+	reg[REG_ID_EDX] = new RegLog("edx",       rootPage->edxRootPage,      dataContainer, 'edx0');
+	reg[REG_ID_ECX] = new RegLog("ecx",       rootPage->ecxRootPage,      dataContainer, 'ecx0');
+	reg[REG_ID_EAX] = new RegLog("eax",       rootPage->eaxRootPage,      dataContainer, 'eax0');
+	reg[REG_ID_ECS] = new RegLog("ecs",       rootPage->ecsRootPage,      dataContainer, 'ecs0');
+	reg[REG_ID_EFLAGS] = new RegLog("eflags", rootPage->eflagsRootPage,   dataContainer, 'flg0');
+	reg[REG_ID_ESP] = new RegLog("esp",       rootPage->espRootPage,      dataContainer, 'esp0');
     reg[REG_ID_ESS] = NULL; // ess
 #elif AMD64
-    reg[REG_ID_RIP] = new RegLog("rip",       rootPage->eipRootPage,    dataContainer);
-    reg[REG_ID_RDI] = new RegLog("rdi",       rootPage->rdiRootPage,    dataContainer);
-    reg[REG_ID_RSI] = new RegLog("rsi",       rootPage->rsiRootPage,    dataContainer);
-    reg[REG_ID_RBP] = new RegLog("rbp",       rootPage->rbpRootPage,    dataContainer);
-    reg[REG_ID_RBX] = new RegLog("rbx",       rootPage->rbxRootPage,    dataContainer);
-    reg[REG_ID_RDX] = new RegLog("rdx",       rootPage->rdxRootPage,    dataContainer);
-    reg[REG_ID_RCX] = new RegLog("rcx",       rootPage->rcxRootPage,    dataContainer);
-    reg[REG_ID_RAX] = new RegLog("rax",       rootPage->raxRootPage,    dataContainer);
-    reg[REG_ID_R8]  = new RegLog("r8",        rootPage->r8RootPage,     dataContainer);
-    reg[REG_ID_R9]  = new RegLog("r9",        rootPage->r9RootPage,     dataContainer);
-    reg[REG_ID_R10] = new RegLog("r10",       rootPage->r10RootPage,    dataContainer);
-    reg[REG_ID_R11] = new RegLog("r11",       rootPage->r11RootPage,    dataContainer);
-    reg[REG_ID_R12] = new RegLog("r12",       rootPage->r12RootPage,    dataContainer);
-    reg[REG_ID_R13] = new RegLog("r13",       rootPage->r13RootPage,    dataContainer);
-    reg[REG_ID_R14] = new RegLog("r14",       rootPage->r14RootPage,    dataContainer);
-    reg[REG_ID_R15] = new RegLog("r15",       rootPage->r15RootPage,    dataContainer);
-    reg[REG_ID_RCS] = new RegLog("rcs",       rootPage->rcsRootPage,    dataContainer);
-    reg[REG_ID_RFLAGS] = new RegLog("rflags", rootPage->rflagsRootPage, dataContainer);
-    reg[REG_ID_RSP] = new RegLog("rsp",       rootPage->rspRootPage,    dataContainer);
-    reg[REG_ID_RSS] = new RegLog("rss",       rootPage->rssRootPage,    dataContainer);
+    reg[REG_ID_RIP] = new RegLog("rip",       rootPage->eipRootPage,    dataContainer, 'rip0');
+    reg[REG_ID_RDI] = new RegLog("rdi",       rootPage->rdiRootPage,    dataContainer, 'rdi0');
+    reg[REG_ID_RSI] = new RegLog("rsi",       rootPage->rsiRootPage,    dataContainer, 'rsi0');
+    reg[REG_ID_RBP] = new RegLog("rbp",       rootPage->rbpRootPage,    dataContainer, 'rbp0');
+    reg[REG_ID_RBX] = new RegLog("rbx",       rootPage->rbxRootPage,    dataContainer, 'rbx0');
+    reg[REG_ID_RDX] = new RegLog("rdx",       rootPage->rdxRootPage,    dataContainer, 'rdx0');
+    reg[REG_ID_RCX] = new RegLog("rcx",       rootPage->rcxRootPage,    dataContainer, 'rcx0');
+    reg[REG_ID_RAX] = new RegLog("rax",       rootPage->raxRootPage,    dataContainer, 'rax0');
+    reg[REG_ID_R8]  = new RegLog("r8",        rootPage->r8RootPage,     dataContainer, 'r8_0');
+    reg[REG_ID_R9]  = new RegLog("r9",        rootPage->r9RootPage,     dataContainer, 'r9_0');
+    reg[REG_ID_R10] = new RegLog("r10",       rootPage->r10RootPage,    dataContainer, 'r100');
+    reg[REG_ID_R11] = new RegLog("r11",       rootPage->r11RootPage,    dataContainer, 'r110');
+    reg[REG_ID_R12] = new RegLog("r12",       rootPage->r12RootPage,    dataContainer, 'r120');
+    reg[REG_ID_R13] = new RegLog("r13",       rootPage->r13RootPage,    dataContainer, 'r130');
+    reg[REG_ID_R14] = new RegLog("r14",       rootPage->r14RootPage,    dataContainer, 'r140');
+    reg[REG_ID_R15] = new RegLog("r15",       rootPage->r15RootPage,    dataContainer, 'r150');
+    reg[REG_ID_RCS] = new RegLog("rcs",       rootPage->rcsRootPage,    dataContainer, 'rcs0');
+    reg[REG_ID_RFLAGS] = new RegLog("rflags", rootPage->rflagsRootPage, dataContainer, 'flg0');
+    reg[REG_ID_RSP] = new RegLog("rsp",       rootPage->rspRootPage,    dataContainer, 'rsp0');
+    reg[REG_ID_RSS] = new RegLog("rss",       rootPage->rssRootPage,    dataContainer, 'rss0');
 #endif
-	reg[THREAD_ID]  = new RegLog("thread",    rootPage->threadIdRootPage, dataContainer);
+	reg[THREAD_ID]  = new RegLog("thread",    rootPage->threadIdRootPage, dataContainer, 'thr0');
 }
 
 void LogParser::initMemory()

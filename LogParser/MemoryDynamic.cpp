@@ -48,8 +48,8 @@ void MemoryDynamic::createRootPage()
         dc->newConsecutiveData(&rootPage->acvRootPage, ACV_HASH_TABLE_SIZE * sizeof(PageIndex));
         dc->releasePage(rootPage->acvRootPage);
     }
-    cav = new HashTableByCycle(rootPage->cavRootPage, dc);
-    acv = new HashTableByAddr (rootPage->acvRootPage, dc);
+    cav = new HashTableByCycle(rootPage->cavRootPage, dc, 'CAV0');
+    acv = new HashTableByAddr (rootPage->acvRootPage, dc, 'ACV0');
 }
 
 void MemoryDynamic::setByte( Address address, BYTE value )
@@ -68,7 +68,7 @@ void MemoryDynamic::setByte( Cycle cycle, ADDRESS addr, BYTE value )
 
 BYTE MemoryDynamic::getByte( Cycle cycle, ADDRESS addr )
 {
-    HashTableByAddrIter * iter = new HashTableByAddrIter(acv, addr);
+    HashTableByAddrIter * iter = new HashTableByAddrIter(acv, addr, 'DMI0');
     assert(NULL != iter);
     BYTE result = UNKNOWN_BYTE;
 	ByteInTime const * nextItem = NULL;
@@ -96,7 +96,7 @@ BYTE MemoryDynamic::getByte( Cycle cycle, ADDRESS addr )
 
 BOOL MemoryDynamic::isByteKnown( Cycle cycle, ADDRESS addr )
 {
-    HashTableByAddrIter * iter = new HashTableByAddrIter(acv, addr);
+    HashTableByAddrIter * iter = new HashTableByAddrIter(acv, addr, 'DMN0');
     assert(NULL != iter);
     BOOL result = FALSE;
     for (ByteInTime const * item = iter->current(); NULL != item; iter->next(), item = iter->current()) {
@@ -111,7 +111,7 @@ BOOL MemoryDynamic::isByteKnown( Cycle cycle, ADDRESS addr )
 
 BOOL MemoryDynamic::isByteKnown( ADDRESS addr )
 {
-    HashTableByAddrIter * iter = new HashTableByAddrIter(acv, addr);
+    HashTableByAddrIter * iter = new HashTableByAddrIter(acv, addr, 'DMK0');
     assert(NULL != iter);
     BOOL result;
     ByteInTime const * item = iter->current();
@@ -126,12 +126,12 @@ BOOL MemoryDynamic::isByteKnown( ADDRESS addr )
 
 HashTableByCycleIter * MemoryDynamic::getAddressesOfCycle( Cycle cycle )
 {
-    return new HashTableByCycleIter(cav, cycle);
+    return new HashTableByCycleIter(cav, cycle, 'HCI0');
 }
 
 HashTableByAddrIter * MemoryDynamic::getCyclesOfAddress( ADDRESS addr )
 {
-    return new HashTableByAddrIter(acv, addr);
+    return new HashTableByAddrIter(acv, addr, 'HAI0');
 }
 
 StatisticsInfo * MemoryDynamic::statistics()

@@ -20,12 +20,13 @@ template <class T, int SIZE, class KEY_TYPE, KEY_TYPE (*DIGEST)(T const * x), in
 class PagedHashTable
 {
 public:
-    PagedHashTable(PageIndex pageIndex, PagedDataContainer * dc)
+    PagedHashTable(PageIndex pageIndex, PagedDataContainer * dc, DWORD tag)
         : 
             rootPageIndex(pageIndex),
             dataContainer(dc)
     {
         const DWORD rootPageSize = SIZE * sizeof(pageIndex);
+        DEBUG_ONLY(_tag = tag);
         rootPage = (PageIndex *)dataContainer->obtainConsecutiveData(rootPageIndex, rootPageSize);
         if (0 == *rootPage) {
             // Table is not initialize,
@@ -36,7 +37,7 @@ public:
             }
         }
         for (DWORD i = 0; SIZE > i; ++i) {
-            table[i] = new PagedLinkedList<T>(rootPage[i], dataContainer);
+            table[i] = new PagedLinkedList<T>(rootPage[i], dataContainer, tag);
         }
     }
 
@@ -89,6 +90,7 @@ protected:
     DWORD rootPageIndex;
     PageIndex * rootPage;
     PagedLinkedList<T> * table[SIZE];
+    DEBUG_ONLY(DWORD _tag);
 
 };
 
@@ -99,16 +101,18 @@ protected:
     PagedHashTable<T, SIZE, KEY_TYPE, DIGEST, COMPERATOR> * hashTable;
     PagedLinkedListIter<T> * iter;
     KEY_TYPE key;
+    DEBUG_ONLY(DWORD _tag);
 public:
-    PagedHashTableIter(PagedHashTable<T, SIZE, KEY_TYPE, DIGEST, COMPERATOR> * targetHashTable, KEY_TYPE key)
+    PagedHashTableIter(PagedHashTable<T, SIZE, KEY_TYPE, DIGEST, COMPERATOR> * targetHashTable, KEY_TYPE key, DWORD tag)
         : 
         hashTable(targetHashTable),
         iter(NULL),
         key(key)
     {
+        DEBUG_ONLY(_tag = tag);
         DWORD bucketIndex = key % SIZE;
         PagedLinkedList<T> * bucket = hashTable->table[bucketIndex];
-        iter = new PagedLinkedListIter<T>(bucket);
+        iter = new PagedLinkedListIter<T>(bucket, tag);
         findNext();
     }
 

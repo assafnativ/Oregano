@@ -44,3 +44,10 @@ struct CyclesRange
 #ifdef _DEBUG
 static const CHAR ZERO_BUFFER_FOR_COMPARE[0x100] = {0};
 #endif
+
+#ifdef _DEBUG
+
+#define DEBUG_ONLY(x) (x)
+#else
+#define DEBUG_ONLY(x)
+#endif

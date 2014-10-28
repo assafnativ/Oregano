@@ -2,10 +2,11 @@
 #include <assert.h>
 #include "PairsCache.hpp"
 
-PairsCache::PairsCache(PageIndex rootPageIndex, PagedDataContainer * dc)
+PairsCache::PairsCache(PageIndex rootPageIndex, PagedDataContainer * dc, DWORD tag)
     : rootPageIndex(rootPageIndex), 
       dc(dc)
 {
+    DEBUG_ONLY(_tag = tag);
     CreateRootPage();
 }
 
@@ -24,7 +25,7 @@ void PairsCache::CreateRootPage()
         BucketsIndexes = (PageIndex *)dc->newConsecutiveData(&rootPage->Buckets, sizeof(PageIndex) * PAIRS_CACHE_SIZE);
         for (DWORD i = 0; PAIRS_CACHE_SIZE > i; ++i) {
             dc->newPage(&BucketsIndexes[i]);
-            cache[i] = new PairsBucket(BucketsIndexes[i], dc);
+            cache[i] = new PairsBucket(BucketsIndexes[i], dc, 'PRS0');
             dc->releasePage(BucketsIndexes[i]);
         }
     } else {
@@ -32,7 +33,7 @@ void PairsCache::CreateRootPage()
         assert(rootPage->size == PAIRS_CACHE_SIZE);
         BucketsIndexes = (PageIndex *)dc->obtainConsecutiveData(rootPage->Buckets, sizeof(PageIndex) * PAIRS_CACHE_SIZE);
         for (DWORD i = 0; PAIRS_CACHE_SIZE > i; ++i) {
-            cache[i] = new PairsBucket(BucketsIndexes[i], dc);
+            cache[i] = new PairsBucket(BucketsIndexes[i], dc, 'PBU0');
         }
     }
 }

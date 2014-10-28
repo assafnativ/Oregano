@@ -11,7 +11,7 @@ typedef PagedRandomAccess<MACHINE_LONG> EipLogBase;
 class EipLog: public EipLogBase
 {
 public:
-    EipLog(DWORD rootIndex, PagedDataContainer * dc) : EipLogBase(rootIndex, dc)
+    EipLog(DWORD rootIndex, PagedDataContainer * dc) : EipLogBase(rootIndex, dc, 'eip0')
     {
         return;
     }

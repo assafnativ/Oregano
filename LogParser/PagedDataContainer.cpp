@@ -33,7 +33,7 @@ PagedDataContainer::PagedDataContainer(const char * fileName)
     } // if (0 == fileSize.QuadPart)
 
     // Init the cache
-    for (DWORD i = 0; i < PAGES_CACHE_SIZE; ++i)
+    for (DWORD i = 0; i < BUCKETS_IN_CACHE; ++i)
     {
         cache[i].first = NULL;
         cache[i].last  = NULL;
@@ -63,7 +63,7 @@ PagedDataContainer::~PagedDataContainer()
     EnterCriticalSection(&cacheLock);
 
     // Free all
-    for (DWORD bucketIter = 0; bucketIter < PAGES_CACHE_SIZE; ++bucketIter) {
+    for (DWORD bucketIter = 0; bucketIter < BUCKETS_IN_CACHE; ++bucketIter) {
         PageBucket * bucket = &cache[bucketIter];
         PageBase * pageIter = bucket->first;
         while (NULL != pageIter) {
@@ -100,7 +100,7 @@ void PagedDataContainer::moveToTopOfTheList(PageBucket * bucket, PageBase * page
 
 PageBase * PagedDataContainer::findPageNoLock(PageIndex index)
 {
-    DWORD tableIndex = index % PAGES_CACHE_SIZE;
+    DWORD tableIndex = index % BUCKETS_IN_CACHE;
 
     // The result of the function
     PageBase * result = NULL;
@@ -134,7 +134,7 @@ PageBase * PagedDataContainer::findPage(PageIndex index)
 void PagedDataContainer::bucketInsert( PageBase * page )
 {
     PageIndex index = page->index;
-    DWORD tableIndex = index % PAGES_CACHE_SIZE;
+    DWORD tableIndex = index % BUCKETS_IN_CACHE;
 
     PageBucket * bucket = &cache[tableIndex];
     PageBase * firstPage = bucket->first;
@@ -279,10 +279,10 @@ DWORD WINAPI cacheGarbageCollector( PagedDataContainer * dataContainer )
             }
 
             PageBase * pageToGoOut = NULL;
-            DWORD endBucket = (bucketsIter + PAGES_CACHE_SIZE - 1) % PAGES_CACHE_SIZE;
+            DWORD endBucket = (bucketsIter + BUCKETS_IN_CACHE - 1) % BUCKETS_IN_CACHE;
             for (; 
                 bucketsIter != endBucket; 
-                bucketsIter = (bucketsIter + 1) % PAGES_CACHE_SIZE )
+                bucketsIter = (bucketsIter + 1) % BUCKETS_IN_CACHE )
             {
                 PagedDataContainer::PageBucket * bucket = &dataContainer->cache[bucketsIter];
                 PageBase * pageIter = bucket->last;
@@ -330,7 +330,7 @@ DWORD WINAPI cacheGarbageCollector( PagedDataContainer * dataContainer )
             }
 
             // Next iteration try another bucket
-            bucketsIter = (bucketsIter + 1) % PAGES_CACHE_SIZE;
+            bucketsIter = (bucketsIter + 1) % BUCKETS_IN_CACHE;
         } // GARBAGE_COLLECT_THRESHOLD
     } // cacheIsUp
 
@@ -377,6 +377,21 @@ BYTE * PagedDataContainer::obtainConsecutiveData( PageIndex startPage, DWORD len
     LeaveCriticalSection(&cacheLock);
 
     return page->getData();
+}
+
+void PagedDataContainer::setPageTag(PageIndex index, DWORD tag)
+{
+#ifdef _DEBUG
+    EnterCriticalSection(&cacheLock);
+
+    PageBase * page = findPageNoLock(index);
+    if (NULL != page)
+    {
+        page->tag = tag;
+    }
+
+    LeaveCriticalSection(&cacheLock);
+#endif
 }
 
 void PagedDataContainer::releasePage(PageIndex index)
@@ -537,7 +552,7 @@ void PagedDataContainer::endOfData()
     EnterCriticalSection(&cacheLock);
     // Write all pages in all buckets.
     // Pages that are paged-out are already written.
-    for (DWORD bucketIndex = 0; bucketIndex != PAGES_CACHE_SIZE; ++bucketIndex)
+    for (DWORD bucketIndex = 0; bucketIndex != BUCKETS_IN_CACHE; ++bucketIndex)
     {
         PagedDataContainer::PageBucket * bucket = &cache[bucketIndex];
         for (

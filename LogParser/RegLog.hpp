@@ -16,10 +16,11 @@ static RegValue InvalidRegValue = {INVALID_CYCLE, 0};
 class RegLog: public RegLogBase
 {
 public:
-    RegLog(char * reg_name, PageIndex rootIndex, PagedDataContainer * dc) : 
-        RegLogBase(rootIndex, dc),
+    RegLog(char * reg_name, PageIndex rootIndex, PagedDataContainer * dc, DWORD tag) : 
+        RegLogBase(rootIndex, dc, tag),
         name(reg_name)
     {
+        
         return;
     }
 

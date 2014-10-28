@@ -9,21 +9,25 @@ Memory::Memory(PageIndex rootPageIndex, PagedDataContainer * dc)
     dc(dc)
 {
     rootPage = (MemoryRootPage *)dc->obtainPage(rootPageIndex);
+    dc->setPageTag(rootPageIndex, 'mrot');
     if (0 == rootPage->memoryStaticRootPage) {
         dc->newPage(&rootPage->memoryStaticRootPage);
+        dc->setPageTag(rootPage->memoryStaticRootPage, 'srot');
         dc->releasePage(rootPage->memoryStaticRootPage);
     }
     if (0 == rootPage->memoryDynamicRootPage) {
         dc->newPage(&rootPage->memoryDynamicRootPage);
+        dc->setPageTag(rootPage->memoryDynamicRootPage, 'drot');
         dc->releasePage(rootPage->memoryDynamicRootPage);
     }
     if (0 == rootPage->pairsCacheRootPage) {
         dc->newPage(&rootPage->pairsCacheRootPage);
+        dc->setPageTag(rootPage->pairsCacheRootPage, 'crot');
         dc->releasePage(rootPage->pairsCacheRootPage);
     }
     staticMem  = new MemoryStatic (rootPage->memoryStaticRootPage, dc);
     dynamicMem = new MemoryDynamic(rootPage->memoryDynamicRootPage, dc);
-    pairsCache = new PairsCache   (rootPage->pairsCacheRootPage, dc);
+    pairsCache = new PairsCache   (rootPage->pairsCacheRootPage, dc, 'PC_0');
 }
 
 Memory::~Memory()
