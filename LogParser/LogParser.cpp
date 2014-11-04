@@ -310,6 +310,9 @@ BOOL LogParser::parseTrace(FileReader &log)
 	RegValue	regValue;
 	Address		address(0, 0);
 	BYTE		byteValue;
+    WORD        wordValue;
+    DWORD       dwordValue;
+    QWORD       qwordValue;
 
     while( FALSE == log.isEof() ) {
 		changeType = log.readByte();
@@ -382,11 +385,8 @@ BOOL LogParser::parseTrace(FileReader &log)
 			{
 				address.cycle = *lastCycle;
 				address.addr = log.readDword();
-				byteValue = log.readByte();
-				memory->setByte(address, byteValue);
-				++address.addr;
-				byteValue = log.readByte();
-				memory->setByte(address, byteValue);
+				wordValue = log.readWord();
+                memory->setWord(address, wordValue);
 			} /* WORDPTR_ACCESS */
 			break;
 
@@ -394,11 +394,8 @@ BOOL LogParser::parseTrace(FileReader &log)
 			{
 				address.cycle = *lastCycle;
 				address.addr = log.readDword();
-				for (DWORD i = 0; i < 4; ++i) {
-					byteValue = log.readByte();
-					memory->setByte(address, byteValue);
-					++address.addr;
-				}
+                dwordValue = log.readDword();
+                memory->setDword(address, dwordValue);
 			} /* DWORDPTR_ACCESS */
             break;
 
@@ -406,11 +403,8 @@ BOOL LogParser::parseTrace(FileReader &log)
             {
                 address.cycle = *lastCycle;
                 address.addr = log.readDword();
-                for (DWORD i = 0; i < 8; ++i) {
-                    byteValue = log.readByte();
-                    memory->setByte(address, byteValue);
-                    ++address.addr;
-                }
+                qwordValue = log.readQword();
+                memory->setQword(address, qwordValue);
             } /* DWORDPTR_ACCESS */
 			break;
 

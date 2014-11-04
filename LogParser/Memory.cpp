@@ -45,39 +45,6 @@ Memory::~Memory()
     dc->releasePage(rootPage->pairsCacheRootPage);
 }
 
-void Memory::setByte(Cycle cycle, ADDRESS addr, BYTE value)
-{
-    dynamicMem->setByte(cycle, addr, value);
-
-	// Add to pairs cache
-    // First add the pair with the prev byte
-	ADDRESS prevAddr = addr - 1;
-    if (dynamicMem->isByteKnown(MAX_CYCLE, prevAddr))
-    {
-        BYTE prevValue = dynamicMem->getByte(MAX_CYCLE, prevAddr);
-        DWORD key = prevValue + (0x100 * value);
-        pairsCache->append(key, cycle, prevAddr);
-    } else if (staticMem->isByteKnown(prevAddr)) {
-        BYTE prevValue = staticMem->getByte(prevAddr);
-        DWORD key = prevValue + (0x100 * value);
-        pairsCache->append(key, cycle, prevAddr);
-    }
-    
-    // Now add the pair with the next byte
-	ADDRESS nextAddr = addr + 1;
-    if (dynamicMem->isByteKnown(MAX_CYCLE, nextAddr))
-    {
-        BYTE nextValue = dynamicMem->getByte(MAX_CYCLE, nextAddr);
-        DWORD key = value + (0x100 * nextValue);
-        pairsCache->append(key, cycle, addr);
-    } else if (staticMem->isByteKnown(nextAddr))
-    {
-        BYTE nextValue = staticMem->getByte(nextAddr);
-        DWORD key = value + (0x100 * nextValue);
-        pairsCache->append(key, cycle, addr);
-    }
-}
-
 BYTE Memory::getByte( Cycle cycle, ADDRESS addr )
 {
     if (dynamicMem->isByteKnown(addr)) {
