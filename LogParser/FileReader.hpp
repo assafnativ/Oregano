@@ -8,8 +8,10 @@
 class FileReader
 {
 	public:
-		FileReader(const char * fileName);
+		FileReader();
 		~FileReader();
+        void openFile(const char * fileName);
+        void close();
         inline QWORD    readQword()     {return readType<QWORD>(); }
 		inline DWORD	readDword()	    {return readType<DWORD>(); }
 		inline WORD		readWord()	    {return readType<WORD>(); }

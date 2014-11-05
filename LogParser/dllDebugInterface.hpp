@@ -16,10 +16,9 @@
 extern "C"
 {
 
-LOG_PARSER_API void * obtainPage(LogParser * logParser, DWORD pageIndex) {return logParser->obtainPage(pageIndex);};
-LOG_PARSER_API void * obtainConsecutivePage(LogParser * logParser, DWORD pageIndex, DWORD length) {return logParser->obtainConsecutiveData(pageIndex, length);};
-LOG_PARSER_API void   releasePage(LogParser * LogParser, DWORD pageIndex) {LogParser->releasePage(pageIndex);};
-
+LOG_PARSER_API void * obtainPage(LogParser * logParser, DWORD pageIndex) { return logParser->obtainPage(pageIndex); }
+LOG_PARSER_API void * obtainConsecutivePage(LogParser * logParser, DWORD pageIndex, DWORD length) { return logParser->obtainConsecutiveData(pageIndex, length); }
+LOG_PARSER_API void   releasePage(LogParser * LogParser, DWORD pageIndex) { LogParser->releasePage(pageIndex); }
 
 LOG_PARSER_API void statisticsEip(LogParser * logParser, DWORD * pagesInUse, DWORD * totalPages);
 LOG_PARSER_API void statisticsEdi(LogParser * logParser, DWORD * pagesInUse, DWORD * totalPages);
@@ -34,6 +33,7 @@ LOG_PARSER_API void statisticsEsp(LogParser * logParser, DWORD * pagesInUse, DWO
 LOG_PARSER_API void statisticsThreadId(LogParser * logParser, DWORD * pagesInUse, DWORD * totalPages);
 LOG_PARSER_API void statisticsMemory(LogParser * logParser, DWORD * pagesInUse, DWORD * totalPages);
 
-}; // extern "C"
+LOG_PARSER_API void * getDataContainer(LogParser * logParser) { return logParser->getDataContainer(); }
 
+}; // extern "C"
 #endif // _DEBUG

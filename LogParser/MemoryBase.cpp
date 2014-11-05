@@ -1,5 +1,6 @@
 
 #include <assert.h>
+
 #include "MemoryBase.hpp"
 
 MemoryBase::MemoryBase( PageIndex rootPage, PagedDataContainer * dc )

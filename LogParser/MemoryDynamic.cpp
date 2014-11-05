@@ -1,5 +1,6 @@
 
 #include <assert.h>
+
 #include "MemoryDynamic.hpp"
 
 int compareByteInTimeCycles( ByteInTime const * x, Cycle cycle )

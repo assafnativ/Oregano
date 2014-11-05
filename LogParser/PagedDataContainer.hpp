@@ -12,9 +12,10 @@
 static const BYTE NULL_PAGE_DATA[PAGE_SIZE]     = {0};
 static const DWORD BUCKETS_IN_CACHE             = 0x8000;
 // TODO calculate these number dynamically
-static const DWORD GARBAGE_COLLECT_BOTTOM_THRESHOLD = 0x60000;
-static const DWORD GARBAGE_COLLECT_TARGET_THRESHOLD = 0x80000;
-static const DWORD GARBAGE_COLLECT_TOP_THRESHOLD    = 0xa0000;
+static const DWORD GARBAGE_COLLECT_BOTTOM_THRESHOLD   = 0x60000;
+static const DWORD GARBAGE_COLLECT_TARGET_THRESHOLD   = 0x80000;
+static const DWORD GARBAGE_COLLECT_TOP_THRESHOLD      = 0xa0000;
+static const DWORD GARBAGE_COLLECT_CRITICAL_THRESHOLD = 0xc0000;
 static const DWORD SMALL_ACCESS_COUNT				= 2;
 static const PageIndex INVALID_PAGE_INDEX           = 0xffffffff;
 static const DWORD PAGE_INDEXES_CAPACITY            = PAGE_SIZE / sizeof(PageIndex);

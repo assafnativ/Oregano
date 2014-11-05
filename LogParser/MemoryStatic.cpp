@@ -1,5 +1,6 @@
 
 #include <assert.h>
+
 #include "MemoryStatic.hpp"
 #include "LogConsts.hpp"
 

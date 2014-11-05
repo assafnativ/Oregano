@@ -43,7 +43,8 @@ class API(object):
             self._dllName = 'LogParserx64.dll'
         logParserDllFileName = osSep.join(dllPath + [self._dllName])
         self._logParserDll = cdll.LoadLibrary(logParserDllFileName)
-        self.defineFunction('parseLog',         [c_char_p], c_void_p)
+        self.defineFunction('createLogParser',  [], c_void_p)
+        self.defineFunction('parseLog',         [c_void_p, c_char_p], None)
         self.defineFunction('getLastCycle',     [c_void_p], c_uint32)
         self.defineFunction('getProcessorType', [c_void_p], c_uint32)
 
@@ -126,6 +127,7 @@ class API(object):
             self.defineFunction('statisticsEsp', [c_void_p, c_void_p, c_void_p], None)
             self.defineFunction('statisticsThreadId', [c_void_p, c_void_p, c_void_p], None)
             self.defineFunction('statisticsMemory', [c_void_p, c_void_p, c_void_p], None)
+            self.defineFunction('getDataContainer', [c_void_p], c_void_p)
         except AttributeError, e:
             # No debug functions
             pass

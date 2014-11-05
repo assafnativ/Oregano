@@ -1,6 +1,4 @@
 
-#pragma once
-
 #include <windows.h>
 
 #include "RegLog.hpp"

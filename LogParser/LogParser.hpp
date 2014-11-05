@@ -19,25 +19,27 @@ static const DWORD OREGANO_VERSION  = 2;
 
 // Forward declaration
 class OpcodesSideEffects;
+class FileReader;
 
 class LogParser
 {
 	public:
-		LogParser(const char * logFile);
+		LogParser();
 		~LogParser();
-        DWORD getLastCycle()        {return *lastCycle;}
+        void parse(const char * logFile);
+        DWORD getLastCycle()        { return *lastCycle; }
 #ifdef X86
-        DWORD eip(DWORD cycle)		{return eipLog->getItem(cycle);}
-        DWORD edi(DWORD cycle)		{return getRegValue<REG_ID_EDI>(cycle);}
-		DWORD esi(DWORD cycle)		{return getRegValue<REG_ID_ESI>(cycle);}
-		DWORD ebp(DWORD cycle)		{return getRegValue<REG_ID_EBP>(cycle);}
-		DWORD ebx(DWORD cycle)		{return getRegValue<REG_ID_EBX>(cycle);}
-		DWORD edx(DWORD cycle)		{return getRegValue<REG_ID_EDX>(cycle);}
-		DWORD ecx(DWORD cycle)		{return getRegValue<REG_ID_ECX>(cycle);}
-		DWORD eax(DWORD cycle)		{return getRegValue<REG_ID_EAX>(cycle);}
-		DWORD ecs(DWORD cycle)		{return getRegValue<REG_ID_ECS>(cycle);}
-		DWORD eflags(DWORD cycle)	{return getRegValue<REG_ID_EFLAGS>(cycle);}
-		DWORD esp(DWORD cycle)		{return getRegValue<REG_ID_ESP>(cycle);}
+        DWORD eip(DWORD cycle)		{ return eipLog->getItem(cycle); }
+        DWORD edi(DWORD cycle)		{ return getRegValue<REG_ID_EDI>(cycle); }
+        DWORD esi(DWORD cycle)		{ return getRegValue<REG_ID_ESI>(cycle); }
+        DWORD ebp(DWORD cycle)		{ return getRegValue<REG_ID_EBP>(cycle); }
+        DWORD ebx(DWORD cycle)		{ return getRegValue<REG_ID_EBX>(cycle); }
+        DWORD edx(DWORD cycle)		{ return getRegValue<REG_ID_EDX>(cycle); }
+        DWORD ecx(DWORD cycle)		{ return getRegValue<REG_ID_ECX>(cycle); }
+        DWORD eax(DWORD cycle)		{ return getRegValue<REG_ID_EAX>(cycle); }
+        DWORD ecs(DWORD cycle)		{ return getRegValue<REG_ID_ECS>(cycle); }
+        DWORD eflags(DWORD cycle)	{ return getRegValue<REG_ID_EFLAGS>(cycle); }
+        DWORD esp(DWORD cycle)		{ return getRegValue<REG_ID_ESP>(cycle); }
 #elif AMD64
         QWORD rip(DWORD cycle)      {return eipLog->getItem(cycle);}
         QWORD rdi(DWORD cycle)      {return getRegValue<REG_ID_RDI>(cycle);}
@@ -60,7 +62,7 @@ class LogParser
         QWORD rsp(DWORD cycle)      {return getRegValue<REG_ID_RSP>(cycle);}
         QWORD rss(DWORD cycle)      {return getRegValue<REG_ID_RSS>(cycle);}
 #endif
-        DWORD threadId(DWORD cycle) {return (DWORD)(getRegValue<THREAD_ID>(cycle));}
+        DWORD threadId(DWORD cycle) { return (DWORD)(getRegValue<THREAD_ID>(cycle)); }
         DWORD findEffectiveCycle(DWORD regId, DWORD cycle);
         MACHINE_LONG getRegValueById(DWORD regId, DWORD cycle);
 		DWORD findCycleWithEipValue(DWORD targetEip, DWORD startCycle, DWORD endCycle);
@@ -69,30 +71,32 @@ class LogParser
         WORD  getWord (Address address);
         DWORD getDword(Address address);
         QWORD getQword(Address address);
-        BYTE  getByte (Cycle cycle, ADDRESS addr) {return memory->getByte (cycle, addr);};
-        WORD  getWord (Cycle cycle, ADDRESS addr) {return memory->getWord (cycle, addr);};
-        DWORD getDword(Cycle cycle, ADDRESS addr) {return memory->getDword(cycle, addr);};
-        QWORD getQword(Cycle cycle, ADDRESS addr) {return memory->getQword(cycle, addr);};
-        BYTE  getByte (ADDRESS addr) {return memory->getByte (*lastCycle, addr);};
-        WORD  getWord (ADDRESS addr) {return memory->getWord (*lastCycle, addr);};
-        DWORD getDword(ADDRESS addr) {return memory->getDword(*lastCycle, addr);};
-        QWORD getQword(ADDRESS addr) {return memory->getQword(*lastCycle, addr);};
-        BYTE * getStaticMemoryPointer(ADDRESS addr) {return memory->getStaticMemoryPointer(addr);};
+        BYTE  getByte(Cycle cycle, ADDRESS addr) { return memory->getByte(cycle, addr); }
+        WORD  getWord(Cycle cycle, ADDRESS addr) { return memory->getWord(cycle, addr); }
+        DWORD getDword(Cycle cycle, ADDRESS addr) { return memory->getDword(cycle, addr); }
+        QWORD getQword(Cycle cycle, ADDRESS addr) { return memory->getQword(cycle, addr); }
+        BYTE  getByte(ADDRESS addr) { return memory->getByte(*lastCycle, addr); }
+        WORD  getWord(ADDRESS addr) { return memory->getWord(*lastCycle, addr); }
+        DWORD getDword(ADDRESS addr) { return memory->getDword(*lastCycle, addr); }
+        QWORD getQword(ADDRESS addr) { return memory->getQword(*lastCycle, addr); }
+        BYTE * getStaticMemoryPointer(ADDRESS addr) { return memory->getStaticMemoryPointer(addr); }
         DWORD getProcessorType() { return *processorType; };
         RegLogIterBase * getRegLogIter(DWORD regId, DWORD cycle);
-        FindChangingCycles * findChangingCycles(ADDRESS addr, DWORD startCycle, DWORD endCycle) {
+        FindChangingCycles * findChangingCycles(ADDRESS addr, DWORD startCycle, DWORD endCycle)
+        {
             return new FindChangingCycles(memory, addr, startCycle, endCycle);
         }
-        FindData * findData(const BYTE * data, DWORD dataLength, DWORD startCycle, DWORD endCycle) {
+        FindData * findData(const BYTE * data, DWORD dataLength, DWORD startCycle, DWORD endCycle)
+        {
             return new FindData(memory, data, dataLength, startCycle, endCycle);
         }
 		void DumpMemoryUsage();
 
         void setByte(ADDRESS addr, BYTE val);
 #ifdef _DEBUG
-		void * obtainPage(PageIndex index)  {return dataContainer->obtainPage(index);};
-		void * obtainConsecutiveData(PageIndex index, DWORD length)  {return dataContainer->obtainConsecutiveData(index, length);};
-		void   releasePage(PageIndex index) {dataContainer->releasePage(index);};
+        void * obtainPage(PageIndex index)  { return dataContainer->obtainPage(index); }
+        void * obtainConsecutiveData(PageIndex index, DWORD length)  { return dataContainer->obtainConsecutiveData(index, length); }
+        void   releasePage(PageIndex index) { dataContainer->releasePage(index); }
 
 		StatisticsInfo * statisticsReg(DWORD regId)
 		{
@@ -102,8 +106,11 @@ class LogParser
 			}
 			return reg[regId]->statistics();
 		};
-		StatisticsInfo * statisticsMemory() {return memory->statistics();};
+		StatisticsInfo * statisticsMemory() {return memory->statistics();}
+
+        PagedDataContainer * getDataContainer() { return dataContainer; }
 #endif
+
 	protected:
 		template <int REG_ID>
 		inline MACHINE_LONG getRegValue(DWORD cycle)
@@ -121,7 +128,7 @@ class LogParser
             }
             return reg[regId]->findEffectiveCycle(cycle);
         }
-		BOOL parseLog(FileReader &log);
+		BOOL parse(FileReader &log);
         BOOL parseTrace(FileReader &log);
         BOOL parseModulesInfo(FileReader &log);
         BOOL parseRangesInfo(FileReader &log);
@@ -132,8 +139,8 @@ class LogParser
         DWORD readSectionTag();
         OpcodesSideEffects * opcodesSideEffects;
 
-        EipLog * getEipLog() const { return eipLog; };
-        RegLog * getRegLog(DWORD regId) const { return reg[regId]; };
+        EipLog * getEipLog() const { return eipLog; }
+        RegLog * getRegLog(DWORD regId) const { return reg[regId]; }
 
     protected:
         PagedDataContainer * dataContainer;
@@ -157,7 +164,7 @@ class FindCycleWithEipValue
 		FindCycleWithEipValue(LogParser * logParser);
 		void restartSearch();
 		void newSearch( ADDRESS target, DWORD startCycle, DWORD endCycle );
-		BOOL isEndOfSearch() {return isDone;};
+        BOOL isEndOfSearch() { return isDone; }
 		void next();
         void prev();
         Cycle current();

@@ -1,17 +1,17 @@
 
 #include "dllInterface.hpp"
 
-LogParser * parseLog(const char * fileName)
+LogParser * createLogParser()
 {
-   LogParser * result = new LogParser(fileName);
-   if (0 == result->getLastCycle())
-   {
-       delete result;
-       result = NULL;
-       return NULL;
-   }
-   return result;
+    return new LogParser();
 }
+
+void parseLog(LogParser * logParser, const char * fileName)
+{
+    logParser->parse(fileName);
+    logParser->getLastCycle();
+}
+
 DWORD getLastCycle(LogParser * logParser) {return logParser->getLastCycle();}
 DWORD getProcessorType(LogParser * logParser) {return logParser->getProcessorType();}
 #ifdef X86
@@ -54,7 +54,7 @@ BYTE  getByte(LogParser * logParser, DWORD cycle, ADDRESS addr) {return logParse
 WORD  getWord(LogParser * logParser, DWORD cycle, ADDRESS addr) { return logParser->getWord(cycle, addr); }
 DWORD getDword(LogParser * logParser, DWORD cycle, ADDRESS addr) { return logParser->getDword(cycle, addr); }
 QWORD getQword(LogParser * logParser, DWORD cycle, ADDRESS addr) { return logParser->getQword(cycle, addr); }
-void deleteLogParserObject(LogParser * logParser) {delete logParser;}
+void deleteLogParserObject(LogParser * logParser) { delete logParser; }
 
 FindCycleWithEipValue * findCycleWithEipValue( LogParser * logParser, ADDRESS target, DWORD startCycle, DWORD endCycle )
 {

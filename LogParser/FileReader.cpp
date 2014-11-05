@@ -1,9 +1,17 @@
 
 #include "FileReader.hpp"
 
-FileReader::FileReader(const char * fileName):
-			        totalBytesRead(0)
+FileReader::FileReader() :
+                file(NULL),
+                fileSize(0),
+                totalBytesRead(0)
 {
+
+}
+
+void FileReader::openFile(const char * fileName)
+{
+    close();
 	file =	CreateFileA(
 					fileName,
 					GENERIC_READ,
@@ -26,10 +34,20 @@ FileReader::FileReader(const char * fileName):
 	fileSize = tempFileSize.LowPart;
 }
 
+void FileReader::close()
+{
+    if (NULL != file)
+    {
+        CloseHandle(file);
+    }
+    file = NULL;
+    totalBytesRead = 0;
+    fileSize = 0;
+}
+
 FileReader::~FileReader()
 {
-	CloseHandle(file);
-	file = NULL;
+    close();
 }
 
 DWORD FileReader::ReadNullTermString(BYTE * output)

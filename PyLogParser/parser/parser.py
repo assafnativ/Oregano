@@ -28,13 +28,12 @@ def parseLog(fileName, timeIt=False, maxCycle=0x7fffffff, isVerbose=False):
     return log
 
 class Log(MemReaderBase, DebuggerBase, GUIDisplayBase):
-    def __init__(self, logFile, maxCycle=0x7fffffff, isVerbose=False):
+    def __init__(self, logFile=None, maxCycle=0x7fffffff, isVerbose=False):
         self._is64Bit = '64 bit' in sys.version
         self.API = API(not self._is64Bit)
         self.DEFAULT_DATA_SIZE = 4
         MemReaderBase.__init__(self)
         self.isVerbose = isVerbose
-        self._parseLog(logFile, maxCycle=maxCycle)
         # Set the debugger interface
         DebuggerBase.__init__(self)
         class DisassemblerWrapper(object):
@@ -53,9 +52,15 @@ class Log(MemReaderBase, DebuggerBase, GUIDisplayBase):
                 return wrapper._log._contextShow()
         self.t = SingleStepWrapper(self)
         self._breakpoints = {}
+        self._log = self.API.createLogParser()
+        if None == self._log:
+            raise Exception("Failed to create log parser")
+        if None != logFile:
+            self.parseLog(logFile, maxCycle=maxCycle)
 
     def __del__(self):
         self.API.deleteLogParserObject(self._log)
+        self._log = None
 
     def __repr__(self):
         result = self._contextShow()
@@ -67,17 +72,15 @@ class Log(MemReaderBase, DebuggerBase, GUIDisplayBase):
             print(text)
 
     def attach(self, logFile, maxCycle=0x7fffffff):
-        return self._parseLog(logFile, maxCycle=maxCycle)
+        return self.parseLog(logFile, maxCycle=maxCycle)
 
     def detach(self):
         del self
 
     # Recommended number for maxCycle for 32bit Python is 0x0500000
     #                                 for 64bit Python is 0x1000000
-    def _parseLog(self, logFile, maxCycle=0x7fffffff):
-        self._log = self.API.parseLog(logFile)
-        if None == self._log:
-            raise Exception("Failed to create log parser")
+    def parseLog(self, logFile, maxCycle=0x7fffffff):
+        self.API.parseLog(self._log, logFile)
         self._processor = self.API.getProcessorType(self._log)
         if self.API.PROCESSOR_TYPE_x86 == self._processor:
             self.POINTER_SIZE = 4

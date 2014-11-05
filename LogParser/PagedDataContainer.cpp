@@ -1,5 +1,6 @@
 
 #include <assert.h> 
+
 #include "PagedDataContainer.hpp"
 
 PagedDataContainer::PagedDataContainer(const char * fileName)
@@ -170,6 +171,12 @@ void PagedDataContainer::seekToPage( PageIndex index )
 
 PageBase * PagedDataContainer::pageIn(PageIndex index)
 {
+    if (numItems > GARBAGE_COLLECT_CRITICAL_THRESHOLD)
+    {
+        // Give the garbage collector a chance
+        Sleep(0);
+    }
+
     // 1. Seek to right place
     // 2. Make a new page object
     // 3. Read page

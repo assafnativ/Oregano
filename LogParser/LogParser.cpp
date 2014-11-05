@@ -4,11 +4,6 @@
 
 #include "LogParser.hpp"
 
-/* Debug */
-static LogParser * debug;
-
-/* Forward declarations */
-
 BOOL WINAPI DllMain(
 			__in  HINSTANCE hinstDLL,
 			__in  DWORD reason,
@@ -25,27 +20,33 @@ BOOL WINAPI DllMain(
 		case DLL_THREAD_DETACH:
 			break;
 		default:
-			/* Unknown dll callback reason */
+			/* Unknown DLL callback reason */
 			break;
 	}
 
 	return TRUE;
 }
 
-LogParser::LogParser(const char * logFile)
+LogParser::LogParser()
 		:
         opcodesSideEffects(NULL),
-        log(logFile),
         eipLog(NULL),
         lastCycle(0)
-
 {
     // Init what I can't init above
-    for (DWORD i = 0; i < NUMBER_OF_REGS; ++i) {
+    for (DWORD i = 0; i < NUMBER_OF_REGS; ++i)
+    {
         reg[i] = NULL;
     }
+}
+
+void LogParser::parse(const char * logFile)
+{
+    log.openFile(logFile);
+
     // Validate input
-    if (strlen(logFile) > (MAX_FILE_NAME - strlen(LOG_DB_EXTENTION) - 1)) {
+    if (strlen(logFile) >(MAX_FILE_NAME - strlen(LOG_DB_EXTENTION) - 1))
+    {
         // Fuck this shit
         return;
     }
@@ -54,15 +55,15 @@ LogParser::LogParser(const char * logFile)
     {
         return;
     }
-    char dbFileName[MAX_FILE_NAME] = {0};
+    char dbFileName[MAX_FILE_NAME] = { 0 };
     sprintf_s(dbFileName, MAX_FILE_NAME, "%s%s", logFile, LOG_DB_EXTENTION);
     dataContainer = new PagedDataContainer(dbFileName);
     rootPage = (DBRootPage *)dataContainer->obtainPage(0);
     dataContainer->setPageTag(0, 'ROOT');
     if (rootPage->oreganoMagic != DB_OREGANO_MAGIC) {
         // This is a new DB
-        rootPage->oreganoMagic  = DB_OREGANO_MAGIC;
-        rootPage->version       = OREGANO_VERSION;
+        rootPage->oreganoMagic = DB_OREGANO_MAGIC;
+        rootPage->version = OREGANO_VERSION;
         PageIndex * regsIndexsPtr = &rootPage->eipRootPage;
         for (DWORD i = 0; NUMBER_OF_REGS > i; ++i) {
             dataContainer->newPage(regsIndexsPtr);
@@ -71,13 +72,13 @@ LogParser::LogParser(const char * logFile)
         }
         dataContainer->newPage(&rootPage->memoryRootPage);
         dataContainer->setPageTag(rootPage->memoryRootPage, 'MEM_');
-        logVersion    = &rootPage->logVersion;
+        logVersion = &rootPage->logVersion;
         processorType = &rootPage->processorType;
-        logHasMemory  = &rootPage->logHasMemory;
-        lastCycle     = &rootPage->lastCycle;
+        logHasMemory = &rootPage->logHasMemory;
+        lastCycle = &rootPage->lastCycle;
         initContext();
         initMemory();
-        parseLog(log);
+        parse(log);
         dataContainer->endOfData();
         for (DWORD i = 0; NUMBER_OF_REGS > i; ++i) {
             if (NULL != reg[i])
@@ -86,15 +87,16 @@ LogParser::LogParser(const char * logFile)
             }
         }
         memory->endOfData();
-    } else {
+    }
+    else {
         dataContainer->setReadOnly();
         // Load information from DB
         assert(DB_OREGANO_MAGIC == rootPage->oreganoMagic);
         // TODO: Check version
-        logVersion    = &rootPage->logVersion;
+        logVersion = &rootPage->logVersion;
         processorType = &rootPage->processorType;
-        logHasMemory  = &rootPage->logHasMemory;
-        lastCycle     = &rootPage->lastCycle;
+        logHasMemory = &rootPage->logHasMemory;
+        lastCycle = &rootPage->lastCycle;
         initContext();
         initMemory();
     }
@@ -209,7 +211,7 @@ void LogParser::setByte( ADDRESS addr, BYTE val )
     memory->setByte(*lastCycle, addr, val);
 }
 
-BOOL LogParser::parseLog(FileReader &log)
+BOOL LogParser::parse(FileReader &log)
 {
     BOOL functionResult = FALSE;
     DWORD length;

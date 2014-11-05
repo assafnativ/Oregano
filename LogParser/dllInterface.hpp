@@ -13,7 +13,8 @@
 
 extern "C" {
 
-LOG_PARSER_API LogParser * parseLog(const char * fileName);
+LOG_PARSER_API LogParser * createLogParser();
+LOG_PARSER_API void parseLog(LogParser * logParser, const char * fileName);
 LOG_PARSER_API DWORD getLastCycle(LogParser * logParser);
 LOG_PARSER_API DWORD getProcessorType(LogParser * logParser);
 #ifdef X86

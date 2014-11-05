@@ -1,8 +1,8 @@
 
+#include <assert.h>
+
 #include "Memory.hpp"
 #include "LogConsts.hpp"
-
-#include <assert.h>
 
 Memory::Memory(PageIndex rootPageIndex, PagedDataContainer * dc)
     : rootPageIndex(rootPageIndex),
