@@ -123,7 +123,7 @@ class LogParser
 		}
         inline DWORD getEffectiveRegCycle(DWORD regId, DWORD cycle)
         {
-            if ((0 == regId) || (NUMBER_OF_REGS >= regId)) {
+            if ((0 == regId) || (NUMBER_OF_REGS > regId)) {
                 return INVALID_CYCLE;
             }
             return reg[regId]->findEffectiveCycle(cycle);

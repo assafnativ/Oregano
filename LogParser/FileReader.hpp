@@ -29,13 +29,13 @@ class FileReader
 		{
 			TYPE result;
 			DWORD bytesRead;
-			ReadFile(
-				file,
-				(LPVOID)(&result),
-				sizeof(TYPE),
-				&bytesRead,
-				NULL);
-            assert(bytesRead == sizeof(TYPE));
+			BOOL readResult = ReadFile(
+				                file,
+				                (LPVOID)(&result),
+				                sizeof(TYPE),
+				                &bytesRead,
+				                NULL);
+            assert((bytesRead == sizeof(TYPE)) && (0 != readResult));
 			totalBytesRead += sizeof(TYPE);
 			return result;
 		}
