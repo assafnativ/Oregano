@@ -1,5 +1,5 @@
 
-#include <assert.h>
+#include "stdafx.h"
 
 #include "MemoryBase.hpp"
 

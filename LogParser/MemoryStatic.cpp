@@ -1,5 +1,5 @@
 
-#include <assert.h>
+#include "stdafx.h"
 
 #include "MemoryStatic.hpp"
 #include "LogConsts.hpp"

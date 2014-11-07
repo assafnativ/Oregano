@@ -1,4 +1,6 @@
 
+#include "stdafx.h"
+
 #include "FileReader.hpp"
 
 FileReader::FileReader() :

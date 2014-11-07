@@ -1,5 +1,5 @@
 
-#include <windows.h>
+#include "stdafx.h"
 
 #include "RegLog.hpp"
 

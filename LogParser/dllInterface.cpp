@@ -1,4 +1,6 @@
 
+#include "stdafx.h"
+
 #include "dllInterface.hpp"
 
 LogParser * createLogParser()

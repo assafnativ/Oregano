@@ -1,4 +1,6 @@
 
+#include "stdafx.h"
+
 #include "dllDebugInterface.hpp"
 
 #ifdef _DEBUG

@@ -1,4 +1,6 @@
 
+#include "stdafx.h"
+
 #include "ByteInTime.hpp"
 
 Cycle ByteInTimeGetCycle( ByteInTime const * x )

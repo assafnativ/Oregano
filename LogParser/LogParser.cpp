@@ -1,6 +1,5 @@
 
-#include <stdio.h>
-#include <assert.h>
+#include "stdafx.h"
 
 #include "LogParser.hpp"
 
