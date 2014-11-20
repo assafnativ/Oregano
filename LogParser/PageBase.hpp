@@ -8,7 +8,7 @@ public:
     PageBase * next;
     PageBase * prev;
     PageIndex index;
-    volatile long refCount;
+    long refCount;
     DWORD accessCount;
     QWORD lastAccess;
     DWORD tag;
