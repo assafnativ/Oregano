@@ -90,6 +90,9 @@ void PagedDataContainer::moveToTopOfTheList(PageBucket * bucket, PageBase * page
         if (NULL != oldNext) {
 		    oldNext->prev = oldPrev;
         }
+        else {
+            bucket->last = oldPrev;
+        }
 		// Put it on top of the list
 		PageBase * oldFirst = bucket->first;
 		bucket->first = page;
