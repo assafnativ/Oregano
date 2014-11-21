@@ -216,7 +216,7 @@ class Log(MemReaderBase, DebuggerBase, GUIDisplayBase):
     def _getRegValue(self, regId, cycle):
         # Assume regId is valid
         cycle = self._getCycleFromObj(cycle)
-        return RegIter(self._log, regId, cycle)
+        return RegIter(self, regId, cycle)
 
     def getRegValue(self, regId, cycle=None):
         if REG_ID_EIP > regId or NUMBER_OF_REGS <= regId:
