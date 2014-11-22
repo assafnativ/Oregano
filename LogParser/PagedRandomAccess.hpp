@@ -13,7 +13,7 @@ public:
     static const DWORD PAGE_ROOT_ITEMS_CAPACITY = PAGE_ITEMS_CAPACITY * (PAGE_INDEXES_CAPACITY - 1);
     PagedRandomAccess(PageIndex rootIndex, PagedDataContainer * dc, DWORD tag)
         : 
-            dataContainer(dc),
+            dc(dc),
             rootPageIndex(rootIndex),
             rootPage(NULL),
             lastPage(NULL),
@@ -25,8 +25,8 @@ public:
             level2Pages[i] = NULL;
         }
 
-        rootPage = (PageIndex *)dataContainer->obtainPage(rootPageIndex);
-        DEBUG_ONLY(dataContainer->setPageTag(rootPageIndex, tag));
+        rootPage = (PageIndex *)dc->obtainPage(rootPageIndex);
+        DEBUG_PAGE_TAG(rootPageIndex, tag);
         numItems = &rootPage[PAGE_INDEXES_CAPACITY - 1];
         // Load the level2 pages
         if (0 != *numItems)
@@ -34,8 +34,8 @@ public:
             DWORD rootIndexs = *numItems / PAGE_ROOT_ITEMS_CAPACITY;
             for (DWORD i = 0; i <= rootIndexs; ++i)
             {
-                level2Pages[i] = (DWORD *)dataContainer->obtainPage(rootPage[i]);
-                DEBUG_ONLY(dataContainer->setPageTag(rootPage[i], tag + 1));
+                level2Pages[i] = (DWORD *)dc->obtainPage(rootPage[i]);
+                DEBUG_PAGE_TAG(rootPage[i], tag + 1);
             }
         }
     }
@@ -51,23 +51,23 @@ public:
         // Release level 1
         PageIndex * pageIter = (DWORD *)level2Pages;
         for (PageIndex pageIndex = *pageIter; 0 != pageIndex; ++pageIter) {
-            dataContainer->releasePage(pageIndex);
+            dc->releasePage(pageIndex);
         }
 
-        dataContainer->releasePage(rootPageIndex);
+        dc->releasePage(rootPageIndex);
     }
 
     // Makes a copy of the item
     T getItem(DWORD itemIndex)
     {
         PageIndex pageIndex = getPageIndex(itemIndex);
-        T * page = (T *)dataContainer->obtainPage(pageIndex);
-        DEBUG_ONLY(dataContainer->setPageTag(pageIndex, _tag + 1));
+        T * page = (T *)dc->obtainPage(pageIndex);
+        DEBUG_PAGE_TAG(pageIndex, _tag + 1);
 
         DWORD pageOffset = itemIndex % PAGE_ITEMS_CAPACITY;
         T result = page[pageOffset];
 
-        dataContainer->releasePage(pageIndex);
+        dc->releasePage(pageIndex);
         return result;
     }
 
@@ -75,7 +75,7 @@ public:
     {
         if (NULL != lastPage)
         {
-            dataContainer->releasePage(lastPageIndex);
+            dc->releasePage(lastPageIndex);
             lastPageIndex = INVALID_PAGE_INDEX;
             lastPage = NULL;
         }
@@ -84,7 +84,8 @@ public:
     T * newLastPage(PageIndex * pageIndex)
     {
         releaseLastPage();
-        lastPage = (T *)dataContainer->newPage(&lastPageIndex);
+        lastPage = (T *)dc->newPage(&lastPageIndex);
+        DEBUG_PAGE_TAG(lastPageIndex, _tag + 4);
         *pageIndex = lastPageIndex;
         return lastPage;
     }
@@ -96,8 +97,8 @@ public:
             return lastPage;
         }
         releaseLastPage();
-        lastPage = (T *)dataContainer->obtainPage(pageIndex);
-        DEBUG_ONLY(dataContainer->setPageTag(pageIndex, _tag + 2));
+        lastPage = (T *)dc->obtainPage(pageIndex);
+        DEBUG_PAGE_TAG(pageIndex, _tag + 2);
         lastPageIndex = pageIndex;
         return lastPage;
     }
@@ -110,7 +111,8 @@ public:
         if (NULL == level2Page) {
             // Allocate new level 1 page
             DWORD level2PageIndex = 0;
-            level2Page = (DWORD *)dataContainer->newPage(&level2PageIndex);
+            level2Page = (DWORD *)dc->newPage(&level2PageIndex);
+            DEBUG_PAGE_TAG(level2PageIndex, _tag + 3);
             level2Pages[itemRootIndex] = level2Page;
             rootPage[itemRootIndex] = level2PageIndex;
         }
@@ -156,7 +158,7 @@ public:
 	}
 
 protected:
-    PagedDataContainer * dataContainer;
+    PagedDataContainer * dc;
     PageIndex    rootPageIndex;
     PageIndex *  rootPage;
     PageIndex *  level2Pages[PAGE_INDEXES_CAPACITY];

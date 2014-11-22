@@ -20,12 +20,15 @@ PairsCache::~PairsCache()
 void PairsCache::CreateRootPage()
 {
     rootPage = (PairsCacheRootPage *)dc->obtainPage(rootPageIndex);
+    DEBUG_PAGE_TAG(rootPageIndex, 'PCRT');
     if (0 == rootPage->size) {
         // New log
         rootPage->size = PAIRS_CACHE_SIZE;
         BucketsIndexes = (PageIndex *)dc->newConsecutiveData(&rootPage->Buckets, sizeof(PageIndex) * PAIRS_CACHE_SIZE);
+        DEBUG_PAGE_TAG(*BucketsIndexes, 'PCBU');
         for (DWORD i = 0; PAIRS_CACHE_SIZE > i; ++i) {
             dc->newPage(&BucketsIndexes[i]);
+            DEBUG_PAGE_TAG(BucketsIndexes[i], 'APCR');
             cache[i] = new PairsBucket(BucketsIndexes[i], dc, 'PRS0');
             dc->releasePage(BucketsIndexes[i]);
         }
@@ -33,6 +36,7 @@ void PairsCache::CreateRootPage()
         // Data is already saved to disk, just load it
         assert(rootPage->size == PAIRS_CACHE_SIZE);
         BucketsIndexes = (PageIndex *)dc->obtainConsecutiveData(rootPage->Buckets, sizeof(PageIndex) * PAIRS_CACHE_SIZE);
+        DEBUG_PAGE_TAG(*BucketsIndexes, 'PCBU');
         for (DWORD i = 0; PAIRS_CACHE_SIZE > i; ++i) {
             cache[i] = new PairsBucket(BucketsIndexes[i], dc, 'PBU0');
         }

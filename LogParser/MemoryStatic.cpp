@@ -34,7 +34,7 @@ void MemoryStatic::setDataChunk( const ADDRESS address, const DWORD dataLength, 
     numRegions += 1;
     assert(numRegions < MAX_REGIONS);
     BYTE * regionData = dc->newConsecutiveData(&newRegion.dataPageIndex, dataLength);
-    DEBUG_ONLY(dc->setPageTag(newRegion.dataPageIndex, 'MSR0'));
+    DEBUG_PAGE_TAG(newRegion.dataPageIndex, 'MSR0');
     memcpy(regionData, data, dataLength);
     regions->append(newRegion);
     regionsData[newRegion.privateIndex] = regionData;
@@ -65,7 +65,7 @@ void MemoryStatic::createRootPage()
     RegionsListIter * regionsIter = new RegionsListIter(regions, 'RLI0');
     for (regionInfo = regionsIter->current(); NULL != regionInfo; regionsIter->next(), regionInfo = regionsIter->current()) {
         regionsData[regionInfo->privateIndex] = dc->obtainConsecutiveData(regionInfo->dataPageIndex, regionInfo->length);
-        DEBUG_ONLY(dc->setPageTag(regionInfo->dataPageIndex, 'RSME'));
+        DEBUG_PAGE_TAG(regionInfo->dataPageIndex, 'RSME');
         if (numRegions <= regionInfo->privateIndex) {
             numRegions = regionInfo->privateIndex + 1;
         }

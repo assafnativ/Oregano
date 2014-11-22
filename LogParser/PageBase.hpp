@@ -9,8 +9,6 @@ public:
     PageBase * prev;
     PageIndex index;
     long refCount;
-    DWORD accessCount;
-    QWORD lastAccess;
     DWORD tag;
 
     virtual BYTE * getData() = 0;
@@ -20,9 +18,7 @@ public:
         index(index),
         next(NULL),
         prev(NULL),
-        refCount(0),
-        accessCount(0),
-        lastAccess(0)
+        refCount(0)
     {
         DEBUG_ONLY((tag = 0));
     };

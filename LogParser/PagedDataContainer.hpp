@@ -10,12 +10,12 @@
 #include "GlobalDefines.hpp"
 
 static const BYTE NULL_PAGE_DATA[PAGE_SIZE]     = {0};
-static const DWORD BUCKETS_IN_CACHE             = 0x8000;
+static const DWORD BUCKETS_IN_CACHE             = 0x1000;
 // TODO calculate these number dynamically
 #ifdef AMD64
 static const DWORD GARBAGE_COLLECT_TOP_THRESHOLD = 0x80000;
 #else
-static const DWORD GARBAGE_COLLECT_TOP_THRESHOLD = 0x40000;
+static const DWORD GARBAGE_COLLECT_TOP_THRESHOLD = 0x50000;
 #endif
 static const DWORD SMALL_ACCESS_COUNT				= 2;
 static const PageIndex INVALID_PAGE_INDEX           = 0xffffffff;
@@ -38,7 +38,9 @@ protected:
     DWORD bucketToClean;
 
 	void moveToBucketTop(PageBucket * bucket, PageBase * page);
-    PageBase * findPage( PageIndex index );
+    void moveToBucketBottom(PageBucket * bucket, PageBase * page);
+    PageBase * findPage(PageIndex index);
+    PageBase * findPage(PageBucket * bucket, PageIndex index);
     void bucketInsert( PageBase * page );
     void seekToPage( PageIndex index );
     PageBase * pageIn( PageIndex index );
@@ -54,7 +56,6 @@ protected:
     void inline refInc( PageBase * page ) {
         assert(page->refCount >= 0);
         page->refCount++;
-        ++page->accessCount;
     }
     void inline refDec( PageBase * page ) {
         assert(page->refCount > 0);

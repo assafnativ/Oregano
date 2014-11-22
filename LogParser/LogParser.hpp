@@ -94,9 +94,9 @@ class LogParser
 
         void setByte(ADDRESS addr, BYTE val);
 #ifdef _DEBUG
-        void * obtainPage(PageIndex index)  { return dataContainer->obtainPage(index); }
-        void * obtainConsecutiveData(PageIndex index, DWORD length)  { return dataContainer->obtainConsecutiveData(index, length); }
-        void   releasePage(PageIndex index) { dataContainer->releasePage(index); }
+        void * obtainPage(PageIndex index)  { return dc->obtainPage(index); }
+        void * obtainConsecutiveData(PageIndex index, DWORD length)  { return dc->obtainConsecutiveData(index, length); }
+        void   releasePage(PageIndex index) { dc->releasePage(index); }
 
 		StatisticsInfo * statisticsReg(DWORD regId)
 		{
@@ -108,7 +108,7 @@ class LogParser
 		};
 		StatisticsInfo * statisticsMemory() {return memory->statistics();}
 
-        PagedDataContainer * getDataContainer() { return dataContainer; }
+        PagedDataContainer * getDataContainer() { return dc; }
 #endif
 
 	protected:
@@ -143,7 +143,7 @@ class LogParser
         RegLog * getRegLog(DWORD regId) const { return reg[regId]; }
 
     protected:
-        PagedDataContainer * dataContainer;
+        PagedDataContainer * dc;
 		FileReader log;
 		RegLog * reg[NUMBER_OF_REGS];
 		EipLog * eipLog;

@@ -23,21 +23,23 @@ public:
     PagedHashTable(PageIndex pageIndex, PagedDataContainer * dc, DWORD tag)
         : 
             rootPageIndex(pageIndex),
-            dataContainer(dc)
+            dc(dc)
     {
         const DWORD rootPageSize = SIZE * sizeof(pageIndex);
         DEBUG_ONLY(_tag = tag);
-        rootPage = (PageIndex *)dataContainer->obtainConsecutiveData(rootPageIndex, rootPageSize);
+        rootPage = (PageIndex *)dc->obtainConsecutiveData(rootPageIndex, rootPageSize);
+        DEBUG_PAGE_TAG(rootPageIndex, 'lPHT');
         if (0 == *rootPage) {
             // Table is not initialize,
             // Initialize it now.
             for (DWORD i = 0; SIZE > i; ++i) {
-                dataContainer->newPage(&rootPage[i]);
-                dataContainer->releasePage(rootPage[i]);
+                dc->newPage(&rootPage[i]);
+                DEBUG_PAGE_TAG(rootPage[i], 'APHR');
+                dc->releasePage(rootPage[i]);
             }
         }
         for (DWORD i = 0; SIZE > i; ++i) {
-            table[i] = new PagedLinkedList<T>(rootPage[i], dataContainer, tag);
+            table[i] = new PagedLinkedList<T>(rootPage[i], dc, tag);
         }
     }
 
@@ -48,7 +50,7 @@ public:
             delete table[i];
             table[i] = NULL;
         }
-        dataContainer->releasePage(*rootPage);
+        dc->releasePage(*rootPage);
     }
 
     void append(T item)
@@ -86,7 +88,7 @@ public:
     friend class PagedHashTableIter<T, SIZE, KEY_TYPE, DIGEST, COMPERATOR>;
 
 protected:
-    PagedDataContainer * dataContainer;
+    PagedDataContainer * dc;
     DWORD rootPageIndex;
     PageIndex * rootPage;
     PagedLinkedList<T> * table[SIZE];
