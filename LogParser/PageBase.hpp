@@ -18,7 +18,8 @@ public:
         index(index),
         next(NULL),
         prev(NULL),
-        refCount(0)
+        // It must have a reference because something made this page in call
+        refCount(1)
     {
         DEBUG_ONLY((tag = 0));
     };

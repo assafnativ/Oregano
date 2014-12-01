@@ -27,6 +27,7 @@ protected:
         DWORD newPageIndex = 0;
         LinkedListPageFormat<T> * newPage = (LinkedListPageFormat<T> *)dc->newPage(&newPageIndex);
         DEBUG_PAGE_TAG(newPageIndex, _tag + 8);
+        dc->releasePage(newPageIndex);
         lastPage->nextPage = newPageIndex;
         dc->releasePage(lastPageIndex);
         lastPageIndex = newPageIndex;

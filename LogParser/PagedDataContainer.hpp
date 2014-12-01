@@ -10,7 +10,7 @@
 #include "GlobalDefines.hpp"
 
 static const BYTE NULL_PAGE_DATA[PAGE_SIZE]     = {0};
-static const DWORD BUCKETS_IN_CACHE             = 0x1000;
+static const DWORD BUCKETS_IN_CACHE = 0x800;
 // TODO calculate these number dynamically
 #ifdef AMD64
 static const DWORD GARBAGE_COLLECT_TOP_THRESHOLD = 0x80000;
@@ -29,6 +29,7 @@ protected:
     struct PageBucket {
         PageBase * first;
         PageBase * last;
+        PageBase * freeList;
         DWORD numItems;
     };
     PageBucket cache[BUCKETS_IN_CACHE];
@@ -37,8 +38,13 @@ protected:
     BOOL isReadOnly;
     DWORD bucketToClean;
 
-	void moveToBucketTop(PageBucket * bucket, PageBase * page);
-    void moveToBucketBottom(PageBucket * bucket, PageBase * page);
+
+    void removePageWithPrevFromBucket(PageBucket * bucket, PageBase * page);
+    void removePageWithNextFromBucket(PageBucket * bucket, PageBase * page);
+    void putPageInBucketAfter(PageBucket * bucket, PageBase * page, PageBase * pageBefore);
+    void putPageInBucketTop(PageBucket * bucket, PageBase * page);
+    void moveToBucketTop(PageBucket * bucket, PageBase * page);
+    void moveToFreeListStart(PageBucket * bucket, PageBase * page);
     PageBase * findPage(PageIndex index);
     PageBase * findPage(PageBucket * bucket, PageIndex index);
     void bucketInsert( PageBase * page );
@@ -66,6 +72,7 @@ protected:
     void nextFreeIndexAndOffset(PageIndex * pageIndex, LARGE_INTEGER * pageOffset);
     void freeOne();
     void validateCache();
+    DWORD validateBucket(PageBucket * bucket);
 
 public:
     PagedDataContainer( const char * fileName );
