@@ -132,6 +132,7 @@ public:
         for (DWORD i = 0; i < pageNumber; ++i) {
             DWORD nextPageIndex = pageIter->nextPage;
             dc->releasePage(pageIndexIter);
+            pageIndexIter = nextPageIndex;
             pageIter = (LinkedListPageFormat<T> *)dc->obtainPage(nextPageIndex);
             DEBUG_PAGE_TAG(nextPageIndex, _tag + 2);
         }
