@@ -1,19 +1,19 @@
 
-from .parserAPI import API
 from .regValue import *
 from .valueInTime import *
 
 class RegIter(object):
-    def __init__(self, log, regId, cycle):
+    def __init__(self, parser, regId, cycle):
         # Assume that regId is valid
         self.startCycle = cycle
         self.regId = regId
-        self._log = log
-        self._ctx = API.regLogIter(self._log, regId, cycle)
+        self._log = parser._log
+        self.API = parser.API
+        self._ctx = self.API.regLogIter(self._log, regId, cycle)
         if None == self._ctx:
             raise Exception("Failed to create reg iter")
-        self.cycle = API.regLogIterGetCycle(self._ctx)
-        self.value = API.regLogIterGetValue(self._ctx)
+        self.cycle = self.API.regLogIterGetCycle(self._ctx)
+        self.value = self.API.regLogIterGetValue(self._ctx)
 
     def __repr__(self):
         return 'Reg{0:x}_{1:x}:{2:x}'.format(self.regId, self.cycle, self.value)
@@ -21,10 +21,10 @@ class RegIter(object):
     def next(self, steps=1, isVerbose=True):
         if 1 != steps:
             raise Exception("None single step are not implemented yet")
-        API.regLogIterNext(self._ctx)
-        self.cycle = API.regLogIterGetCycle(self._ctx)
-        self.value = API.regLogIterGetValue(self._ctx)
-        if API.INVALID_CYCLE == self.cycle:
+        self.API.regLogIterNext(self._ctx)
+        self.cycle = self.API.regLogIterGetCycle(self._ctx)
+        self.value = self.API.regLogIterGetValue(self._ctx)
+        if self.API.INVALID_CYCLE == self.cycle:
             raise StopIteration()
         if isVerbose:
             print(self.__repr__())
@@ -33,10 +33,10 @@ class RegIter(object):
     def prev(self, steps=1, isVerbose=True):
         if 1 != steps:
             raise Exception("None single step are not implemented yet")
-        API.regLogIterPrev(self._ctx)
-        self.cycle = API.regLogIterGetCycle(self._ctx)
-        self.value = API.regLogIterGetValue(self._ctx)
-        if API.INVALID_CYCLE == self.cycle:
+        self.API.regLogIterPrev(self._ctx)
+        self.cycle = self.API.regLogIterGetCycle(self._ctx)
+        self.value = self.API.regLogIterGetValue(self._ctx)
+        if self.API.INVALID_CYCLE == self.cycle:
             raise StopIteration()
         if isVerbose:
             print(self.__repr__())
