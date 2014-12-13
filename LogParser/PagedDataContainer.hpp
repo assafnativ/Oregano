@@ -55,10 +55,10 @@ protected:
     void pageOut( PageBucket * bucket, PageBase * page );
     void pageRemoveFromBucket( PageBucket * bucket, PageBase * page );
     void writePage( PageBase * page );
-    BucketIndex  getBucketIndex( PageBase * page ) { return page->index % BUCKETS_IN_CACHE; };
-    BucketIndex  getBucketIndex( PageIndex index ) { return index % BUCKETS_IN_CACHE; };
-    PageBucket * getBucket( PageBase * page )      { return &cache[getBucketIndex(page)]; };
-    PageBucket * getBucket( PageIndex index )      { return &cache[getBucketIndex(index)]; };
+    BucketIndex  getBucketIndex( PageBase * page ) { return page->index % BUCKETS_IN_CACHE; }
+    BucketIndex  getBucketIndex( PageIndex index ) { return index % BUCKETS_IN_CACHE; }
+    PageBucket * getBucket( PageBase * page )      { return &cache[getBucketIndex(page)]; }
+    PageBucket * getBucket( PageIndex index )      { return &cache[getBucketIndex(index)]; }
     void inline refInc( PageBase * page ) {
         assert(page->refCount >= 0);
         page->refCount++;
@@ -77,7 +77,7 @@ protected:
 public:
     PagedDataContainer( const char * fileName );
     ~PagedDataContainer();
-    void   setReadOnly() {isReadOnly = TRUE;};
+    void   setReadOnly() { isReadOnly = TRUE; }
     BYTE * obtainPage( PageIndex index );
     BYTE * obtainConsecutiveData( PageIndex startPage, DWORD length );
     void setPageTag( PageIndex index, DWORD tag );

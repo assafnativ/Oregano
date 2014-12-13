@@ -14,7 +14,7 @@
 extern "C" {
 
 LOG_PARSER_API LogParser * createLogParser();
-LOG_PARSER_API void parseLog(LogParser * logParser, const char * fileName);
+LOG_PARSER_API void parseLog(LogParser * logParser, const char * fileName, Cycle maxCycle);
 LOG_PARSER_API DWORD getLastCycle(LogParser * logParser);
 LOG_PARSER_API DWORD getProcessorType(LogParser * logParser);
 #ifdef X86
@@ -62,7 +62,9 @@ LOG_PARSER_API QWORD getQword(LogParser * logParser, DWORD cycle, ADDRESS addr);
 LOG_PARSER_API void deleteLogParserObject(LogParser * logParser);
 
 LOG_PARSER_API FindCycleWithEipValue * findCycleWithEipValue( LogParser * logParser, ADDRESS target, DWORD startCycle, DWORD endCycle );
+LOG_PARSER_API FindCycleWithEipValue * findCycleWithEipValueReverse(LogParser * logParser, ADDRESS target, DWORD startCycle, DWORD endCycle);
 LOG_PARSER_API void 	findCycleWithEipValueObjectNext(FindCycleWithEipValue * ctx);
+LOG_PARSER_API void     findCycleWithEipValueObjectPrev(FindCycleWithEipValue * ctx);
 LOG_PARSER_API DWORD	findCycleWithEipValueObjectCurrent(FindCycleWithEipValue * ctx);
 LOG_PARSER_API BOOL     findCycleWithEipValueIsEndOfSearch(FindCycleWithEipValue * ctx);
 LOG_PARSER_API void		findCycleWithEipValueObjectRestartSearch(FindCycleWithEipValue * ctx);

@@ -8,7 +8,6 @@ class StatisticsInfo
 public:
 	DWORD totalPages;
 	DWORD pagesInUse;
-	
 };
 
 #define GET_AND_ADD_STATS(X, Y) \

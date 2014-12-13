@@ -53,6 +53,7 @@ PagedDataContainer::~PagedDataContainer()
         PageBase * pageIter = bucket->first;
         while (NULL != pageIter) {
             PageBase * nextPage = pageIter->next;
+            writePage(pageIter);
             delete pageIter;
             pageIter = nextPage;
         }
@@ -529,6 +530,7 @@ void PagedDataContainer::endOfData()
 {
     // Write all pages in all buckets.
     // Pages that are paged-out are already written.
+    validateCache();
     for (DWORD bucketIndex = 0; bucketIndex != BUCKETS_IN_CACHE; ++bucketIndex)
     {
         PagedDataContainer::PageBucket * bucket = &cache[bucketIndex];

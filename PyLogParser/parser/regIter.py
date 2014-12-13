@@ -15,8 +15,12 @@ class RegIter(object):
         self.cycle = self.API.regLogIterGetCycle(self._ctx)
         self.value = self.API.regLogIterGetValue(self._ctx)
 
+    def __del__(self):
+        self.API.regLogIterDelete(self._ctx)
+        self._ctx = None
+
     def __repr__(self):
-        return 'Reg{0:x}_{1:x}:{2:x}'.format(self.regId, self.cycle, self.value)
+        return 'Reg{0:x}:{1:x}'.format(self.cycle, self.value)
 
     def next(self, steps=1, isVerbose=True):
         if 1 != steps:

@@ -44,7 +44,7 @@ class API(object):
         logParserDllFileName = osSep.join(dllPath + [self._dllName])
         self._logParserDll = cdll.LoadLibrary(logParserDllFileName)
         self.defineFunction('createLogParser',  [], c_void_p)
-        self.defineFunction('parseLog',         [c_void_p, c_char_p], None)
+        self.defineFunction('parseLog',         [c_void_p, c_char_p, c_uint32], None)
         self.defineFunction('getLastCycle',     [c_void_p], c_uint32)
         self.defineFunction('getProcessorType', [c_void_p], c_uint32)
 
@@ -54,7 +54,9 @@ class API(object):
         self.defineFunction('getQword',         [c_void_p, c_uint32, c_uint32], c_uint64)
         self.defineFunction('deleteLogParserObject',                    [c_void_p], None)
         self.defineFunction('findCycleWithEipValue',                    [c_void_p, c_uint32, c_uint32, c_uint32], c_void_p)
+        self.defineFunction('findCycleWithEipValueReverse',             [c_void_p, c_uint32, c_uint32, c_uint32], c_void_p)
         self.defineFunction('findCycleWithEipValueObjectNext',          [c_void_p], None)
+        self.defineFunction('findCycleWithEipValueObjectPrev',          [c_void_p], None)
         self.defineFunction('findCycleWithEipValueObjectCurrent',       [c_void_p], c_uint32)
         self.defineFunction('findCycleWithEipValueObjectRestartSearch', [c_void_p], None)
         self.defineFunction('findCycleWithEipValueDelete',              [c_void_p], None)

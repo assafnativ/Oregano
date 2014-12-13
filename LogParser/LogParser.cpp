@@ -26,11 +26,11 @@ BOOL WINAPI DllMain(
 	return TRUE;
 }
 
-LogParser::LogParser()
-		:
+LogParser::LogParser() :
         opcodesSideEffects(NULL),
         eipLog(NULL),
-        lastCycle(0)
+        _lastCyclePtr(0),
+        _maxCycle(0)
 {
     // Init what I can't init above
     for (DWORD i = 0; i < NUMBER_OF_REGS; ++i)
@@ -39,8 +39,9 @@ LogParser::LogParser()
     }
 }
 
-void LogParser::parse(const char * logFile)
+void LogParser::parse(const char * logFile, Cycle maxCycle)
 {
+    _maxCycle = maxCycle;
     log.openFile(logFile);
 
     // Validate input
@@ -74,7 +75,7 @@ void LogParser::parse(const char * logFile)
         logVersion = &rootPage->logVersion;
         processorType = &rootPage->processorType;
         logHasMemory = &rootPage->logHasMemory;
-        lastCycle = &rootPage->lastCycle;
+        _lastCyclePtr = &rootPage->lastCycle;
         initContext();
         initMemory();
         parse(log);
@@ -95,7 +96,7 @@ void LogParser::parse(const char * logFile)
         logVersion = &rootPage->logVersion;
         processorType = &rootPage->processorType;
         logHasMemory = &rootPage->logHasMemory;
-        lastCycle = &rootPage->lastCycle;
+        _lastCyclePtr = &rootPage->lastCycle;
         initContext();
         initMemory();
     }
@@ -207,10 +208,10 @@ QWORD LogParser::getQword( Address address )
 
 void LogParser::setByte( ADDRESS addr, BYTE val )
 {
-    memory->setByte(*lastCycle, addr, val);
+    memory->setByte(*_lastCyclePtr, addr, val);
 }
 
-BOOL LogParser::parse(FileReader &log)
+BOOL LogParser::parse(FileReader & log)
 {
     BOOL functionResult = FALSE;
     DWORD length;
@@ -314,21 +315,24 @@ BOOL LogParser::parseTrace(FileReader &log)
     WORD        wordValue;
     DWORD       dwordValue;
     QWORD       qwordValue;
+    Cycle       lastCycle = *_lastCyclePtr;
+    assert(0 == lastCycle);
 
-    while( FALSE == log.isEof() ) {
+    while( (FALSE == log.isEof()) && (lastCycle <= _maxCycle) ) {
 		changeType = log.readByte();
 		switch( changeType ) {
 			case EIP_CHANGE_TYPE:
 			{
                 MACHINE_LONG newEip = log.readPointer();
 				eipLog->append(newEip);
-				++(*lastCycle);
+				(*_lastCyclePtr)++;
+                lastCycle = *_lastCyclePtr;
 			}
 			break;
             /* I treat the thread id as another register */
             case THREAD_CHANGE:
 			{
-				regValue.cycle = *lastCycle;
+				regValue.cycle = lastCycle;
 				regValue.value = log.readDword();
 				reg[THREAD_ID]->append( regValue );
 			}
@@ -367,7 +371,7 @@ BOOL LogParser::parseTrace(FileReader &log)
 #endif
 			{
 				regId = changeType;
-				regValue.cycle = *lastCycle;
+				regValue.cycle = lastCycle;
 				regValue.value = log.readDword();
 				reg[regId]->append( regValue );
 			} /* Regs cases */
@@ -375,7 +379,7 @@ BOOL LogParser::parseTrace(FileReader &log)
             
             case BYTEPTR_ACCESS:
             {
-				address.cycle = *lastCycle;
+                address.cycle = lastCycle;
 				address.addr = log.readDword();
 				byteValue = log.readByte();
 				memory->setByte(address, byteValue);
@@ -384,7 +388,7 @@ BOOL LogParser::parseTrace(FileReader &log)
 
 			case WORDPTR_ACCESS:
 			{
-				address.cycle = *lastCycle;
+				address.cycle = lastCycle;
 				address.addr = log.readDword();
 				wordValue = log.readWord();
                 memory->setWord(address, wordValue);
@@ -393,7 +397,7 @@ BOOL LogParser::parseTrace(FileReader &log)
 
 			case DWORDPTR_ACCESS:
 			{
-				address.cycle = *lastCycle;
+				address.cycle = lastCycle;
 				address.addr = log.readDword();
                 dwordValue = log.readDword();
                 memory->setDword(address, dwordValue);
@@ -402,7 +406,7 @@ BOOL LogParser::parseTrace(FileReader &log)
 
             case QWORDPTR_ACCESS:
             {
-                address.cycle = *lastCycle;
+                address.cycle = lastCycle;
                 address.addr = log.readDword();
                 qwordValue = log.readQword();
                 memory->setQword(address, qwordValue);
@@ -413,7 +417,6 @@ BOOL LogParser::parseTrace(FileReader &log)
 				printf("Parsing failed at position %d\n", log.tell());
 				return FALSE;
 		} /* switch */
-
 	} /* while */
 
 	log.closeFile();
@@ -482,8 +485,8 @@ DWORD LogParser::findCycleWithEipValue(DWORD targetEip, DWORD startCycle, DWORD 
 DWORD LogParser::findCycleWithRegValue(DWORD regId, DWORD targetValue, DWORD startCycle, DWORD endCycle)
 {
 	int step;
-	DWORD startIndex	= reg[regId]->findEffectiveCycle(startCycle);
-	DWORD endIndex		= reg[regId]->findEffectiveCycle(endCycle);
+	DWORD startIndex = reg[regId]->findEffectiveCycle(startCycle);
+	DWORD endIndex   = reg[regId]->findEffectiveCycle(endCycle);
 	if (startIndex > endIndex) {
 		step = -1;
 	} else {
@@ -509,8 +512,7 @@ RegLogIterBase * LogParser::getRegLogIter(DWORD regId, DWORD cycle)
     return NULL;
 }
 
-FindCycleWithEipValue::FindCycleWithEipValue(LogParser * logParser)
-						: 
+FindCycleWithEipValue::FindCycleWithEipValue(LogParser * logParser)	: 
                         logParser(logParser),
                         eipLog(logParser->getEipLog()),
                         currentCycle(0),
@@ -540,8 +542,25 @@ void FindCycleWithEipValue::newSearch( ADDRESS searchTarget, DWORD startCycle, D
 	bottomCycle = startCycle;
 	topCycle = endCycle;
     target = searchTarget;
-    // TODO
 	restartSearch();
+}
+
+void FindCycleWithEipValue::newReverseSearch(ADDRESS searchTarget, DWORD startCycle, DWORD endCycle)
+{
+    bottomCycle = endCycle;
+    topCycle = startCycle;
+    target = searchTarget;
+    isDone = FALSE;
+    DWORD numValues = eipLog->getNumItems();
+    if (bottomCycle >= numValues) {
+        isDone = TRUE;
+    }
+    if (topCycle >= numValues) {
+        topCycle = numValues;
+    }
+    currentCycle = topCycle;
+    findPrev();
+
 }
 
 void FindCycleWithEipValue::findNext()
