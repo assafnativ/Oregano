@@ -38,4 +38,4 @@ intermediate/*
 output/*
 */build/*
 ipch/*
-temp/*
+*temp/*
