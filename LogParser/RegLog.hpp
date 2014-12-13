@@ -32,7 +32,7 @@ public:
     Cycle findEffectiveCycle(Cycle cycle)
     {
 		DWORD itemIndex = findEffectiveIndex(cycle);
-		if (itemIndex >= *numItems) {
+		if (itemIndex >= rootPage->numItems) {
 			return INVALID_CYCLE;
 		}
         return getItem(itemIndex).cycle;

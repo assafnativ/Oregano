@@ -6,8 +6,8 @@
 PagedDataContainer::PagedDataContainer(const char * fileName)
     : 
     isReadOnly(FALSE),
-    numItems(0),
-	stepper(0)
+    totalPagesIn(0),
+    bucketToClean(0)
 {
     file = CreateFileA(
                 fileName,
@@ -38,87 +38,163 @@ PagedDataContainer::PagedDataContainer(const char * fileName)
     {
         cache[i].first = NULL;
         cache[i].last  = NULL;
+        cache[i].freeList = NULL;
         cache[i].numItems = 0;
     }
-
-    // Make the synchronization objects
-    InitializeCriticalSection(&cacheLock);
-
-    // Running flag for the threads
-    cacheIsUp = TRUE;
-    cacheGarbageCollectorThread = CreateThread(
-        NULL,
-        0,
-        (LPTHREAD_START_ROUTINE)cacheGarbageCollector,
-        this,
-        0,
-        &cacheGarbageCollectorThreadId);
-
+    validateCache();
 }
 
 PagedDataContainer::~PagedDataContainer()
 {
-    cacheIsUp = FALSE;
-    Sleep(0);
-
-    EnterCriticalSection(&cacheLock);
-
+    validateCache();
     // Free all
     for (DWORD bucketIter = 0; bucketIter < BUCKETS_IN_CACHE; ++bucketIter) {
         PageBucket * bucket = &cache[bucketIter];
         PageBase * pageIter = bucket->first;
         while (NULL != pageIter) {
             PageBase * nextPage = pageIter->next;
+            writePage(pageIter);
             delete pageIter;
             pageIter = nextPage;
         }
     }
-
-    LeaveCriticalSection(&cacheLock);
 }
 
-void PagedDataContainer::moveToTopOfTheList(PageBucket * bucket, PageBase * page)
+void PagedDataContainer::removePageWithPrevFromBucket(PageBucket * bucket, PageBase * page)
 {
-	if (page != bucket->first)
-	{
-		// First remove the page from where it is currently found
-		PageBase * oldNext = page->next;
-		PageBase * oldPrev = page->prev;
-        // It is not the first so it must have a prev
-		oldPrev->next = oldNext;
-        // But it doesn't have to have next
-        if (NULL != oldNext) {
-		    oldNext->prev = oldPrev;
-        }
-        else {
-            bucket->last = oldPrev;
-        }
-		// Put it on top of the list
-		PageBase * oldFirst = bucket->first;
-		bucket->first = page;
-		page->next = oldFirst;
-		page->prev = oldFirst->prev;
-		oldFirst->prev = page;
-	}	
+    PageBase * oldNext = page->next;
+    PageBase * oldPrev = page->prev;
+    // It is not the last so it must have a prev
+    oldNext->prev = oldPrev;
+    // But it doesn't have to have next
+    if (NULL != oldPrev) {
+        oldPrev->next = oldNext;
+    }
+    else
+    {
+        // This page was the first
+        bucket->first = oldNext;
+    }
 }
 
-PageBase * PagedDataContainer::findPageNoLock(PageIndex index)
+void PagedDataContainer::removePageWithNextFromBucket(PageBucket * bucket, PageBase * page)
 {
-    DWORD tableIndex = index % BUCKETS_IN_CACHE;
+    PageBase * oldNext = page->next;
+    PageBase * oldPrev = page->prev;
+    // It is not the first so it must have a prev
+    oldPrev->next = oldNext;
+    // But it doesn't have to have next
+    if (NULL != oldNext) {
+        oldNext->prev = oldPrev;
+    }
+    else
+    {
+        // This page was the last
+        bucket->last = oldPrev;
+    }
+}
 
-    // The result of the function
+void PagedDataContainer::putPageInBucketAfter(PageBucket * bucket, PageBase * page, PageBase * pageBefore)
+{
+    if (NULL == pageBefore)
+    {
+        // Make it the first page in the bucket
+        putPageInBucketTop(bucket, page);
+    }
+    else
+    {
+        PageBase * pageAfter = pageBefore->next;
+        page->prev = pageBefore;
+        if (NULL != pageAfter)
+        {
+            pageAfter->prev = page;
+            page->next = pageAfter;
+        }
+        else
+        {
+            bucket->last = page;
+            page->next = NULL;
+        }
+        pageBefore->next = page;
+    }
+}
+
+void PagedDataContainer::putPageInBucketTop(PageBucket * bucket, PageBase * page)
+{
+    PageBase * oldFirst = bucket->first;
+    bucket->first = page;
+    page->next = oldFirst;
+    page->prev = NULL;
+    oldFirst->prev = page;
+}
+
+void PagedDataContainer::moveToBucketTop(PageBucket * bucket, PageBase * page)
+{
+    if (bucket->freeList == page)
+    {
+        bucket->freeList = page->next;
+    }
+    if (page == bucket->first)
+    {
+        // Nothing else to do here
+        return;
+    }
+    // First remove the page from where it's currently found
+    removePageWithNextFromBucket(bucket, page);
+	// Put it on top of the list
+    putPageInBucketTop(bucket, page);
+}
+
+void PagedDataContainer::moveToFreeListStart(PageBucket * bucket, PageBase * page)
+{
+    assert(page != bucket->freeList);
+    // If we got here, the list has more than one page in it.
+    // Find a place for it
+    PageBase * freeStart = bucket->freeList;
+    PageBase * pageBefore;
+    if (NULL == freeStart)
+    {
+        // No free pages in this bucket
+        pageBefore = bucket->last;
+    }
+    else
+    {
+        pageBefore = freeStart->prev;
+    }
+    // Page before can't be NULL, because either:
+    //  There was some free page, the new page was just moved from the none free pages to the free pages.
+    //  Or there was no free page, so pageBore was set for the last page and the list is not empty.
+    assert(NULL != pageBefore);
+    do {
+        if (pageBefore == page)
+        {
+            // Just move the free list start one back and we are done
+            break;
+        }
+        // First remove the page from where it's currently found
+        removePageWithPrevFromBucket(bucket, page);
+        // Put it in a new place
+        putPageInBucketAfter(bucket, page, pageBefore);
+    } while (FALSE);
+    bucket->freeList = page;
+}
+
+PageBase * PagedDataContainer::findPage(PageIndex index)
+{
+    PageBucket * bucket = getBucket(index);
+    return findPage(bucket, index);
+}
+
+PageBase * PagedDataContainer::findPage(PageBucket * bucket, PageIndex index)
+{
     PageBase * result = NULL;
 
-    PageBase * pageIter = cache[tableIndex].first;
+    PageBase * pageIter = bucket->first;
     for (; NULL != pageIter; pageIter = pageIter->next)
     {
-        PageIndex pageIndex;
-        pageIndex = pageIter->index;
-        if (index == pageIndex) {
+        if (index == pageIter->index) {
             // Page found
             result = pageIter;
-			// Put it in the head of the list
-			//moveToTopOfTheList(&cache[tableIndex], pageIter);
             break;
         }
     }
@@ -126,60 +202,44 @@ PageBase * PagedDataContainer::findPageNoLock(PageIndex index)
     return result;
 }
 
-PageBase * PagedDataContainer::findPage(PageIndex index)
-{
-    EnterCriticalSection(&cacheLock);
-    PageBase * result = findPageNoLock( index );
-    LeaveCriticalSection(&cacheLock);
-
-    return result;
-}
-
 void PagedDataContainer::bucketInsert( PageBase * page )
 {
-    PageIndex index = page->index;
-    DWORD tableIndex = index % BUCKETS_IN_CACHE;
-
-    PageBucket * bucket = &cache[tableIndex];
-    PageBase * firstPage = bucket->first;
-    PageBase * lastPage  = bucket->last;
-    page->prev = NULL;
+    // First free one page if we need to.
+    // This done first so we won't free the new page.
+    if (totalPagesIn >= GARBAGE_COLLECT_TOP_THRESHOLD)
+    {
+        freeOne();
+    }
+    
+    PageBucket * bucket = getBucket(page);
+    PageBase * oldFirst = bucket->first;
     bucket->first = page;
     // Make the new page the first page
     // If no pages in the bucket, update the last pointer
-    if (NULL == firstPage) {
-        page->next = NULL;
+    if (NULL == oldFirst) {
         bucket->last = page;
     } else {
         // Bucket is not empty
-        page->next = firstPage;
-        firstPage->prev = page;
+        page->next = oldFirst;
+        oldFirst->prev = page;
     }
 
-    // Update statistics
     ++bucket->numItems;
-    ++numItems;
+    ++totalPagesIn;
 }
 
 void PagedDataContainer::seekToPage( PageIndex index )
 {
     // Get the page offset
     LARGE_INTEGER pageOffset;
-    pageOffset.QuadPart = index * PAGE_SIZE;
+    pageOffset.QuadPart = ((LONGLONG)index) * PAGE_SIZE;
 
     // Seek
     BOOL seekResult = SetFilePointerEx(file, pageOffset, NULL, FILE_BEGIN);
-    assert(FALSE != seekResult);
 }
 
 PageBase * PagedDataContainer::pageIn(PageIndex index)
 {
-    if (numItems > GARBAGE_COLLECT_CRITICAL_THRESHOLD)
-    {
-        // Give the garbage collector a chance
-        Sleep(0);
-    }
-
     // 1. Seek to right place
     // 2. Make a new page object
     // 3. Read page
@@ -189,16 +249,12 @@ PageBase * PagedDataContainer::pageIn(PageIndex index)
     seekToPage(index);
 
     // The result of the function
-    assert(INVALID_HANDLE_VALUE != file);
     PageBase * newPage = new PageCache(index);
-    assert(NULL != newPage);
 
     // Read
     DWORD bytesRead = 0;
     BYTE * data = newPage->getData();
-    assert(NULL != data);
     BOOL readResult = ReadFile(file, data, PAGE_SIZE, &bytesRead, NULL);
-    assert((FALSE != readResult) && (PAGE_SIZE == bytesRead));
 
     // Insert to the bucket
     bucketInsert(newPage);
@@ -212,14 +268,11 @@ PageLarge * PagedDataContainer::pageInConsecutiveData( PageIndex index, DWORD le
 
     // The result of the function
     PageLarge * newPage = new PageLarge(index, length);
-    assert(NULL != newPage);
 
     // Read
     DWORD bytesRead = 0;
     BYTE * data = newPage->getData();
-    assert(NULL != data);
     BOOL readResult = ReadFile(file, data, length, &bytesRead, NULL);
-    assert((FALSE != readResult) && (bytesRead == length));
 
     // Insert to the bucket
     bucketInsert(newPage);
@@ -230,121 +283,68 @@ PageLarge * PagedDataContainer::pageInConsecutiveData( PageIndex index, DWORD le
 
 void PagedDataContainer::pageOut( PageIndex index )
 {
-    PageBase * page = findPage(index); 
-    assert(NULL != page);
-    pageOut(page);
+    PageBucket * bucket = getBucket(index);
+    PageBase * page = findPage(bucket, index); 
+    pageOut(bucket, page);
 }
 
-void PagedDataContainer::pageOut( PageBase * page )
+void PagedDataContainer::pageOut( PageBucket * bucket, PageBase * page )
 {
-    EnterCriticalSection(&cacheLock);
-    pageOutNoLock(page);
-    LeaveCriticalSection(&cacheLock);
-}
-
-void PagedDataContainer::pageOutNoLock( PageBase * page )
-{
-    writePageNoLock(page);
-    pageRemoveFromBucket( page );
+    writePage(page);
+    pageRemoveFromBucket(bucket, page);
     delete page;
 }
 
-void PagedDataContainer::pageRemoveFromBucket( PageBase * page )
+void PagedDataContainer::pageRemoveFromBucket( PageBucket * bucket, PageBase * page )
 {
-    PageBucket * bucket = getBucket(page);
-    PageBase * nextPage = page->next;
-    if (NULL != nextPage) {
-        nextPage->prev = page->prev;
-    } else {
-        bucket->last = page->prev;
+    if (1 == bucket->numItems)
+    {
+        bucket->first = NULL;
+        bucket->last = NULL;
+        bucket->freeList = NULL;
+        bucket->numItems = 0;
+        return;
     }
+    PageBase * nextPage = page->next;
     PageBase * prevPage = page->prev;
+    if (NULL != nextPage) {
+        nextPage->prev = prevPage;
+    } else {
+        bucket->last = prevPage;
+    }
     if (NULL != prevPage) {
-        prevPage->next = page->next;
+        prevPage->next = nextPage;
     } else {
         bucket->first = nextPage;
     }
+    if (page == bucket->freeList)
+    {
+        bucket->freeList = nextPage;
+    }
+    // The bucket had more than one item, so this is a sanity check
     --bucket->numItems;
-    --numItems;
+    --totalPagesIn;
 }
 
-DWORD WINAPI cacheGarbageCollector( PagedDataContainer * dataContainer )
+void PagedDataContainer::freeOne()
 {
-    DWORD bucketsIter = 0;
-    BOOL isLocked = FALSE;
-	QWORD stepperCut = dataContainer->stepper / 2;
-    DWORD targetTreshold = GARBAGE_COLLECT_TOP_THRESHOLD;
-
-    if (dataContainer->numItems > GARBAGE_COLLECT_TOP_THRESHOLD)
+    PageBase * pageToGoOut = NULL;
+    PageBucket * bucket = NULL;
+    for (DWORD i = 0; i < BUCKETS_IN_CACHE; ++i)
     {
-        targetTreshold = GARBAGE_COLLECT_TARGET_THRESHOLD;
-    }
-    while (dataContainer->cacheIsUp) {
-        if (dataContainer->numItems > GARBAGE_COLLECT_BOTTOM_THRESHOLD)
+        bucket = &cache[bucketToClean];
+        bucketToClean++;
+        bucketToClean %= BUCKETS_IN_CACHE;
+        PageBase * pageIter = bucket->last;
+        if ((NULL != pageIter) && (0 == pageIter->refCount))
         {
-            if (FALSE == isLocked)
-            {
-                isLocked = TRUE;
-                EnterCriticalSection(&dataContainer->cacheLock);
-            }
-
-            PageBase * pageToGoOut = NULL;
-            DWORD endBucket = (bucketsIter + BUCKETS_IN_CACHE - 1) % BUCKETS_IN_CACHE;
-            for (; 
-                bucketsIter != endBucket; 
-                bucketsIter = (bucketsIter + 1) % BUCKETS_IN_CACHE )
-            {
-                PagedDataContainer::PageBucket * bucket = &dataContainer->cache[bucketsIter];
-                PageBase * pageIter = bucket->last;
-                while (NULL != pageIter) 
-                {
-                    if (0 == pageIter->refCount) {
-						// Decide on which page in this bucket to pageOut
-						if (NULL == pageToGoOut) {
-							pageToGoOut = pageIter;
-						} else if (pageIter->accessCount < pageToGoOut->accessCount) {
-							pageToGoOut = pageIter;
-						}
-						/*
-						if (SMALL_ACCESS_COUNT >= pageToGoOut->accessCount)
-						{
-							break;
-						}
-						*/
-						if (stepperCut > pageIter->accessCount)
-						{
-							break;
-						}
-                    }
-                    pageIter = pageIter->prev;
-                }
-                // Have we found a page to page out in this bucket
-                if (NULL != pageToGoOut)
-                {
-                    break;
-                }
-            }
-
-            assert (NULL != pageToGoOut);
-            // Release one page
-            dataContainer->pageOutNoLock(pageToGoOut);
-
-            // Should we release the lock on the cache
-            // If the cache is too full, don't release the lock until we clean it
-            if (    (dataContainer->numItems < targetTreshold) &&
-                    (TRUE == isLocked) )
-            {
-                LeaveCriticalSection(&dataContainer->cacheLock);
-                isLocked = FALSE;
-                Sleep(0);
-            }
-
-            // Next iteration try another bucket
-            bucketsIter = (bucketsIter + 1) % BUCKETS_IN_CACHE;
-        } // GARBAGE_COLLECT_THRESHOLD
-    } // cacheIsUp
-
-    return STILL_ACTIVE;
+            pageToGoOut = pageIter;
+            break;
+        }
+    }
+    assert(NULL != pageToGoOut);
+    // Release one page
+    pageOut(bucket, pageToGoOut);
 }
 
 // - Public functions -
@@ -356,35 +356,32 @@ BYTE * PagedDataContainer::obtainPage(PageIndex index)
     // 3. Update cache
     // 4. Return Data
 
-    // This function acquires the lock and not the find or pageIn functions,
-    // Because if we get the page in the findPage function and than it is lost
-    // before we inc the ref count we get a big shit.
-    EnterCriticalSection(&cacheLock);
-
-    PageBase * page = findPageNoLock(index);
+    PageBucket * bucket = getBucket(index);
+    PageBase * page = findPage(bucket, index);
     if (NULL == page) {
         page = pageIn(index);
-        assert(NULL != page);
     }
-    refInc(page);
-
-    LeaveCriticalSection(&cacheLock);
+    else 
+    {
+        refInc(page);
+        moveToBucketTop(bucket, page);
+    }
 
     return page->getData();
 }
 
 BYTE * PagedDataContainer::obtainConsecutiveData( PageIndex startPage, DWORD length )
 {
-    EnterCriticalSection(&cacheLock);
-
-    PageBase * page = findPageNoLock(startPage);
+    PageBucket * bucket = getBucket(startPage);
+    PageBase * page = findPage(bucket, startPage);
     if (NULL == page) {
-        page = pageInConsecutiveData( startPage, length );
-        assert(NULL != page);
+        page = pageInConsecutiveData(startPage, length);
     }
-    refInc(page);
-
-    LeaveCriticalSection(&cacheLock);
+    else 
+    {
+        refInc(page);
+        moveToBucketTop(bucket, page);
+    }
 
     return page->getData();
 }
@@ -392,51 +389,43 @@ BYTE * PagedDataContainer::obtainConsecutiveData( PageIndex startPage, DWORD len
 void PagedDataContainer::setPageTag(PageIndex index, DWORD tag)
 {
 #ifdef _DEBUG
-    EnterCriticalSection(&cacheLock);
-
-    PageBase * page = findPageNoLock(index);
+    PageBase * page = findPage(index);
     if (NULL != page)
     {
         page->tag = tag;
     }
-
-    LeaveCriticalSection(&cacheLock);
 #endif
 }
 
 void PagedDataContainer::releasePage(PageIndex index)
 {
-    // Don't need to lock cache here, because the page has ref count > 0
-    // So it won't get lost on the way.
-    PageBase * page = findPage(index);
-    assert(page->refCount > 0);
+    DWORD tableIndex = getBucketIndex(index);
+    PageBucket * bucket = &cache[tableIndex];
+    PageBase * page = findPage(bucket, index);
     refDec(page);
+    if (0 == page->refCount)
+    {
+        moveToFreeListStart(bucket, page);
+    }
 }
 
-// Unsafe, should be used under lock
 DWORD PagedDataContainer::nextFreeIndex()
 {
     LARGE_INTEGER fileSize;
     BOOL getFileSizeResult;
 
-    assert(INVALID_HANDLE_VALUE != file);
     getFileSizeResult = GetFileSizeEx(file, &fileSize);
-    assert(FALSE != getFileSizeResult);
 
     return (DWORD)(fileSize.QuadPart / (long long)PAGE_SIZE);
 }
 
-// Unsafe, should be used under lock
 void PagedDataContainer::nextFreeIndexAndOffset(PageIndex * pageIndex, LARGE_INTEGER * pageOffset)
 {
     BOOL getFileSizeResult;
 
-    assert(INVALID_HANDLE_VALUE != file);
     getFileSizeResult = GetFileSizeEx(file, pageOffset);
-    assert(FALSE != getFileSizeResult);
 
     *pageIndex = (PageIndex)(pageOffset->QuadPart / (long long)PAGE_SIZE);
-    
 }
 
 BYTE * PagedDataContainer::newPage(DWORD * index)
@@ -444,8 +433,6 @@ BYTE * PagedDataContainer::newPage(DWORD * index)
     // 1. Find a index for the new page
     // 2. Create the page
     // 3. Return the page data
-
-    EnterCriticalSection(&cacheLock);
 
     LARGE_INTEGER pageOffset = {0};
     nextFreeIndexAndOffset(index, &pageOffset);
@@ -483,23 +470,14 @@ BYTE * PagedDataContainer::newPage(DWORD * index)
     } // if (pageOffset.QuadPart >= fileSize.QuadPart)
 
     BYTE * result = obtainPage(*index);
-
-    LeaveCriticalSection(&cacheLock);
     return result;
 }
 
 BYTE * PagedDataContainer::newConsecutiveData( OUT PageIndex * index, DWORD length )
 {
-    assert(0 != length);
-
-    EnterCriticalSection(&cacheLock);
-
     // Find the EOF
     LARGE_INTEGER pageOffset = {0};
     nextFreeIndexAndOffset(index, &pageOffset);
-    assert(INVALID_HANDLE_VALUE != file);
-    assert(0 != index);
-    assert(0 != pageOffset.QuadPart);
     BOOL seekResult = SetFilePointerEx(file, pageOffset, NULL, FILE_BEGIN);
     assert(FALSE != seekResult);
 
@@ -517,8 +495,6 @@ BYTE * PagedDataContainer::newConsecutiveData( OUT PageIndex * index, DWORD leng
 
     BYTE * result = obtainConsecutiveData(*index, length);
 
-    LeaveCriticalSection(&cacheLock);
-
     return result;
 }
 
@@ -528,17 +504,10 @@ void PagedDataContainer::writePage( PageIndex index )
         return;
     }
     PageBase * page = findPage(index);
-    // NULL page means attempt to write a page that is not in
-    assert(NULL != page);
-
-    EnterCriticalSection(&cacheLock);
-
-    writePageNoLock(page);
-
-    LeaveCriticalSection(&cacheLock);
+    writePage(page);
 }
 
-void PagedDataContainer::writePageNoLock( PageBase * page )
+void PagedDataContainer::writePage( PageBase * page )
 {
     if (TRUE == isReadOnly) {
         return;
@@ -559,9 +528,9 @@ void PagedDataContainer::writePageNoLock( PageBase * page )
 
 void PagedDataContainer::endOfData()
 {
-    EnterCriticalSection(&cacheLock);
     // Write all pages in all buckets.
     // Pages that are paged-out are already written.
+    validateCache();
     for (DWORD bucketIndex = 0; bucketIndex != BUCKETS_IN_CACHE; ++bucketIndex)
     {
         PagedDataContainer::PageBucket * bucket = &cache[bucketIndex];
@@ -570,9 +539,74 @@ void PagedDataContainer::endOfData()
             pageIter != NULL;
             pageIter = pageIter->next )
         {
-            writePageNoLock(pageIter);
+            writePage(pageIter);
         }
     }
-    LeaveCriticalSection(&cacheLock);
     isReadOnly = TRUE;
+}
+
+void PagedDataContainer::validateCache()
+{
+#ifdef _DEBUG
+    DWORD totalPages = 0;
+    for (DWORD bucketId = 0; bucketId < BUCKETS_IN_CACHE; ++bucketId)
+    {
+        PageBucket * bucket = &cache[bucketId];
+        totalPages += validateBucket(bucket);
+    }
+    assert(totalPages == totalPagesIn);
+#endif
+}
+
+DWORD PagedDataContainer::validateBucket(PageBucket * bucket)
+{
+#ifdef _DEBUG
+    assert(bucket->numItems < ((GARBAGE_COLLECT_TOP_THRESHOLD / BUCKETS_IN_CACHE) * 5));
+    if (bucket->numItems > 0)
+    {
+        assert(NULL != bucket->first);
+        assert(NULL != bucket->last);
+        assert(NULL == bucket->first->prev);
+        assert(NULL == bucket->last->next);
+        if (1 == bucket->numItems)
+        {
+            assert(bucket->first == bucket->last);
+            assert((0 != bucket->first->refCount) || (bucket->freeList == bucket->first));
+            assert((0 == bucket->first->refCount) || (bucket->freeList == NULL));
+        }
+        else
+        {
+            PageBase * lastPage = NULL;
+            PageBase * pageIter = bucket->first;
+            bool isZeroRefs = false;
+            assert(NULL != pageIter);
+            for (DWORD itemIndex = 0; itemIndex < bucket->numItems; ++itemIndex)
+            {
+                assert(NULL != pageIter);
+                assert(pageIter->prev == lastPage);
+                assert(NULL != pageIter->getData());
+                assert(0 < pageIter->getDataLength());
+                if ((0 == pageIter->refCount) && (false == isZeroRefs))
+                {
+                    isZeroRefs = true;
+                    assert(pageIter == bucket->freeList);
+                }
+                assert((!isZeroRefs) || (0 == pageIter->refCount));
+                assert((isZeroRefs) || (0 != pageIter->refCount));
+                assert(pageIter->refCount < 0x10000);
+                lastPage = pageIter;
+                pageIter = pageIter->next;
+            }
+            assert(NULL == pageIter);
+            assert((false != isZeroRefs) || (NULL == bucket->freeList));
+        }
+    }
+    else
+    {
+        assert(NULL == bucket->first);
+        assert(NULL == bucket->last);
+        assert(NULL == bucket->freeList);
+    }
+#endif
+    return bucket->numItems;
 }

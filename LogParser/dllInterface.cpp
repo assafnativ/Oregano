@@ -8,9 +8,9 @@ LogParser * createLogParser()
     return new LogParser();
 }
 
-void parseLog(LogParser * logParser, const char * fileName)
+void parseLog(LogParser * logParser, const char * fileName, Cycle maxCycle)
 {
-    logParser->parse(fileName);
+    logParser->parse(fileName, maxCycle);
     logParser->getLastCycle();
 }
 
@@ -64,11 +64,18 @@ FindCycleWithEipValue * findCycleWithEipValue( LogParser * logParser, ADDRESS ta
 	newFinder->newSearch(target, startCycle, endCycle);
 	return newFinder;
 }
-void    findCycleWithEipValueObjectNext(FindCycleWithEipValue * ctx)          {ctx->next();}
-DWORD   findCycleWithEipValueObjectCurrent(FindCycleWithEipValue * ctx)       {return ctx->current();}
-BOOL    findCycleWithEipValueIsEndOfSearch(FindCycleWithEipValue * ctx)       {return ctx->isEndOfSearch();}
-void	findCycleWithEipValueObjectRestartSearch(FindCycleWithEipValue * ctx) {ctx->restartSearch();}
-void	findCycleWithEipValueDelete(FindCycleWithEipValue * ctx)              {delete ctx;}
+FindCycleWithEipValue * findCycleWithEipValueReverse(LogParser * logParser, ADDRESS target, DWORD startCycle, DWORD endCycle)
+{
+    FindCycleWithEipValue * newFinder = new FindCycleWithEipValue(logParser);
+    newFinder->newReverseSearch(target, startCycle, endCycle);
+    return newFinder;
+}
+void    findCycleWithEipValueObjectNext(FindCycleWithEipValue * ctx)          { ctx->next(); }
+void    findCycleWithEipValueObjectPrev(FindCycleWithEipValue * ctx)          { ctx->prev(); }
+DWORD   findCycleWithEipValueObjectCurrent(FindCycleWithEipValue * ctx)       { return ctx->current(); }
+BOOL    findCycleWithEipValueIsEndOfSearch(FindCycleWithEipValue * ctx)       { return ctx->isEndOfSearch(); }
+void	findCycleWithEipValueObjectRestartSearch(FindCycleWithEipValue * ctx) { ctx->restartSearch(); }
+void	findCycleWithEipValueDelete(FindCycleWithEipValue * ctx)              { delete ctx; }
 
 FindChangingCycles * findChangingCycles( LogParser * logParser, ADDRESS addr, DWORD startCycle, DWORD endCycle)
 {

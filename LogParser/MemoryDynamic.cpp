@@ -40,13 +40,16 @@ void MemoryDynamic::createRootPage()
 {
     // rootPageIndex is set at the constructor of the base class
     rootPage = (MemoryDynamicRootPage *)dc->obtainPage(rootPageIndex);
+    DEBUG_PAGE_TAG(rootPageIndex, 'MDRT');
     if (0 == rootPage->cavRootPage) {
         dc->newConsecutiveData(&rootPage->cavRootPage, CAV_HASH_TABLE_SIZE * sizeof(PageIndex));
+        DEBUG_PAGE_TAG(rootPage->cavRootPage, 'lCAV');
         dc->releasePage(rootPage->cavRootPage);
     }
     if (0 == rootPage->acvRootPage)
     {
         dc->newConsecutiveData(&rootPage->acvRootPage, ACV_HASH_TABLE_SIZE * sizeof(PageIndex));
+        DEBUG_PAGE_TAG(rootPage->acvRootPage, 'lACV');
         dc->releasePage(rootPage->acvRootPage);
     }
     cav = new HashTableByCycle(rootPage->cavRootPage, dc, 'CAV0');

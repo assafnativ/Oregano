@@ -23,24 +23,23 @@ protected:
     static const DWORD PAGE_ITEMS_CAPACITY = (PAGE_SIZE - sizeof(DWORD) - sizeof(WORD)) / sizeof(T);
     void addPage()
     {
+        LinkedListPageFormat<T> * lastPage = obtainLastPage();
         DWORD newPageIndex = 0;
-        LinkedListPageFormat<T> * newPage = (LinkedListPageFormat<T> *)dataContainer->newPage(&newPageIndex);
+        LinkedListPageFormat<T> * newPage = (LinkedListPageFormat<T> *)dc->newPage(&newPageIndex);
+        DEBUG_PAGE_TAG(newPageIndex, _tag + 8);
+        dc->releasePage(newPageIndex);
         lastPage->nextPage = newPageIndex;
-        dataContainer->releasePage(lastPageIndex);
+        dc->releasePage(lastPageIndex);
         lastPageIndex = newPageIndex;
-        lastPage = newPage;
         maxItems += PAGE_ITEMS_CAPACITY;
     }
 
-    PagedDataContainer * dataContainer;
+    PagedDataContainer * dc;
     DWORD numItems;
     DWORD maxItems;
 #ifdef _DEBUG
     DWORD _tag;
 #endif
-
-    LinkedListPageFormat<T> * firstPage;
-    LinkedListPageFormat<T> * lastPage;
     DWORD firstPageIndex;
     DWORD lastPageIndex;
 
@@ -48,38 +47,39 @@ protected:
 public:
     PagedLinkedList(DWORD anchorIndex, PagedDataContainer * dc, DWORD tag)
         :
-            dataContainer(dc),
+            dc(dc),
             firstPageIndex(anchorIndex)
     {
         assert(INVALID_PAGE_INDEX != firstPageIndex);
         numItems = 0;
-        // Obtain twice so we will keep the first page always in
-        // TODO: Check this code
-        firstPage = (LinkedListPageFormat<T> *)dataContainer->obtainPage(firstPageIndex);
-        LinkedListPageFormat<T> * pageIter = (LinkedListPageFormat<T> *)dataContainer->obtainPage(firstPageIndex);
-        assert(NULL != pageIter);
+        LinkedListPageFormat<T> * pageIter = (LinkedListPageFormat<T> *)dc->obtainPage(firstPageIndex);
         DEBUG_ONLY(_tag = tag);
-        DEBUG_ONLY(dataContainer->setPageTag(firstPageIndex, _tag));
+        DEBUG_PAGE_TAG(firstPageIndex, _tag);
         DWORD pageIndexIter = firstPageIndex;
         while (0 != pageIter->nextPage) {
             numItems += PAGE_ITEMS_CAPACITY;
             DWORD nextPage = pageIter->nextPage;
-            dataContainer->releasePage(pageIndexIter);
+            dc->releasePage(pageIndexIter);
             pageIndexIter   = nextPage;
-            pageIter        = (LinkedListPageFormat<T> *)dataContainer->obtainPage(pageIndexIter);
-            DEBUG_ONLY(dataContainer->setPageTag(pageIndexIter, _tag + 1));
+            pageIter        = (LinkedListPageFormat<T> *)dc->obtainPage(pageIndexIter);
+            DEBUG_PAGE_TAG(pageIndexIter, _tag + 1);
         }
         lastPageIndex   = pageIndexIter;
-        lastPage        = pageIter;
         maxItems  = numItems + PAGE_ITEMS_CAPACITY;
-        numItems += lastPage->numItems;
+        numItems += pageIter->numItems;
+        dc->releasePage(pageIndexIter);
     }
 
     ~PagedLinkedList(void)
     {
         endOfData();
-        dataContainer->releasePage(firstPageIndex);
-        dataContainer->releasePage(lastPageIndex);
+    }
+
+    LinkedListPageFormat<T> * obtainLastPage()
+    {
+        LinkedListPageFormat<T> * result = (LinkedListPageFormat<T> *)dc->obtainPage(lastPageIndex);
+        DEBUG_PAGE_TAG(lastPageIndex, _tag + 9);
+        return result;
     }
 
     void append(T item) 
@@ -89,11 +89,13 @@ public:
             addPage();
         }
 
+        LinkedListPageFormat<T> * lastPage = obtainLastPage();
         WORD itemIndex = lastPage->numItems;
 		T * targetCell = lastPage->data + itemIndex;
 		assert(0 == memcmp(ZERO_BUFFER_FOR_COMPARE, targetCell, sizeof(T)));
         *targetCell = item;
         lastPage->numItems++;
+        dc->releasePage(lastPageIndex);
     }
 
     void endOfData()
@@ -108,8 +110,8 @@ public:
         }
         DWORD pageNumber = index / PAGE_ITEMS_CAPACITY;
         DWORD pageIndex = getPageIndexForItemIndex(index);
-        LinkedListPageFormat<T> * page = (LinkedListPageFormat<T> *)dataContainer->obtainPage(pageIndex);
-        DEBUG_ONLY(dataContainer->setPageTag(pageIndex, _tag));
+        LinkedListPageFormat<T> * page = (LinkedListPageFormat<T> *)dc->obtainPage(pageIndex);
+        DEBUG_PAGE_TAG(pageIndex, _tag);
         DWORD inPageIndex = getInPageItemIndex(index);
         T * result = &page->data[inPageIndex];
         return result;
@@ -118,22 +120,23 @@ public:
     void releaseItem(DWORD index)
     {
         DWORD pageIndex = getPageIndexForItemIndex(index);
-        dataContainer->releasePage(pageIndex);
+        dc->releasePage(pageIndex);
     }
 
     DWORD getPageIndexForItemIndex(DWORD itemIndex)
     {
         DWORD pageNumber = itemIndex / PAGE_ITEMS_CAPACITY;
         DWORD pageIndexIter = firstPageIndex;
-        LinkedListPageFormat<T> * pageIter = (LinkedListPageFormat<T> *)dataContainer->obtainPage(pageIndexIter);
-        DEBUG_ONLY(dataContainer->setPageTag(pageIndexIter, _tag + 1));
+        LinkedListPageFormat<T> * pageIter = (LinkedListPageFormat<T> *)dc->obtainPage(pageIndexIter);
+        DEBUG_PAGE_TAG(pageIndexIter, _tag + 1);
         for (DWORD i = 0; i < pageNumber; ++i) {
             DWORD nextPageIndex = pageIter->nextPage;
-            dataContainer->releasePage(pageIndexIter);
-            pageIter = (LinkedListPageFormat<T> *)dataContainer->obtainPage(nextPageIndex);
-            DEBUG_ONLY(dataContainer->setPageTag(nextPageIndex, _tag + 2));
+            dc->releasePage(pageIndexIter);
+            pageIndexIter = nextPageIndex;
+            pageIter = (LinkedListPageFormat<T> *)dc->obtainPage(nextPageIndex);
+            DEBUG_PAGE_TAG(nextPageIndex, _tag + 2);
         }
-        dataContainer->releasePage(pageIndexIter);
+        dc->releasePage(pageIndexIter);
         return pageIndexIter;
     };
 
@@ -167,14 +170,14 @@ public:
     PagedLinkedListIter( PagedLinkedList<T> * linkedList, DWORD tag )
         : 
         parent(linkedList),
-        dataContainer(parent->dataContainer),
+        dc(parent->dc),
         numItems(parent->getNumItems())
     {
         DEBUG_ONLY(_tag = tag);
         if (0 < numItems) {
             pageIndex = parent->firstPageIndex;
-            page = (LinkedListPageFormat<T> *)dataContainer->obtainPage(pageIndex);
-            DEBUG_ONLY(dataContainer->setPageTag(pageIndex, _tag));
+            page = (LinkedListPageFormat<T> *)dc->obtainPage(pageIndex);
+            DEBUG_PAGE_TAG(pageIndex, _tag);
             itemIndex = 0;
             inPageIndex = 0;
         } else {
@@ -187,7 +190,7 @@ public:
     PagedLinkedListIter( PagedLinkedList<T> * linkedList, DWORD startIndex, DWORD tag )
         : 
         parent(linkedList),
-        dataContainer(parent->dataContainer),
+        dc(parent->dc),
         numItems(parent->getNumItems())
     {
         DEBUG_ONLY(_tag = tag);
@@ -195,8 +198,8 @@ public:
             itemIndex   = startIndex;
             pageIndex   = parent->getPageIndexForItemIndex(itemIndex);
             inPageIndex = parent->getInPageItemIndex(itemIndex);
-            page = (LinkedListPageFormat<T> *)dataContainer->obtainPage(pageIndex);
-            DEBUG_ONLY(dataContainer->setPageTag(pageIndex, _tag + 1));
+            page = (LinkedListPageFormat<T> *)dc->obtainPage(pageIndex);
+            DEBUG_PAGE_TAG(pageIndex, _tag + 1);
         }
         else {
             page = NULL;
@@ -217,8 +220,8 @@ public:
                 PageIndex nextPageIndex = page->nextPage;
                 releaseCurrentPage();
                 if (INVALID_PAGE_INDEX != nextPageIndex) {
-                    page = (LinkedListPageFormat<T> *)dataContainer->obtainPage(nextPageIndex);
-                    DEBUG_ONLY(dataContainer->setPageTag(nextPageIndex, _tag + 2));
+                    page = (LinkedListPageFormat<T> *)dc->obtainPage(nextPageIndex);
+                    DEBUG_PAGE_TAG(nextPageIndex, _tag + 2);
                 }
                 pageIndex = nextPageIndex;
             }
@@ -237,14 +240,14 @@ protected:
     void releaseCurrentPage()
     {
         if ((INVALID_PAGE_INDEX != pageIndex) && (NULL != page)) {
-            dataContainer->releasePage(pageIndex);
+            dc->releasePage(pageIndex);
             page = NULL;
             pageIndex = INVALID_PAGE_INDEX;
         }
     }
     T data;
     PagedLinkedList<T> * parent;
-    PagedDataContainer * dataContainer;
+    PagedDataContainer * dc;
     DWORD numItems;
     DWORD itemIndex;
     DWORD inPageIndex;

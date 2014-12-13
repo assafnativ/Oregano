@@ -24,7 +24,7 @@ def parseLog(fileName, timeIt=False, maxCycle=0x7fffffff, isVerbose=False):
         startTime = time.time()
     log = Log(fileName, maxCycle=maxCycle, isVerbose=isVerbose)
     if timeIt:
-        print("It took {0:d} secounds to parse the file".format(int(time.time() - startTime)))
+        print("It took {0:d} seconds to parse the file".format(int(time.time() - startTime)))
     return log
 
 class Log(MemReaderBase, DebuggerBase, GUIDisplayBase):
@@ -77,10 +77,8 @@ class Log(MemReaderBase, DebuggerBase, GUIDisplayBase):
     def detach(self):
         del self
 
-    # Recommended number for maxCycle for 32bit Python is 0x0500000
-    #                                 for 64bit Python is 0x1000000
     def parseLog(self, logFile, maxCycle=0x7fffffff):
-        self.API.parseLog(self._log, logFile)
+        self.API.parseLog(self._log, logFile, maxCycle)
         self._processor = self.API.getProcessorType(self._log)
         if self.API.PROCESSOR_TYPE_x86 == self._processor:
             self.POINTER_SIZE = 4
@@ -260,7 +258,7 @@ class Log(MemReaderBase, DebuggerBase, GUIDisplayBase):
         addr = self._getValFromObj(addr)
         ctx = self.API.findChangingCycles(self._log, addr, startCycle, endCycle)
         val = self.API.findChangingCyclesCurrent(ctx)
-        while self.API.INVALID_CYCLE != val:
+        while val < endCycle and self.API.INVALID_CYCLE != val:
             yield val
             self.API.findChangingCyclesNext(ctx)
             val = self.API.findChangingCyclesCurrent(ctx)
@@ -299,13 +297,17 @@ class Log(MemReaderBase, DebuggerBase, GUIDisplayBase):
 
     def findPrevCycleWithEipValue(self, targetEip, startCycle=None, endCycle=0):
         if None == startCycle:
-            startCycle = self.lastCycle
-        # Ugly implementation
-        startCycle, endCycle = endCycle, startCycle
-        results = list(self.findNextCycleWithEipValue(targetEip, startCycle, endCycle))
-        results = results[::-1]
-        for res in results:
-            yield res
+            startCycle = self.cycle
+        else:
+            startCycle = self._getCycleFromObj(startCycle)
+        endCycle = self._getCycleFromObj(endCycle)
+        ctx = self.API.findCycleWithEipValueReverse(self._log, targetEip, startCycle, endCycle)
+        result = self.API.findCycleWithEipValueObjectCurrent(ctx)
+        while result != self.API.INVALID_CYCLE:
+            yield result
+            self.API.findCycleWithEipValueObjectPrev(ctx)
+            result = self.API.findCycleWithEipValueObjectCurrent(ctx)
+        self.API.findCycleWithEipValueDelete(ctx)
 
     def _findCycleWithRegValue(self, regId, targetValue, startCycle=0, endCycle=None):
         startCycle  = self._getCycleFromObj(startCycle)

@@ -36,7 +36,6 @@
 *.bak
 intermediate/*
 output/*
-temp/*
-build/*
-*/temp/*
 */build/*
+ipch/*
+*temp/*

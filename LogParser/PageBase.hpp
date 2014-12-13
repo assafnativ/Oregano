@@ -8,9 +8,7 @@ public:
     PageBase * next;
     PageBase * prev;
     PageIndex index;
-    volatile long refCount;
-    DWORD accessCount;
-    QWORD lastAccess;
+    long refCount;
     DWORD tag;
 
     virtual BYTE * getData() = 0;
@@ -20,9 +18,8 @@ public:
         index(index),
         next(NULL),
         prev(NULL),
-        refCount(0),
-        accessCount(0),
-        lastAccess(0)
+        // It must have a reference because something made this page in call
+        refCount(1)
     {
         DEBUG_ONLY((tag = 0));
     };

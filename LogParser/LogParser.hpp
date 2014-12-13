@@ -26,8 +26,8 @@ class LogParser
 	public:
 		LogParser();
 		~LogParser();
-        void parse(const char * logFile);
-        DWORD getLastCycle()        { return *lastCycle; }
+        void parse(const char * logFile, Cycle maxCycle = INVALID_CYCLE);
+        DWORD getLastCycle()        { return *_lastCyclePtr; }
 #ifdef X86
         DWORD eip(DWORD cycle)		{ return eipLog->getItem(cycle); }
         DWORD edi(DWORD cycle)		{ return getRegValue<REG_ID_EDI>(cycle); }
@@ -75,10 +75,10 @@ class LogParser
         WORD  getWord(Cycle cycle, ADDRESS addr) { return memory->getWord(cycle, addr); }
         DWORD getDword(Cycle cycle, ADDRESS addr) { return memory->getDword(cycle, addr); }
         QWORD getQword(Cycle cycle, ADDRESS addr) { return memory->getQword(cycle, addr); }
-        BYTE  getByte(ADDRESS addr) { return memory->getByte(*lastCycle, addr); }
-        WORD  getWord(ADDRESS addr) { return memory->getWord(*lastCycle, addr); }
-        DWORD getDword(ADDRESS addr) { return memory->getDword(*lastCycle, addr); }
-        QWORD getQword(ADDRESS addr) { return memory->getQword(*lastCycle, addr); }
+        BYTE  getByte(ADDRESS addr) { return memory->getByte(getLastCycle(), addr); }
+        WORD  getWord(ADDRESS addr) { return memory->getWord(getLastCycle(), addr); }
+        DWORD getDword(ADDRESS addr) { return memory->getDword(getLastCycle(), addr); }
+        QWORD getQword(ADDRESS addr) { return memory->getQword(getLastCycle(), addr); }
         BYTE * getStaticMemoryPointer(ADDRESS addr) { return memory->getStaticMemoryPointer(addr); }
         DWORD getProcessorType() { return *processorType; };
         RegLogIterBase * getRegLogIter(DWORD regId, DWORD cycle);
@@ -94,9 +94,9 @@ class LogParser
 
         void setByte(ADDRESS addr, BYTE val);
 #ifdef _DEBUG
-        void * obtainPage(PageIndex index)  { return dataContainer->obtainPage(index); }
-        void * obtainConsecutiveData(PageIndex index, DWORD length)  { return dataContainer->obtainConsecutiveData(index, length); }
-        void   releasePage(PageIndex index) { dataContainer->releasePage(index); }
+        void * obtainPage(PageIndex index)  { return dc->obtainPage(index); }
+        void * obtainConsecutiveData(PageIndex index, DWORD length)  { return dc->obtainConsecutiveData(index, length); }
+        void   releasePage(PageIndex index) { dc->releasePage(index); }
 
 		StatisticsInfo * statisticsReg(DWORD regId)
 		{
@@ -108,7 +108,7 @@ class LogParser
 		};
 		StatisticsInfo * statisticsMemory() {return memory->statistics();}
 
-        PagedDataContainer * getDataContainer() { return dataContainer; }
+        PagedDataContainer * getDataContainer() { return dc; }
 #endif
 
 	protected:
@@ -128,7 +128,7 @@ class LogParser
             }
             return reg[regId]->findEffectiveCycle(cycle);
         }
-		BOOL parse(FileReader &log);
+		BOOL parse(FileReader & log);
         BOOL parseTrace(FileReader &log);
         BOOL parseModulesInfo(FileReader &log);
         BOOL parseRangesInfo(FileReader &log);
@@ -143,13 +143,14 @@ class LogParser
         RegLog * getRegLog(DWORD regId) const { return reg[regId]; }
 
     protected:
-        PagedDataContainer * dataContainer;
+        PagedDataContainer * dc;
 		FileReader log;
 		RegLog * reg[NUMBER_OF_REGS];
 		EipLog * eipLog;
         Memory * memory;
         DBRootPage * rootPage;
-		DWORD * lastCycle;
+		Cycle * _lastCyclePtr;
+        Cycle _maxCycle;
         DWORD * logVersion;
         DWORD * processorType;
         DWORD * logHasMemory;
@@ -164,6 +165,7 @@ class FindCycleWithEipValue
 		FindCycleWithEipValue(LogParser * logParser);
 		void restartSearch();
 		void newSearch( ADDRESS target, DWORD startCycle, DWORD endCycle );
+        void newReverseSearch(ADDRESS searchTarget, DWORD startCycle, DWORD endCycle);
         BOOL isEndOfSearch() { return isDone; }
 		void next();
         void prev();

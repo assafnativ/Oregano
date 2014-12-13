@@ -4,29 +4,30 @@
 #include "RegLog.hpp"
 
 // Returns an index
-DWORD RegLog::bsearchByCycle( DWORD cycle )
+DWORD RegLog::bsearchByCycle( DWORD target )
 {
-	if (0 == (*numItems)) {
+    DWORD numItems = rootPage->numItems;
+	if (0 == numItems) {
 		return 0;
 	}
 	DWORD lo = 0;
-	DWORD hi = (*numItems) - 1;
+    DWORD hi = numItems - 1;
 	DWORD mid;
 	DWORD midCycle;
 
 	while (lo < hi) {
 		mid = (lo + hi) / 2;
 		midCycle = getItem(mid).cycle;
-		if (midCycle < cycle) {
+		if (midCycle < target) {
 			lo = mid + 1;
-		} else if (midCycle > cycle) {
+		} else if (midCycle > target) {
 			hi = mid;
 		} else {
-			return mid + 1;
+			return mid;
 		}
 	}
     // Prefer the cycle before
-    if (getItem(lo).cycle <= cycle) {
+    if (getItem(lo).cycle <= target) {
         return lo;
     }
 	if (0 == lo)
@@ -36,10 +37,11 @@ DWORD RegLog::bsearchByCycle( DWORD cycle )
     return lo - 1;
 }
 
-RegLogIter::RegLogIter( RegLog * regLog, DWORD startCycle/* =0 */ )
-    : regLog(regLog)
+RegLogIter::RegLogIter( RegLog * regLog, DWORD startCycle /* =0 */ ) :
+                regLog(regLog)
 {
-	if (0 == regLog->getNumItems()) {
+    DWORD numItems = regLog->getNumItems();
+	if (0 == numItems) {
         currentIndex = INVALID_CYCLE;
         currentCycle = INVALID_CYCLE;
 	} else if (0 == startCycle) {
@@ -47,7 +49,7 @@ RegLogIter::RegLogIter( RegLog * regLog, DWORD startCycle/* =0 */ )
         currentCycle = 0;
 	} else {
         currentIndex = regLog->bsearchByCycle(startCycle);
-        if (currentIndex < regLog->getNumItems()) {
+        if (currentIndex < numItems) {
             currentCycle = regLog->getItem(currentIndex).cycle;
         } else {
             currentIndex = INVALID_CYCLE;
