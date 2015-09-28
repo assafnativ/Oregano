@@ -5,12 +5,17 @@ class Opcode(object):
     def __init__(self, val, entry):
         self.val = val
         attrib = entry.attrib
+        self.attrib = attrib
         self.op_size = int(attrib.get('op_size', 0))
         self.ring = attrib.get('ring', 3)
         if (self.ring == 'f'):
             self.ring = 0
         else:
             self.ring = int(self.ring)
+        self.modrm = attrib.r == 'yes'
+        self.lockable = attrib.lock == 'yes'
+    def __repr__(self):
+        return "0x%2x:op_size0x%x:Ring%d" % (self.val, self.op_size, self.ring)
 
 class parser(object):
     MODE_FILTER = {
@@ -79,6 +84,8 @@ class parser(object):
             elif None != result and (mode in self.mode_filter):
                 print("Entry %r overwrites %r" % (result, entry))
                 result = entry
+            elif not attrib:
+                pass
             else:
                 print("Default: %r" % (attrib))
                 result = entry
@@ -92,7 +99,7 @@ class parser(object):
             val = int(pre_opcd.attrib['value'], 16)
             entry = self.getMatchingEntry(pre_opcd)
             if None != entry:
-                opcode = Opcode(val, entry)
+                table[val] = Opcode(val, entry)
             else:
                 print("Opcode 0x%2x has no effect" % val)
         return table
