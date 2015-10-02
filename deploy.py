@@ -44,7 +44,7 @@ def getConnection(target=None):
     if None == target:
         target = 'win8tester'
     return rpyc.classic.connect(target)
-    
+
 
 def getTargetFromInf(infFile):
     lines = file(infFile, 'rb').readlines()

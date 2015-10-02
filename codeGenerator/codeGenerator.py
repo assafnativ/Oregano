@@ -998,7 +998,7 @@ class OreganoCodeGenerator(object):
             TABLE_NAME = 'TABLE_ID_%04X' % tableId
             EXTRA_LOADING_CODE = ""
             ECX_MAX_SIZE = 'ecx'
-        
+
         code = ''
         # Gen code to jump according to table
         code += 'NEXT_BYTE_ACCORDING_TO_TABLE_%04X:' % tableId
@@ -1027,23 +1027,23 @@ class OreganoCodeGenerator(object):
                 else:
                     jumpTo = effect + '_LOG'
                 if is64:
-                    jumps.append( 'DQ\t%s\t; %s' % (jumpTo, (opcode + chr(i)).encode('hex')) )
+                    jumps.append( '%-50s%s' % ('DQ %s;' % jumpTo, (opcode + chr(i)).encode('hex')) )
                 else:
-                    jumps.append( 'DD\t%s\t; %s' % (jumpTo, (opcode + chr(i)).encode('hex')) )
+                    jumps.append( '%-50s%s' % ('DD %s;' % jumpTo, (opcode + chr(i)).encode('hex')) )
                 nodeStr += jumpTo
             elif None == effect:
                 if is64:
-                    jumps.append( 'DQ\tFINISH_LOG_CYCLE\t; %s' % (opcode + chr(i)).encode('hex') )
+                    jumps.append( '%-50s%s' % ('DQ FINISH_LOG_CYCLE;', (opcode + chr(i)).encode('hex')) )
                 else:
-                    jumps.append( 'DD\tFINISH_LOG_CYCLE\t; %s' % (opcode + chr(i)).encode('hex') )
+                    jumps.append( '%-50s%s' % ('DD FINISH_LOG_CYCLE;', (opcode + chr(i)).encode('hex')) )
                 nodeStr += 'FINISH_LOG_CYCLE'
             elif list == type(effect):
                 c, newTableId = self.genJumpTable(effect, opcode + chr(i), is64)
                 code += c
                 if is64:
-                    jumps.append( 'DQ\tNEXT_BYTE_ACCORDING_TO_TABLE_%04X\t; %s' % (newTableId, (opcode + chr(i)).encode('hex')) )
+                    jumps.append( '%-50s%s' % ('DQ NEXT_BYTE_ACCORDING_TO_TABLE_%04X;' % (newTableId), (opcode + chr(i)).encode('hex')) )
                 else:
-                    jumps.append( 'DD\tNEXT_BYTE_ACCORDING_TO_TABLE_%04X\t; %s' % (newTableId, (opcode + chr(i)).encode('hex')) )
+                    jumps.append( '%-50s%s' % ('DD NEXT_BYTE_ACCORDING_TO_TABLE_%04X;' % (newTableId), (opcode + chr(i)).encode('hex')) )
                 nodeStr += 'ACCORDING_TO_TABLE_%04X' % newTableId
             else:
                 raise Exception('Unsupported effect')
