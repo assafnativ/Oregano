@@ -3,22 +3,22 @@
 #define _GLOBALDEFINES_H_
 
 /************************************************************
- * File name: GlobalDefines.h								*
- * Dates:													*
- *			24.10.03										*
- * Author:	Assaf											*
- * Purpose:	Declares some defines and consts values for the	*
- *				use of all other cpp or header files.		*
+ * File name: GlobalDefines.h                               *
+ * Dates:                                                   *
+ *          24.10.03                                        *
+ * Author:  Assaf                                           *
+ * Purpose: Declares some defines and consts values for the *
+ *              use of all other cpp or header files.       *
  ************************************************************/
 
 #ifndef IN
-#	define IN
+#   define IN
 #endif
 #ifndef OUT
-#	define OUT
+#   define OUT
 #endif
 #ifndef INOUT
-#	define INOUT
+#   define INOUT
 #endif
 #ifndef FALSE
 #   define FALSE (0)
@@ -35,12 +35,12 @@
 #define ADD_OFFSET( ptr, offset, result_type ) ( (result_type)(((UCHAR *)ptr) + offset) )
 
 /* Typedefs */
-typedef unsigned int		UINT32;
-typedef unsigned short 		UINT16;
-typedef unsigned char		UINT8;
+typedef unsigned int        UINT32;
+typedef unsigned short      UINT16;
+typedef unsigned char       UINT8;
 
-typedef unsigned char *		ADDRESS;
-typedef int					OFFSET;
+typedef unsigned char *     ADDRESS;
+typedef int                 OFFSET;
 
 #ifdef AMD64
 typedef unsigned long long MACHINE_LONG;

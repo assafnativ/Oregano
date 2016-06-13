@@ -282,7 +282,7 @@ GLOBAL  trap_interrupt_out_of_range
 
 ;
 ; trap_interrupt
-;   
+;
 ;   Description:
 ;       This function should replace the original trap interrupt.
 ;       The purpose of this function is to log the current opcode,
@@ -291,7 +291,7 @@ GLOBAL  trap_interrupt_out_of_range
 ;       This function shold be as fast, efficient and effective as
 ;       possible, cause it is called once for every opcode running.
 ;       It is written in mostly pure x86 assembly.
-;       
+;
 ;   Execution plan:
 ;       0. Check if the interrupt was called from our process and for Single Stepping
 ;       1. Get a pointer to a output buffer
@@ -341,7 +341,7 @@ SAVED_RSS       equ 058h
 ;   2. Hardware breakpoint on execution
 ;   3. Hardware breakpoint on memory
 ;   4. Task switch
-;   5. General Detect Fault - A use of the debug registers when they are not available 
+;   5. General Detect Fault - A use of the debug registers when they are not available
 ; Check the reason for the Interrupt.
     ; push ebx, pop ebx is faster than mov someGlobal, ebx
     mov rax, dr6
@@ -526,10 +526,10 @@ WRITE_ALL_CHANGED_REGISTERS:
     ; I'll use edx to hold the regs log ids
     ; and ebp to iterate over them
     ; Ids start from 0 which is RIP
-    xor edx, edx    
+    xor edx, edx
 SKIPING_LOGGING_OF_OPCODE_EFFECT:
     ; But I already logged RIP
-    inc edx         
+    inc edx
 
     ; Get last edi
     mov rcx, QWORD [rbp + LAST_RDI]
@@ -543,7 +543,7 @@ SKIPING_LOGGING_OF_OPCODE_EFFECT:
 DONE_WITH_RDI:
     ; Inc reg id
     inc edx ; Next is RSI (0x02)
-    
+
     ; From now on I shall write them using rdi which just got free for use
     mov rdi, rax
 
@@ -554,11 +554,11 @@ DONE_WITH_RDI:
         mov QWORD [rbp + LAST_RSI], rsi
         mov eax, edx
         stosb
-        mov rax, rsi 
+        mov rax, rsi
         stosq
 DONE_WITH_RSI:
     inc edx ; Next is RBP (0x03)
-    
+
     LOG_REGISTER_CHANGE_WITH_STOS RBP
     ; Here comes the kernel esp on the stack, but I don't care about it.
     LOG_REGISTER_CHANGE_WITH_STOS RBX

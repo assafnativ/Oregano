@@ -7,11 +7,11 @@
 
 #define RETURN_STATS_FOR_REG(REG_NAME, REG_ID) \
 LOG_PARSER_API void statistics##REG_NAME(LogParser * logParser, DWORD * pagesInUse, DWORD * totalPages) { \
-	StatisticsInfo * stats = logParser->statisticsReg(REG_ID); \
-	*pagesInUse = stats->pagesInUse; \
-	*totalPages = stats->totalPages; \
-	delete stats; \
-	stats = NULL; \
+    StatisticsInfo * stats = logParser->statisticsReg(REG_ID); \
+    *pagesInUse = stats->pagesInUse; \
+    *totalPages = stats->totalPages; \
+    delete stats; \
+    stats = NULL; \
 }
 
 #ifdef X86
@@ -51,13 +51,13 @@ RETURN_STATS_FOR_REG(ThreadId, THREAD_ID);
 
 LOG_PARSER_API void statisticsMemory(LogParser * logParser, DWORD * pagesInUse, DWORD * totalPages)
 {
-	StatisticsInfo * stats = logParser->statisticsMemory();
+    StatisticsInfo * stats = logParser->statisticsMemory();
 
-	*pagesInUse = stats->pagesInUse;
-	*totalPages = stats->totalPages;
+    *pagesInUse = stats->pagesInUse;
+    *totalPages = stats->totalPages;
 
-	delete stats;
-	stats = NULL;
+    delete stats;
+    stats = NULL;
 }
 
 #endif // _DEBUG

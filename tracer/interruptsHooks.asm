@@ -33,7 +33,7 @@ GLOBAL _pageFaultInterrupt@0
     pushf
     push eax
     push ebx
-    
+
     mov eax, cr3
     mov ebx, [_target_process]
     cmp eax, ebx
@@ -67,7 +67,7 @@ GLOBAL _pageFaultInterrupt@0
         xor ebx, ebx
         inc ebx
         mov [eax + SKIP_MEM_READ], ebx
-    
+
         pop edx
         pop ecx
 
@@ -75,7 +75,7 @@ GLOBAL _pageFaultInterrupt@0
     pop eax
     pop ebx
     popf
-    
+
     jmp DWORD [%1]
 %endmacro
 

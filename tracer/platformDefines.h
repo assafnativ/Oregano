@@ -39,14 +39,14 @@ typedef struct ETHREAD_t {
     UINT8       WaitReason;     // 0x05b
     UINT32      WaitBlockList;  // 0x05c
     LIST_ENTRY  WaitListEntry;  // 0x60
-    UINT32      WaitTime;       // 0x068 
+    UINT32      WaitTime;       // 0x068
     UINT8       BasePriority;   // 0x06c
     UINT8       DecrementCount; // 0x06d
     UINT8       PriorityDecrement; // 0x06e
     UINT8       Quantum;        // 0x06f
     ADDRESS     WaitBlock;      // 0x70
     UINT8       GAP3[0x5c];
-    UINT32      LegoData;       // 0x0d0 
+    UINT32      LegoData;       // 0x0d0
     UINT32      KernelApcDisable; // 0x0d4
     UINT32      UserAffinity;    // 0x0d8
     UINT8       SystemAffinityActive; // 0x0dc
@@ -70,11 +70,11 @@ typedef struct ETHREAD_t {
     UINT8       GAP5[0x72];
     LIST_ENTRY  ThreadListEntry; // 0x22c
     EX_RUNDOWN_REF RundownProtect;  // 0x234
-    EX_PUSH_LOCK ThreadLock;    // 0x238 
-    UINT32      LpcReplyMessageId;  // 0x23c 
-    UINT32      ReadClusterSize;    // 0x240 
-    UINT32      GrantedAccess;      // 0x244 
-    UINT32      CrossThreadFlags;   // 0x248 
+    EX_PUSH_LOCK ThreadLock;    // 0x238
+    UINT32      LpcReplyMessageId;  // 0x23c
+    UINT32      ReadClusterSize;    // 0x240
+    UINT32      GrantedAccess;      // 0x244
+    UINT32      CrossThreadFlags;   // 0x248
 } ETHREAD_s;
 
 
@@ -86,7 +86,7 @@ typedef struct EPROCESS_t {
     LIST_ENTRY  ThreadListHead; // 0x190
 } EPROCESS_s;
 
-#define START_OF_TRAP_FRAME_FROM_INITIAL_KSTACK	(0x29c)
+#define START_OF_TRAP_FRAME_FROM_INITIAL_KSTACK (0x29c)
 
 #elif WINVER < 0x600    // 0x502 Windows 2k3
 typedef struct ETHREAD_t {
@@ -111,14 +111,14 @@ typedef struct ETHREAD_t {
     UINT8       WaitReason;     // 0x05b
     UINT32      WaitBlockList;  // 0x05c
     LIST_ENTRY  WaitListEntry;  // 0x60
-    UINT32      WaitTime;       // 0x068 
+    UINT32      WaitTime;       // 0x068
     UINT8       BasePriority;   // 0x06c
     UINT8       DecrementCount; // 0x06d
     UINT8       PriorityDecrement; // 0x06e
     UINT8       Quantum;        // 0x06f
     ADDRESS     WaitBlock;      // 0x70
     UINT8       GAP3[0x5c];
-    UINT32      LegoData;       // 0x0d0 
+    UINT32      LegoData;       // 0x0d0
     UINT32      KernelApcDisable; // 0x0d4
     UINT32      UserAffinity;    // 0x0d8
     UINT8       SystemAffinityActive; // 0x0dc
@@ -142,11 +142,11 @@ typedef struct ETHREAD_t {
     UINT8       GAP5[0x6a];
     LIST_ENTRY  ThreadListEntry; // 0x224
     EX_RUNDOWN_REF RundownProtect;  // 0x22c
-    EX_PUSH_LOCK ThreadLock;    // 0x230 
+    EX_PUSH_LOCK ThreadLock;    // 0x230
     UINT32      LpcReplyMessageId;  // 0x234
-    UINT32      ReadClusterSize;    // 0x238 
-    UINT32      GrantedAccess;      // 0x23c 
-    UINT32      CrossThreadFlags;   // 0x240 
+    UINT32      ReadClusterSize;    // 0x238
+    UINT32      GrantedAccess;      // 0x23c
+    UINT32      CrossThreadFlags;   // 0x240
 } ETHREAD_s;
 
 
@@ -158,7 +158,7 @@ typedef struct EPROCESS_t {
     LIST_ENTRY  ThreadListHead; // 0x180
 } EPROCESS_s;
 
-#define START_OF_TRAP_FRAME_FROM_INITIAL_KSTACK	(0x29c)
+#define START_OF_TRAP_FRAME_FROM_INITIAL_KSTACK (0x29c)
 
 #elif WINVER < 0x700    // 0x600 Windows Vista, Windows Server 2008, 0x601 Windows 7, Windows 2008 R2
 typedef struct ETHREAD_t {
@@ -180,9 +180,9 @@ typedef struct ETHREAD_t {
     EX_RUNDOWN_REF RundownProtect;  // 0x270
     EX_PUSH_LOCK ThreadLock;    // 0x274
     UINT32      LpcReplyMessageId;  // 0x278
-    UINT32      ReadClusterSize;    // 0x27c 
-    UINT32      GrantedAccess;      // 0x280 
-    UINT32      CrossThreadFlags;   // 0x284 
+    UINT32      ReadClusterSize;    // 0x27c
+    UINT32      GrantedAccess;      // 0x280
+    UINT32      CrossThreadFlags;   // 0x284
 } ETHREAD_s;
 
 typedef struct EPROCESS_t {
@@ -193,7 +193,7 @@ typedef struct EPROCESS_t {
     LIST_ENTRY  ThreadListHead; // 0x188
 } EPROCESS_s;
 
-#define START_OF_TRAP_FRAME_FROM_INITIAL_KSTACK	(0x29c)
+#define START_OF_TRAP_FRAME_FROM_INITIAL_KSTACK (0x29c)
 
 #else
     #pragma(Error, "Platform not supported")

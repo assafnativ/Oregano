@@ -4,7 +4,7 @@
 
 #include "GlobalDefines.h"
 
-#define CONTROL_THREAD_CONTEXT_MEMORY_TAG	((ULONG)'McTC')
+#define CONTROL_THREAD_CONTEXT_MEMORY_TAG   ((ULONG)'McTC')
 
 // x_FROM_START_OF_TRAP_FRAME are all defined at_KTRAP_FRAME
 
@@ -38,23 +38,23 @@
     #define SEGSS_FROM_START_OF_TRAP_FRAME              (0x188)
     #define SIZE_KTRAP_FRAME                            (0x190)
 #else
-    #define EDX_FROM_START_OF_TRAP_FRAME	    (0x3c)
-    #define ECX_FROM_START_OF_TRAP_FRAME	    (0x40)
-    #define EAX_FROM_START_OF_TRAP_FRAME	    (0x44)
-    #define EDI_FROM_START_OF_TRAP_FRAME	    (0x54)
-    #define ESI_FROM_START_OF_TRAP_FRAME	    (0x58)
-    #define EBX_FROM_START_OF_TRAP_FRAME	    (0x5C)
-    #define EBP_FROM_START_OF_TRAP_FRAME	    (0x60)
-    #define ERRCODE_FROM_START_OF_TRAP_FRAME	(0x64)
-    #define EIP_FROM_START_OF_TRAP_FRAME    	(0x68)
-    #define SEGCS_FROM_START_OF_TRAP_FRAME	    (0x6C)
-    #define EFLAGS_FROM_START_OF_TRAP_FRAME	    (0x70)
+    #define EDX_FROM_START_OF_TRAP_FRAME        (0x3c)
+    #define ECX_FROM_START_OF_TRAP_FRAME        (0x40)
+    #define EAX_FROM_START_OF_TRAP_FRAME        (0x44)
+    #define EDI_FROM_START_OF_TRAP_FRAME        (0x54)
+    #define ESI_FROM_START_OF_TRAP_FRAME        (0x58)
+    #define EBX_FROM_START_OF_TRAP_FRAME        (0x5C)
+    #define EBP_FROM_START_OF_TRAP_FRAME        (0x60)
+    #define ERRCODE_FROM_START_OF_TRAP_FRAME    (0x64)
+    #define EIP_FROM_START_OF_TRAP_FRAME        (0x68)
+    #define SEGCS_FROM_START_OF_TRAP_FRAME      (0x6C)
+    #define EFLAGS_FROM_START_OF_TRAP_FRAME     (0x70)
     #define ESP_FROM_START_OF_TRAP_FRAME        (0x74)
     #define ESS_FROM_START_OF_TRAP_FRAME        (0x78)
 #endif
 
 /* The flag in EFlags that sets the single step */
-#define TRAP_FLAG						(0x100)
+#define TRAP_FLAG                       (0x100)
 /* TODO: Whats the EFLAGS offset? */
 
 NTSTATUS setTrapFlagForAllThreads  ( HANDLE process_id );

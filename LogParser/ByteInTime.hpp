@@ -8,11 +8,11 @@
 #pragma pack(1)
 class ByteInTime
 {
-	public:
-        ByteInTime(Cycle cycle, ADDRESS addr, BYTE value) 
-            : 
-            cycle(cycle), 
-            addr(addr), 
+    public:
+        ByteInTime(Cycle cycle, ADDRESS addr, BYTE value)
+            :
+            cycle(cycle),
+            addr(addr),
             value(value)
         {
             // pass
@@ -34,26 +34,26 @@ class ByteInTime
         }
         inline void copy(ByteInTime const * other)
         {
-            if (NULL == other) 
+            if (NULL == other)
             {
-				clear();
+                clear();
             } else {
                 addr    = other->addr;
                 cycle   = other->cycle;
                 value   = other->value;
             }
         }
-		inline void clear()
-		{
-			addr = 0;
-			cycle = INVALID_CYCLE;
-			value = 0;
-		}
+        inline void clear()
+        {
+            addr = 0;
+            cycle = INVALID_CYCLE;
+            value = 0;
+        }
         ADDRESS addr;
-		Cycle   cycle;
-		BYTE value;
+        Cycle   cycle;
+        BYTE value;
 };
 #pragma pack()
 
-Cycle ByteInTimeGetCycle(ByteInTime const * x); 
+Cycle ByteInTimeGetCycle(ByteInTime const * x);
 ADDRESS ByteInTimeGetAddress(ByteInTime const * x);

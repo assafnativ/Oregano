@@ -23,23 +23,23 @@ class FileReader;
 
 class LogParser
 {
-	public:
-		LogParser();
-		~LogParser();
+    public:
+        LogParser();
+        ~LogParser();
         void parse(const char * logFile, Cycle maxCycle = INVALID_CYCLE);
         DWORD getLastCycle()        { return *_lastCyclePtr; }
 #ifdef X86
-        DWORD eip(DWORD cycle)		{ return eipLog->getItem(cycle); }
-        DWORD edi(DWORD cycle)		{ return getRegValue<REG_ID_EDI>(cycle); }
-        DWORD esi(DWORD cycle)		{ return getRegValue<REG_ID_ESI>(cycle); }
-        DWORD ebp(DWORD cycle)		{ return getRegValue<REG_ID_EBP>(cycle); }
-        DWORD ebx(DWORD cycle)		{ return getRegValue<REG_ID_EBX>(cycle); }
-        DWORD edx(DWORD cycle)		{ return getRegValue<REG_ID_EDX>(cycle); }
-        DWORD ecx(DWORD cycle)		{ return getRegValue<REG_ID_ECX>(cycle); }
-        DWORD eax(DWORD cycle)		{ return getRegValue<REG_ID_EAX>(cycle); }
-        DWORD ecs(DWORD cycle)		{ return getRegValue<REG_ID_ECS>(cycle); }
-        DWORD eflags(DWORD cycle)	{ return getRegValue<REG_ID_EFLAGS>(cycle); }
-        DWORD esp(DWORD cycle)		{ return getRegValue<REG_ID_ESP>(cycle); }
+        DWORD eip(DWORD cycle)      { return eipLog->getItem(cycle); }
+        DWORD edi(DWORD cycle)      { return getRegValue<REG_ID_EDI>(cycle); }
+        DWORD esi(DWORD cycle)      { return getRegValue<REG_ID_ESI>(cycle); }
+        DWORD ebp(DWORD cycle)      { return getRegValue<REG_ID_EBP>(cycle); }
+        DWORD ebx(DWORD cycle)      { return getRegValue<REG_ID_EBX>(cycle); }
+        DWORD edx(DWORD cycle)      { return getRegValue<REG_ID_EDX>(cycle); }
+        DWORD ecx(DWORD cycle)      { return getRegValue<REG_ID_ECX>(cycle); }
+        DWORD eax(DWORD cycle)      { return getRegValue<REG_ID_EAX>(cycle); }
+        DWORD ecs(DWORD cycle)      { return getRegValue<REG_ID_ECS>(cycle); }
+        DWORD eflags(DWORD cycle)   { return getRegValue<REG_ID_EFLAGS>(cycle); }
+        DWORD esp(DWORD cycle)      { return getRegValue<REG_ID_ESP>(cycle); }
 #elif AMD64
         QWORD rip(DWORD cycle)      {return eipLog->getItem(cycle);}
         QWORD rdi(DWORD cycle)      {return getRegValue<REG_ID_RDI>(cycle);}
@@ -65,9 +65,9 @@ class LogParser
         DWORD threadId(DWORD cycle) { return (DWORD)(getRegValue<THREAD_ID>(cycle)); }
         DWORD findEffectiveCycle(DWORD regId, DWORD cycle);
         MACHINE_LONG getRegValueById(DWORD regId, DWORD cycle);
-		DWORD findCycleWithEipValue(DWORD targetEip, DWORD startCycle, DWORD endCycle);
-		DWORD findCycleWithRegValue(DWORD regId, DWORD targetValue, DWORD startCycle, DWORD endCycle);
-		BYTE  getByte (Address address);
+        DWORD findCycleWithEipValue(DWORD targetEip, DWORD startCycle, DWORD endCycle);
+        DWORD findCycleWithRegValue(DWORD regId, DWORD targetValue, DWORD startCycle, DWORD endCycle);
+        BYTE  getByte (Address address);
         WORD  getWord (Address address);
         DWORD getDword(Address address);
         QWORD getQword(Address address);
@@ -90,7 +90,7 @@ class LogParser
         {
             return new FindData(memory, data, dataLength, startCycle, endCycle);
         }
-		void DumpMemoryUsage();
+        void DumpMemoryUsage();
 
         void setByte(ADDRESS addr, BYTE val);
 #ifdef _DEBUG
@@ -98,29 +98,29 @@ class LogParser
         void * obtainConsecutiveData(PageIndex index, DWORD length)  { return dc->obtainConsecutiveData(index, length); }
         void   releasePage(PageIndex index) { dc->releasePage(index); }
 
-		StatisticsInfo * statisticsReg(DWORD regId)
-		{
-			if (REG_ID_EIP == regId)
-			{
-				return eipLog->statistics();
-			}
-			return reg[regId]->statistics();
-		};
-		StatisticsInfo * statisticsMemory() {return memory->statistics();}
+        StatisticsInfo * statisticsReg(DWORD regId)
+        {
+            if (REG_ID_EIP == regId)
+            {
+                return eipLog->statistics();
+            }
+            return reg[regId]->statistics();
+        };
+        StatisticsInfo * statisticsMemory() {return memory->statistics();}
 
         PagedDataContainer * getDataContainer() { return dc; }
 #endif
 
-	protected:
-		template <int REG_ID>
-		inline MACHINE_LONG getRegValue(DWORD cycle)
-		{
-			DWORD index = reg[REG_ID]->findEffectiveIndex(cycle);
-			if (index >= reg[REG_ID]->getNumItems()) {
-				return UNKNOWN_DWORD;
-			}
-			return reg[REG_ID]->getItem(index).value;
-		}
+    protected:
+        template <int REG_ID>
+        inline MACHINE_LONG getRegValue(DWORD cycle)
+        {
+            DWORD index = reg[REG_ID]->findEffectiveIndex(cycle);
+            if (index >= reg[REG_ID]->getNumItems()) {
+                return UNKNOWN_DWORD;
+            }
+            return reg[REG_ID]->getItem(index).value;
+        }
         inline DWORD getEffectiveRegCycle(DWORD regId, DWORD cycle)
         {
             if ((0 == regId) || (NUMBER_OF_REGS > regId)) {
@@ -128,13 +128,13 @@ class LogParser
             }
             return reg[regId]->findEffectiveCycle(cycle);
         }
-		BOOL parse(FileReader & log);
+        BOOL parse(FileReader & log);
         BOOL parseTrace(FileReader &log);
         BOOL parseModulesInfo(FileReader &log);
         BOOL parseRangesInfo(FileReader &log);
         void initContext();
         void initMemory();
-		void addRegChange(RegLog * regLog);
+        void addRegChange(RegLog * regLog);
         DWORD findRegEffectiveIndex(DWORD regId, DWORD cycle);
         DWORD readSectionTag();
         OpcodesSideEffects * opcodesSideEffects;
@@ -144,40 +144,40 @@ class LogParser
 
     protected:
         PagedDataContainer * dc;
-		FileReader log;
-		RegLog * reg[NUMBER_OF_REGS];
-		EipLog * eipLog;
+        FileReader log;
+        RegLog * reg[NUMBER_OF_REGS];
+        EipLog * eipLog;
         Memory * memory;
         DBRootPage * rootPage;
-		Cycle * _lastCyclePtr;
+        Cycle * _lastCyclePtr;
         Cycle _maxCycle;
         DWORD * logVersion;
         DWORD * processorType;
         DWORD * logHasMemory;
-		friend class FindCycleWithEipValue;
+        friend class FindCycleWithEipValue;
         friend class BX_CPU_C;
         friend class BX_MEM_C;
 }; /* LogParser */
 
 class FindCycleWithEipValue
 {
-	public:
-		FindCycleWithEipValue(LogParser * logParser);
-		void restartSearch();
-		void newSearch( ADDRESS target, DWORD startCycle, DWORD endCycle );
+    public:
+        FindCycleWithEipValue(LogParser * logParser);
+        void restartSearch();
+        void newSearch( ADDRESS target, DWORD startCycle, DWORD endCycle );
         void newReverseSearch(ADDRESS searchTarget, DWORD startCycle, DWORD endCycle);
         BOOL isEndOfSearch() { return isDone; }
-		void next();
+        void next();
         void prev();
         Cycle current();
     protected:
         void findNext();
         void findPrev();
-		LogParser *	logParser;
+        LogParser * logParser;
         ADDRESS     target;
-		DWORD		currentCycle;
-		DWORD		bottomCycle;
-		DWORD		topCycle;
-		BOOL		isDone;
-		EipLog *	eipLog;
+        DWORD       currentCycle;
+        DWORD       bottomCycle;
+        DWORD       topCycle;
+        BOOL        isDone;
+        EipLog *    eipLog;
 }; /* FindCycleWithEipValue */

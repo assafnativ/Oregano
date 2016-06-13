@@ -1,41 +1,41 @@
 
 ; Only in MASM
-;	TITLE	trap_interrupt.asm
-;	.586
+;   TITLE   trap_interrupt.asm
+;   .586
 ;
-;	.MODEL flat
+;   .MODEL flat
 
 ; Exportes
-GLOBAL	_orgTrapInterrupt
-GLOBAL	_orgBreakpointInterrupt
-GLOBAL	_targetProcessId
-GLOBAL	_target_process
-GLOBAL	_stopAddress
+GLOBAL  _orgTrapInterrupt
+GLOBAL  _orgBreakpointInterrupt
+GLOBAL  _targetProcessId
+GLOBAL  _target_process
+GLOBAL  _stopAddress
 GLOBAL  _bottom_log_address
 GLOBAL  _top_log_address
-GLOBAL	_log_buffer
-GLOBAL	_log_buffer_item
-GLOBAL	_active_log_buffer
+GLOBAL  _log_buffer
+GLOBAL  _log_buffer_item
+GLOBAL  _active_log_buffer
 GLOBAL  _used_buffers
-GLOBAL	_next_free_log_buffer
-GLOBAL	_lastContext
-GLOBAL	_threads
+GLOBAL  _next_free_log_buffer
+GLOBAL  _lastContext
+GLOBAL  _threads
 GLOBAL  _loggingRanges
 GLOBAL  _is_trap_on_branch_set
 
 %ifdef DEBUG
-GLOBAL	_DebugVar0
-GLOBAL	_DebugVar1
-GLOBAL	_DebugVar2
-GLOBAL	_DebugVar3
-GLOBAL	_DebugVar4
-GLOBAL	_DebugVar5
-GLOBAL	_DebugVar6
-GLOBAL	_DebugVar7
+GLOBAL  _DebugVar0
+GLOBAL  _DebugVar1
+GLOBAL  _DebugVar2
+GLOBAL  _DebugVar3
+GLOBAL  _DebugVar4
+GLOBAL  _DebugVar5
+GLOBAL  _DebugVar6
+GLOBAL  _DebugVar7
 %endif
 
 ; Defines
-LOG_BUFFER_SIZE				 equ 00004000h
+LOG_BUFFER_SIZE              equ 00004000h
 SHIFTED_LOG_BUFFER_MAX_SIZE  equ 00000007h
 BUFFER_MAX_SIZE_BIT_TO_SHIFT equ 0000000bh
 MAX_BUFFER_OFFSET            equ 00003f40h
@@ -43,10 +43,10 @@ SIZE_OF_DWORD                equ 04h
 SIZE_OF_QWORD                equ 08h
 SIZE_OF_POINTER              equ 04h
 NUMBER_OF_BUFFERS            equ 1000h
-NUMBER_OF_BUFFERS_MASK       equ 0fffh	; I've got exactly 0x1000 buffers
+NUMBER_OF_BUFFERS_MASK       equ 0fffh  ; I've got exactly 0x1000 buffers
 
-END_BUFFER_SYMBOL			equ 0ffffffffh
-THREAD_CHANGE_SYMBOL		equ 0feh
+END_BUFFER_SYMBOL           equ 0ffffffffh
+THREAD_CHANGE_SYMBOL        equ 0feh
 THREAD_ID_MASK              equ 03ffc0h
 THREAD_CONTEXT_SIZE         equ 040h
 THREAD_CONTEXT_ARRAY_END    equ 03ffffh
@@ -59,52 +59,52 @@ DEBUGCTLMSR_ID              equ 01D9h
 BRANCH_TRAP_FLAG            equ 02h
 BRANCH_TRAP_FLAG_CLEAR      equ 0
 ; Get it from PsGetCurrentProcess @ ntoskrnl.exe
-CURRENT_KTHREAD_OFFSET	    equ 0124h
+CURRENT_KTHREAD_OFFSET      equ 0124h
 ; Get it from _KiTrap01
 FS_VALUE                    equ 30h
 
-; Regs ids:		(Note that this is not the same list as the one found in the disassembler)
-REG_ID_EIP					equ 00h
-REG_ID_EDI					equ 01h
-REG_ID_ESI					equ 02h
-REG_ID_EBP					equ 03h
-REG_ID_EBX					equ 04h
-REG_ID_EDX					equ 05h
-REG_ID_ECX					equ 06h
-REG_ID_EAX					equ 07h
-; REG_ID_EIP				equ 08h
-REG_ID_ECS					equ 08h
-REG_ID_EFLAGS				equ 09h
-REG_ID_ESP					equ 0Ah
-REG_ID_ESS					equ 0Bh
+; Regs ids:     (Note that this is not the same list as the one found in the disassembler)
+REG_ID_EIP                  equ 00h
+REG_ID_EDI                  equ 01h
+REG_ID_ESI                  equ 02h
+REG_ID_EBP                  equ 03h
+REG_ID_EBX                  equ 04h
+REG_ID_EDX                  equ 05h
+REG_ID_ECX                  equ 06h
+REG_ID_EAX                  equ 07h
+; REG_ID_EIP                equ 08h
+REG_ID_ECS                  equ 08h
+REG_ID_EFLAGS               equ 09h
+REG_ID_ESP                  equ 0Ah
+REG_ID_ESS                  equ 0Bh
 
 ; Global variables defines
 SECTION .data
 
 ; Original trap interrupt, if needed.
-_orgTrapInterrupt			DD 0
+_orgTrapInterrupt           DD 0
 ; To simulate a breakpoint
-_orgBreakpointInterrupt 	DD 0
+_orgBreakpointInterrupt     DD 0
 ; What process are I debugging?
-_targetProcessId			DD 0
-_target_process				DD 0
+_targetProcessId            DD 0
+_target_process             DD 0
 ; Where should I stop logging
-_stopAddress				DD 0
+_stopAddress                DD 0
 _bottom_log_address         DD 0
 _top_log_address            DD 0
 ; Output buffer
-_log_buffer					DD 0
+_log_buffer                 DD 0
 ; I got 0x1000 log buffers
-_log_buffer_item			times NUMBER_OF_BUFFERS DD 0
-_active_log_buffer			DD 0
+_log_buffer_item            times NUMBER_OF_BUFFERS DD 0
+_active_log_buffer          DD 0
 _used_buffers               DD 0
-_next_free_log_buffer		DD 0
-_lastContext				DD 0
+_next_free_log_buffer       DD 0
+_lastContext                DD 0
 _lastLoggedContext          DD 0
 _is_trap_on_branch_set      DD 0
 ; ThreadContext_t is 0x10 dwords (0x40 bytes) and I got a table of 0x1000 entries
 align   16
-_threads                    times 65536 DD 0 
+_threads                    times 65536 DD 0
 ; LoggingRanges maximum of 0x80 logging ranges
 _loggingRanges              times 256 DD 0
 
@@ -129,22 +129,22 @@ BOTTOM_BOUND                equ 34h
 TOP_BOUND                   equ 38h
 
 %ifdef DEBUG
-_DebugVar0	DD 0
-_DebugVar1	DD 0
-_DebugVar2	DD 0
-_DebugVar3	DD 0
-_DebugVar4	DD 0
-_DebugVar5	DD 0
-_DebugVar6	DD 0
-_DebugVar7	DD 0
+_DebugVar0  DD 0
+_DebugVar1  DD 0
+_DebugVar2  DD 0
+_DebugVar3  DD 0
+_DebugVar4  DD 0
+_DebugVar5  DD 0
+_DebugVar6  DD 0
+_DebugVar7  DD 0
 %endif
 
 ; Macros:
 %macro CALL_ORIGINAL_INTERRUPT 0
-	popad
+    popad
     pop fs
-	; Call original interrupt handler
-	jmp	DWORD [_orgTrapInterrupt]
+    ; Call original interrupt handler
+    jmp DWORD [_orgTrapInterrupt]
 %endmacro
 
 %macro RETURN_FROM_INTERRUPT_WITH_CHECK 0
@@ -160,24 +160,24 @@ _DebugVar7	DD 0
 %endmacro
 
 %macro LOG_REGISTER_CHANGE_WITH_STOS 1
-	; Get last %1
-	mov eax, DWORD [esp + SAVED_%1]
-	cmp eax, [ebp + LAST_%1]
-	jz %%DONE_WITH_REG
-		mov DWORD [ebp + LAST_%1], eax
-		xchg eax, edx
-		stosb
-		xchg eax, edx
-		stosd
+    ; Get last %1
+    mov eax, DWORD [esp + SAVED_%1]
+    cmp eax, [ebp + LAST_%1]
+    jz %%DONE_WITH_REG
+        mov DWORD [ebp + LAST_%1], eax
+        xchg eax, edx
+        stosb
+        xchg eax, edx
+        stosd
     %%DONE_WITH_REG:
-	inc edx
+    inc edx
 %endmacro
 
 SECTION .text
 align   16
 
 ; Function define
-GLOBAL	_trap_interrupt@0
+GLOBAL  _trap_interrupt@0
 ; Inside labels for debugging
 GLOBAL  _trap_interrupt_target_process@0
 GLOBAL  _trap_interrupt_got_log_buffer@0
@@ -190,16 +190,16 @@ GLOBAL  _trap_interrupt_out_of_range@0
 
 ;
 ; trap_interrupt
-; 	
-; 	Description:
-;	 	This function should replace the original trap interrupt.
-; 		The purpose of this function is to log the current opcode,
-; 		and it's affect on memory, registers and anything else that
-; 		might be in the interest of the programmer.
-; 		This function shold be as fast, efficient and effective as
-; 		possible, cause it is called once for every opcode running.
-; 		It is written in mostly pure x86 assembly.
-;       
+;
+;   Description:
+;       This function should replace the original trap interrupt.
+;       The purpose of this function is to log the current opcode,
+;       and it's affect on memory, registers and anything else that
+;       might be in the interest of the programmer.
+;       This function shold be as fast, efficient and effective as
+;       possible, cause it is called once for every opcode running.
+;       It is written in mostly pure x86 assembly.
+;
 ;   Execution plan:
 ;       0. Check if the interrupt was called from our process and for Single Stepping
 ;       1. Check if address is in logging range
@@ -212,10 +212,10 @@ GLOBAL  _trap_interrupt_out_of_range@0
 ;       8. Write back the last writting point in buffer
 ;       9. Ret
 ;
-; 	Known issues:
-; 		Because this function replaces the original windows trap interrupt,
-; 		it is impossable to use debuggers single step function while it is running,
-; 		an attempt to do so might cause a blue screen.
+;   Known issues:
+;       Because this function replaces the original windows trap interrupt,
+;       it is impossable to use debuggers single step function while it is running,
+;       an attempt to do so might cause a blue screen.
 ;
 ;
     ; NASM assumes nothing
@@ -225,27 +225,27 @@ _trap_interrupt@0:
 
 ; Save all registers
     push fs
-	pushad
+    pushad
     ; Set the selector
     mov eax, FS_VALUE
     mov fs, ax
 
-	; Now the stack looks somthing like this:
-SAVED_EDI		equ 000h
-SAVED_ESI		equ 004h
-SAVED_EBP		equ 008h
-SAVED_KERNEL_ESP	equ 00ch
-SAVED_EBX		equ 010h
-SAVED_EDX		equ 014h
-SAVED_ECX		equ 018h
-SAVED_EAX		equ 01ch
+    ; Now the stack looks somthing like this:
+SAVED_EDI       equ 000h
+SAVED_ESI       equ 004h
+SAVED_EBP       equ 008h
+SAVED_KERNEL_ESP    equ 00ch
+SAVED_EBX       equ 010h
+SAVED_EDX       equ 014h
+SAVED_ECX       equ 018h
+SAVED_EAX       equ 01ch
 SAVED_FS        equ 020h
 ; Interrupt call
-SAVED_EIP		equ 024h
-SAVED_ECS		equ 028h
-SAVED_EFLAGS	equ 02ch
-SAVED_ESP		equ 030h
-SAVED_ESS		equ 034h
+SAVED_EIP       equ 024h
+SAVED_ECS       equ 028h
+SAVED_EFLAGS    equ 02ch
+SAVED_ESP       equ 030h
+SAVED_ESS       equ 034h
 ; TODO: Do I need to set the FS to 0x30 and DS, ES to 0x23 as in _KiTrap01
 
 ; Interrupt 0x01 can be called for five reasons:
@@ -253,7 +253,7 @@ SAVED_ESS		equ 034h
 ;   2. Hardware breakpoint on execution
 ;   3. Hardware breakpoint on memory
 ;   4. Task switch
-;   5. General Detect Fault - A use of the debug registers when they are not available 
+;   5. General Detect Fault - A use of the debug registers when they are not available
 ; Check the reason for the Interrupt.
     ; push ebx, pop ebx is faster than mov someGlobal, ebx
     mov eax, dr6
@@ -266,10 +266,10 @@ INTERRUPT_COZED_BY_SINGLE_STEP:
 ; Check if this is the traced process
 ; I use the CR3 (The memory page table pointer) as the process UID
     mov ebx, cr3
-	mov ecx, [_target_process]
-	cmp ebx, ecx
-	je THIS_IS_THE_TARGET_PROCESS
-	CALL_ORIGINAL_INTERRUPT
+    mov ecx, [_target_process]
+    cmp ebx, ecx
+    je THIS_IS_THE_TARGET_PROCESS
+    CALL_ORIGINAL_INTERRUPT
 THIS_IS_THE_TARGET_PROCESS:
 _trap_interrupt_target_process@0:
 
@@ -334,7 +334,7 @@ _trap_interrupt_target_process@0:
         ; Anything that is not zero
         mov [_is_trap_on_branch_set], ecx
         xor edx, edx
-        ; Switch to trap on branch, because returning into the logging range, 
+        ; Switch to trap on branch, because returning into the logging range,
         ; is more likley to happen on branch, and this way I hope to get better
         ; pref'
         mov ecx, DEBUGCTLMSR_ID
@@ -359,28 +359,28 @@ _trap_interrupt_in_range@0:
 %endif
 
     ; Get output buffer pointer
-	; I try to keep the buffer_ptr in eax most of the time coz it's used the most.
-	; The next place to write is _log_bufer + _log_buffer_pos (Saved at offset zero of the log_buffer).
+    ; I try to keep the buffer_ptr in eax most of the time coz it's used the most.
+    ; The next place to write is _log_bufer + _log_buffer_pos (Saved at offset zero of the log_buffer).
 _trap_interrupt_check_log_buffer@0:
-	; Check for output buffer end
+    ; Check for output buffer end
     mov eax, DWORD [_log_buffer]
     ; Last writting offset is the firest DWORD of each buffer
-	mov edx, DWORD [eax]
+    mov edx, DWORD [eax]
     cmp edx, MAX_BUFFER_OFFSET
     jb LOG_BUFFER_HAS_SPACE
-		; Move to the next buffer
+        ; Move to the next buffer
         ; Inc the number of buffers used
         loc inc DWORD [_used_buffers]
-		; Get the next buffer from the buffers array
-		mov edx, DWORD [_active_log_buffer]
-		inc edx
-		and edx, NUMBER_OF_BUFFERS_MASK
-		; TODO: comper with next_free_log_buffer
-		mov DWORD [_active_log_buffer], edx
-		mov eax, DWORD [_log_buffer_item + edx * SIZE_OF_POINTER]
-		mov DWORD [_log_buffer], eax
-		; 4 first bytes are used to save the last pos of the buffer
-		mov DWORD [eax], SIZE_OF_DWORD
+        ; Get the next buffer from the buffers array
+        mov edx, DWORD [_active_log_buffer]
+        inc edx
+        and edx, NUMBER_OF_BUFFERS_MASK
+        ; TODO: comper with next_free_log_buffer
+        mov DWORD [_active_log_buffer], edx
+        mov eax, DWORD [_log_buffer_item + edx * SIZE_OF_POINTER]
+        mov DWORD [_log_buffer], eax
+        ; 4 first bytes are used to save the last pos of the buffer
+        mov DWORD [eax], SIZE_OF_DWORD
         add eax, SIZE_OF_DWORD
         jmp GOT_WRITTING_PTR
 LOG_BUFFER_HAS_SPACE:
@@ -395,9 +395,9 @@ _trap_interrupt_got_log_buffer@0:
     mov ebp, DWORD [_lastContext]
     ; So check for thread change
     ; Ecx would keep the KTHREAD
-	mov ecx, [fs:CURRENT_KTHREAD_OFFSET]
-	cmp ecx, DWORD [ebp]
-	je NO_THREAD_CHANGE
+    mov ecx, [fs:CURRENT_KTHREAD_OFFSET]
+    cmp ecx, DWORD [ebp]
+    je NO_THREAD_CHANGE
         ; Write thread change
 
         ; Load context
@@ -441,51 +441,51 @@ _trap_interrupt_got_thread@0:
     ; Ecx is the current thread id
     ; Ebp supposed to point to a struct containg last cycle regs values
 
-	; Write the EIP reg code
-	mov BYTE [eax], 0
-	inc eax
-	; Write EIP
-	mov DWORD [eax], ebx
-	; pos += sizeof( EIP )
+    ; Write the EIP reg code
+    mov BYTE [eax], 0
+    inc eax
+    ; Write EIP
+    mov DWORD [eax], ebx
+    ; pos += sizeof( EIP )
     add eax, 4
 
-	; I'll use edx to hold the regs log ids
-	; and ebp to iterate over them
+    ; I'll use edx to hold the regs log ids
+    ; and ebp to iterate over them
     ; Ids start from 0 which is EIP
-	xor edx, edx	
+    xor edx, edx
     ; But I already logged EIP
-	inc edx			
+    inc edx
 
-	; Get last edi
-	mov ecx, DWORD [ebp + LAST_EDI]
-	cmp ecx, edi
-	jz DONE_WITH_EDI
-		mov DWORD [ebp + LAST_EDI], edi
-		mov BYTE [eax], dl
-		inc eax
-		mov DWORD [eax], edi
+    ; Get last edi
+    mov ecx, DWORD [ebp + LAST_EDI]
+    cmp ecx, edi
+    jz DONE_WITH_EDI
+        mov DWORD [ebp + LAST_EDI], edi
+        mov BYTE [eax], dl
+        inc eax
+        mov DWORD [eax], edi
         add eax, SIZE_OF_DWORD
 DONE_WITH_EDI:
-	; Inc reg id
-	inc edx	; Next is ESI (0x02)
-	
-	; From now on I shall write them using edi which just got free for use
-	mov edi, eax
+    ; Inc reg id
+    inc edx ; Next is ESI (0x02)
 
-	; Get last esi
-	mov eax, DWORD [ebp + LAST_ESI]
-	cmp eax, esi
-	jz DONE_WITH_ESI
-		mov DWORD [ebp + LAST_ESI], esi
-		mov eax, edx
-		stosb
-		mov eax, esi 
-		stosd
+    ; From now on I shall write them using edi which just got free for use
+    mov edi, eax
+
+    ; Get last esi
+    mov eax, DWORD [ebp + LAST_ESI]
+    cmp eax, esi
+    jz DONE_WITH_ESI
+        mov DWORD [ebp + LAST_ESI], esi
+        mov eax, edx
+        stosb
+        mov eax, esi
+        stosd
 DONE_WITH_ESI:
-	inc edx ; Next is EBP (0x03)
-	
+    inc edx ; Next is EBP (0x03)
+
     LOG_REGISTER_CHANGE_WITH_STOS EBP
-	; Here comes the kernel esp on the stack, but I don't care about it.
+    ; Here comes the kernel esp on the stack, but I don't care about it.
     LOG_REGISTER_CHANGE_WITH_STOS EBX
     LOG_REGISTER_CHANGE_WITH_STOS EDX
     LOG_REGISTER_CHANGE_WITH_STOS ECX
@@ -496,10 +496,10 @@ DONE_WITH_ESI:
     LOG_REGISTER_CHANGE_WITH_STOS ESP
 
 _trap_interrupt_save_log_buffer_pos@0:
-	; Save log buffer pos (Relatived to the buffer)
-	mov eax, DWORD[_log_buffer]
-	sub edi, eax
-	mov DWORD [eax], edi
+    ; Save log buffer pos (Relatived to the buffer)
+    mov eax, DWORD[_log_buffer]
+    sub edi, eax
+    mov DWORD [eax], edi
 
 _trap_interrupt_done@0:
 %ifdef DEBUG
@@ -512,14 +512,14 @@ ALL_DONE:
     RETURN_FROM_INTERRUPT_WITH_CHECK
 
 CLEAR_TRAP_FLAG_AND_RET:
-	; Save log buffer pos (Relatived to the buffer)
-	mov edi, DWORD[_log_buffer]
-	sub eax, edi
-	mov DWORD [edi], eax
-	; Clear the trap flag
-	mov eax, DWORD [esp + SAVED_EFLAGS]
-	and eax, ~TRAP_FLAG_MASK
-	mov DWORD [esp + SAVED_EFLAGS], eax
+    ; Save log buffer pos (Relatived to the buffer)
+    mov edi, DWORD[_log_buffer]
+    sub eax, edi
+    mov DWORD [edi], eax
+    ; Clear the trap flag
+    mov eax, DWORD [esp + SAVED_EFLAGS]
+    and eax, ~TRAP_FLAG_MASK
+    mov DWORD [esp + SAVED_EFLAGS], eax
     RETURN_FROM_INTERRUPT_WITH_CHECK
 
 ;_trap_interrupt@0 ENDP

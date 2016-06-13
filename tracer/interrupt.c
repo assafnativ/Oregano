@@ -21,60 +21,60 @@
 /* See header file for descriptions */
 void load_idt( OUT idt_t * idt )
 {
-	KdPrint(( "Oregano: load_idt: Loading IDT\r\n" ));
-	/* Load the idt address */
-	__asm {
-		mov eax, [idt]
-		sidt [eax]
-	}
+    KdPrint(( "Oregano: load_idt: Loading IDT\r\n" ));
+    /* Load the idt address */
+    __asm {
+        mov eax, [idt]
+        sidt [eax]
+    }
 
-	KdPrint((
-			"Oregano: load_idt: IDT was loaded limit = %X, base = %p\r\n",
-			idt->limit,
-			idt->base ));
+    KdPrint((
+            "Oregano: load_idt: IDT was loaded limit = %X, base = %p\r\n",
+            idt->limit,
+            idt->base ));
 
-	return;
+    return;
 }
 #endif
 
 /* See header file for descriptions */
 void get_interrupt_info(
-						IN	idt_t *				idt,
-						IN	unsigned char		interrupt_index,
-						OUT interrupt_info_t *	interrupt_info )
+                        IN  idt_t *             idt,
+                        IN  unsigned char       interrupt_index,
+                        OUT interrupt_info_t *  interrupt_info )
 {
-	/* Would hold the address of the interrupt in the idt */
-	unsigned char * int_pointer = NULL;
+    /* Would hold the address of the interrupt in the idt */
+    unsigned char * int_pointer = NULL;
 
-	KdPrint(( "Oregano: get_interrupt_info: Get int %x info\r\n", interrupt_index ));
+    KdPrint(( "Oregano: get_interrupt_info: Get int %x info\r\n", interrupt_index ));
 
-	/* Just for safety */
-	__try {
-		/* Calculate the address of the interrupt from the idt */
-		int_pointer = idt->base + 
-						( interrupt_index * sizeof(interrupt_info_t) );
-		/* Copy the relevant data */
-		RtlCopyMemory(
-			   interrupt_info,
-			   (const void *)int_pointer,
-			   sizeof(interrupt_info_t) );
-		
-	}
-	__except( 1 ) {
-		/* O my, we got an exception :( */
-		KdPrint(( "Oregano: get_interrupt_info: Exception!\r\n" ));
-	}
+    /* Just for safety */
+    __try {
+        /* Calculate the address of the interrupt from the idt */
+        int_pointer = idt->base +
+                        ( interrupt_index * sizeof(interrupt_info_t) );
+        /* Copy the relevant data */
+        RtlCopyMemory(
+               interrupt_info,
+               (const void *)int_pointer,
+               sizeof(interrupt_info_t) );
+
+    }
+    __except( 1 ) {
+        /* O my, we got an exception :( */
+        KdPrint(( "Oregano: get_interrupt_info: Exception!\r\n" ));
+    }
 #ifdef i386
     KdPrint(( "Oregano: get_interrupt_info: Current value low: %x selector: %x access: %x unused: %x hight: %x\r\n",
-                    (unsigned int)interrupt_info->low_offset, 
-                    (unsigned int)interrupt_info->selector, 
-                    (unsigned int)interrupt_info->access, 
-                    (unsigned int)interrupt_info->unused, 
+                    (unsigned int)interrupt_info->low_offset,
+                    (unsigned int)interrupt_info->selector,
+                    (unsigned int)interrupt_info->access,
+                    (unsigned int)interrupt_info->unused,
                     (unsigned int)interrupt_info->high_offset ) );
 #elif AMD64
     KdPrint(( "Oregano: get_interrupt_info64: Current value low: %x mid: %x hight: %x selector: %x\r\n",
-                    (unsigned int)interrupt_info->low_offset, 
-                    (unsigned int)interrupt_info->middle_offset, 
+                    (unsigned int)interrupt_info->low_offset,
+                    (unsigned int)interrupt_info->middle_offset,
                     (unsigned int)interrupt_info->high_offset,
                     (unsigned int)interrupt_info->selector) );
 #endif
@@ -83,35 +83,35 @@ void get_interrupt_info(
 #ifndef AMD64
 /* See header file for descriptions */
 void set_interrupt(
-					IN	ADDRESS				idt,
-					IN	unsigned char		interrupt_index,
-					IN	interrupt_info_t *	new_interrupt )
+                    IN  ADDRESS             idt,
+                    IN  unsigned char       interrupt_index,
+                    IN  interrupt_info_t *  new_interrupt )
 {
-	/* Would hold the address of the interrupt in the idt */
-	unsigned char * int_pointer = NULL;
-	
-	KdPrint(( "Oregano: set_interrupt: setting interrupt 0x%02x to %p\r\n", interrupt_index, new_interrupt ));
+    /* Would hold the address of the interrupt in the idt */
+    unsigned char * int_pointer = NULL;
 
-	/* Just for safety */
-	__try {
-		/* Calculate the address of the interrupt from the idt */
-		int_pointer = idt + 
-						( interrupt_index * sizeof(interrupt_info_t) );
-		/* Now disable all interrupts,
-		 * we must do it to install a new one */
-		__asm { cli };
-		/* Write the new interrupt */
-		RtlCopyMemory(
-			   (void *)int_pointer,
-			   new_interrupt,
-			   sizeof(interrupt_info_t) );
-		/* It's ok now we can enable all interrupts again. */
-		__asm { sti };
-	}
-	__except( 1 ) {
-		/* O my, we got an exception :( */
-		KdPrint(( "Oregano: set_interrupt: Exception, you are gonna get a blue screen, you know.\r\n" ));
-	}
+    KdPrint(( "Oregano: set_interrupt: setting interrupt 0x%02x to %p\r\n", interrupt_index, new_interrupt ));
+
+    /* Just for safety */
+    __try {
+        /* Calculate the address of the interrupt from the idt */
+        int_pointer = idt +
+                        ( interrupt_index * sizeof(interrupt_info_t) );
+        /* Now disable all interrupts,
+         * we must do it to install a new one */
+        __asm { cli };
+        /* Write the new interrupt */
+        RtlCopyMemory(
+               (void *)int_pointer,
+               new_interrupt,
+               sizeof(interrupt_info_t) );
+        /* It's ok now we can enable all interrupts again. */
+        __asm { sti };
+    }
+    __except( 1 ) {
+        /* O my, we got an exception :( */
+        KdPrint(( "Oregano: set_interrupt: Exception, you are gonna get a blue screen, you know.\r\n" ));
+    }
 
 }
 #endif
@@ -161,8 +161,8 @@ void hookInterruptFromGlobalInfo(_In_ PVOID startContext)
     }
 
     KdPrint((
-            "Oregano: Hooking Interrupt 0x%02x 0x%p with 0x%p\r\n", 
-            InterruptToHook, 
+            "Oregano: Hooking Interrupt 0x%02x 0x%p with 0x%p\r\n",
+            InterruptToHook,
             currentInterruptAddress,
             NewInterruptInfo ));
     #ifndef AMD64

@@ -38,8 +38,8 @@ GLOBAL pageFaultInterrupt
     pushf
     push rax
     push rbx
-    
-	mov rbx, cr3
+
+    mov rbx, cr3
     mov rax, [target_process]
     cmp rax, rbx
     je %%DONE_CHECKING
@@ -73,7 +73,7 @@ GLOBAL pageFaultInterrupt
         xor ebx, ebx
         inc ebx
         mov [rax + SKIP_MEM_READ], ebx
-    
+
         pop rdx
         pop rcx
 
@@ -81,7 +81,7 @@ GLOBAL pageFaultInterrupt
     pop rax
     pop rbx
     popf
-    
+
     jmp QWORD [%1]
 %endmacro
 
@@ -100,7 +100,7 @@ sidt QWORD [rax]
 ret
 
 ; Args:    IN ADDRESS idt, IN unsigned char interrupt_index, IN interrupt_info_t * new_interrupt
-;                     RCX                        RDX                                R8                 
+;                     RCX                        RDX                                R8
 setInterrupt64:
 mov rax, rdx
 and rax, 00ffh

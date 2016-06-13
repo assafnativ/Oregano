@@ -12,9 +12,9 @@
 
 class Memory
 {
-	public:
-		Memory(PageIndex rootPageIndex, PagedDataContainer * dc);
-		~Memory();
+    public:
+        Memory(PageIndex rootPageIndex, PagedDataContainer * dc);
+        ~Memory();
 
         void setByte(Address address, BYTE value) { setByte(address.cycle, address.addr, value); }
         void setWord(Address address, WORD value) { setWord(address.cycle, address.addr, value); }
@@ -29,25 +29,25 @@ class Memory
         {
             return isMemoryKnown(address.cycle, address.addr);
         }
-        void setStaticDataChunk(const Address address, DWORD dataLength, const BYTE * data) 
+        void setStaticDataChunk(const Address address, DWORD dataLength, const BYTE * data)
         {
             staticMem->setDataChunk(address.addr, dataLength, data);
         }
         void endOfData();
         BYTE getByte(Cycle cycle, ADDRESS addr);
-		BYTE getByte(const Address address) {return getByte(address.cycle, address.addr);}
+        BYTE getByte(const Address address) {return getByte(address.cycle, address.addr);}
         WORD getWord(Cycle cycle, ADDRESS addr);
         WORD getWord(const Address address) {return getWord(address.cycle, address.addr);}
         DWORD getDword(Cycle cycle, ADDRESS addr);
         DWORD getDword(const Address address) {return getDword(address.cycle, address.addr);}
         QWORD getQword(Cycle cycle, ADDRESS addr);
         QWORD getQword(const Address address) {return getQword(address.cycle, address.addr);}
-        
+
         BYTE * getStaticMemoryPointer(ADDRESS addr);
 
-		StatisticsInfo * statistics();
+        StatisticsInfo * statistics();
 
-	protected:
+    protected:
         template <class TYPE>
         inline void setMemory(Cycle cycle, ADDRESS addr, BYTE * value)
         {
@@ -103,8 +103,8 @@ class Memory
             }
         }
 
-		friend class FindChangingCycles;
-		friend class FindData;
+        friend class FindChangingCycles;
+        friend class FindData;
 
         PagedDataContainer * dc;
         class MemoryRootPage {
@@ -123,46 +123,46 @@ class Memory
 class FindChangingCycles
 {
 public:
-	FindChangingCycles(Memory * memory, ADDRESS addr, Cycle startCycle=0, Cycle endCycle=INVALID_CYCLE);
+    FindChangingCycles(Memory * memory, ADDRESS addr, Cycle startCycle=0, Cycle endCycle=INVALID_CYCLE);
     void releaseIter();
-	void restartSearch();
-	inline BOOL isEndOfSearch() {return isDone;};
+    void restartSearch();
+    inline BOOL isEndOfSearch() {return isDone;};
     Cycle current();
-	void next();
+    void next();
 private:
     void findNext();
-    Memory *	    mem;
+    Memory *        mem;
     HashTableByAddrIter  * iter;
     ByteInTime const *     currentItem;
     ADDRESS         addr;
-	Cycle           bottomCycle;
-	Cycle           topCycle;
-	PageIndex       topIndex;
+    Cycle           bottomCycle;
+    Cycle           topCycle;
+    PageIndex       topIndex;
     Cycle           data;
     BOOL            isDone;
 };
 
 class FindData
 {
-	public:
-		FindData(Memory * memory, BYTE const * data, DWORD dataLength, Cycle startCycle=0, Cycle endCycle=INVALID_CYCLE );
+    public:
+        FindData(Memory * memory, BYTE const * data, DWORD dataLength, Cycle startCycle=0, Cycle endCycle=INVALID_CYCLE );
         ~FindData();
-		void restartSearch();
-		Address const * current();
+        void restartSearch();
+        Address const * current();
         void next();
-	private:
+    private:
         BOOL cmpBytesInCyclesRange();
-		void advanceByteIter(int index);
+        void advanceByteIter(int index);
         void findNext();
         void releaseIter();
         void deleteValuesIter();
         void allocateValuesIter(ADDRESS addr);
 
-		Memory *			mem;
-		BYTE const *		target;
-		DWORD				targetLength;
-		DWORD				bottomCycle;
-		DWORD				topCycle;
+        Memory *            mem;
+        BYTE const *        target;
+        DWORD               targetLength;
+        DWORD               bottomCycle;
+        DWORD               topCycle;
         DWORD               startIndex;
         DWORD               pair;
         PairsBucketIter *   pairsIter;

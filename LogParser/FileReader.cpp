@@ -14,26 +14,26 @@ FileReader::FileReader() :
 void FileReader::openFile(const char * fileName)
 {
     close();
-	file =	CreateFileA(
-					fileName,
-					GENERIC_READ,
-					FILE_SHARE_READ,
-					NULL,
-					OPEN_EXISTING,
-					FILE_FLAG_SEQUENTIAL_SCAN,
-					NULL );
-	if (INVALID_HANDLE_VALUE == file) {
-		/* Raise or something */
-		fileSize = 0;
-		return;
-	}
+    file =  CreateFileA(
+                    fileName,
+                    GENERIC_READ,
+                    FILE_SHARE_READ,
+                    NULL,
+                    OPEN_EXISTING,
+                    FILE_FLAG_SEQUENTIAL_SCAN,
+                    NULL );
+    if (INVALID_HANDLE_VALUE == file) {
+        /* Raise or something */
+        fileSize = 0;
+        return;
+    }
 
-	LARGE_INTEGER tempFileSize;
-	if (FALSE == GetFileSizeEx(file, &tempFileSize)) {
-		fileSize = 0;
-		return;
-	}
-	fileSize = tempFileSize.LowPart;
+    LARGE_INTEGER tempFileSize;
+    if (FALSE == GetFileSizeEx(file, &tempFileSize)) {
+        fileSize = 0;
+        return;
+    }
+    fileSize = tempFileSize.LowPart;
 }
 
 void FileReader::close()

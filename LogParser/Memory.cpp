@@ -68,8 +68,8 @@ WORD Memory::getWord( Cycle cycle, ADDRESS addr )
 
 DWORD Memory::getDword( Cycle cycle, ADDRESS addr )
 {
-    return 
-        (getByte(cycle, addr)) + 
+    return
+        (getByte(cycle, addr)) +
         (getByte(cycle, addr+1) * 0x100) +
         (getByte(cycle, addr+2) * 0x10000) +
         (getByte(cycle, addr+3) * 0x1000000);
@@ -77,8 +77,8 @@ DWORD Memory::getDword( Cycle cycle, ADDRESS addr )
 
 QWORD Memory::getQword( Cycle cycle, ADDRESS addr )
 {
-    return 
-        (getByte(cycle, addr)) + 
+    return
+        (getByte(cycle, addr)) +
         (getByte(cycle, addr+1) * 0x100) +
         (getByte(cycle, addr+2) * 0x10000) +
         (getByte(cycle, addr+3) * 0x1000000) +
@@ -104,30 +104,30 @@ void Memory::endOfData()
 
 StatisticsInfo * Memory::statistics()
 {
-	StatisticsInfo * result = new StatisticsInfo;
-	// One for the root page
-	result->totalPages = 1;
-	result->pagesInUse = 1;
+    StatisticsInfo * result = new StatisticsInfo;
+    // One for the root page
+    result->totalPages = 1;
+    result->pagesInUse = 1;
 
-	if (NULL != pairsCache)
-	{
-		GET_AND_ADD_STATS(result, pairsCache);
-	}
-	if (NULL != dynamicMem)
-	{
-		GET_AND_ADD_STATS(result, dynamicMem);
-	}
-	if (NULL != staticMem)
-	{
-		GET_AND_ADD_STATS(result, staticMem);
-	}
+    if (NULL != pairsCache)
+    {
+        GET_AND_ADD_STATS(result, pairsCache);
+    }
+    if (NULL != dynamicMem)
+    {
+        GET_AND_ADD_STATS(result, dynamicMem);
+    }
+    if (NULL != staticMem)
+    {
+        GET_AND_ADD_STATS(result, staticMem);
+    }
 
-	return result;
+    return result;
 
 }
 
 FindChangingCycles::FindChangingCycles(Memory * memory, ADDRESS addr, Cycle startCycle, Cycle endCycle)
-					: 
+                    :
                     mem(memory),
                     iter(NULL),
                     currentItem(NULL),
@@ -163,7 +163,7 @@ Cycle FindChangingCycles::current()
     return INVALID_CYCLE;
 }
 
-void FindChangingCycles::next() 
+void FindChangingCycles::next()
 {
     iter->next();
     FindChangingCycles::findNext();
@@ -186,7 +186,7 @@ void FindChangingCycles::findNext()
 }
 
 FindData::FindData(Memory * memory, BYTE const * data, DWORD dataLength, Cycle startCycle, Cycle endCycle)
-			: 
+            :
             mem(memory),
             target(data),
             targetLength(dataLength),
@@ -215,7 +215,7 @@ void FindData::releaseIter()
         pairsIter = NULL;
     }
     if (NULL != addrValuesIters) {
-	    deleteValuesIter();
+        deleteValuesIter();
         delete [] addrValuesIters;
         addrValuesIters = NULL;
     }
@@ -231,7 +231,7 @@ void FindData::releaseIter()
     }
     currentTop      = 0;
     currentPair     = NULL;
-	currentItem.clear();
+    currentItem.clear();
 }
 
 void FindData::restartSearch()
@@ -241,18 +241,18 @@ void FindData::restartSearch()
     addrValuesIters = new HashTableByAddrIter *[targetLength];
     byteInTime      = new ByteInTime[targetLength];
     byteCyclesRange = new CyclesRange[targetLength];
-	for (DWORD i = 0; i < targetLength; ++i) {
-		addrValuesIters[i]	= NULL;
-		byteInTime[i].addr	= 0;
-		byteInTime[i].cycle = INVALID_CYCLE;
-		byteInTime[i].value = 0;
-		byteCyclesRange[i].bottom	= bottomCycle;
-		byteCyclesRange[i].top		= topCycle;
-	}
+    for (DWORD i = 0; i < targetLength; ++i) {
+        addrValuesIters[i]  = NULL;
+        byteInTime[i].addr  = 0;
+        byteInTime[i].cycle = INVALID_CYCLE;
+        byteInTime[i].value = 0;
+        byteCyclesRange[i].bottom   = bottomCycle;
+        byteCyclesRange[i].top      = topCycle;
+    }
     deleteValuesIter();
     currentPair = NULL;
-	currentItem.clear();
-	next();
+    currentItem.clear();
+    next();
 }
 
 void FindData::allocateValuesIter(ADDRESS addr)
@@ -263,7 +263,7 @@ void FindData::allocateValuesIter(ADDRESS addr)
             delete addrValuesIters[byteIndex];
             addrValuesIters[byteIndex] = NULL;
         }
-		byteInTime[byteIndex].clear();
+        byteInTime[byteIndex].clear();
         byteCyclesRange[byteIndex].bottom = bottomCycle;
         byteCyclesRange[byteIndex].top    = topCycle;
     }
@@ -287,8 +287,8 @@ void FindData::deleteValuesIter()
 
 void FindData::advanceByteIter(int index)
 {
-	byteInTime[index].copy(addrValuesIters[index]->current());
-	addrValuesIters[index]->next();
+    byteInTime[index].copy(addrValuesIters[index]->current());
+    addrValuesIters[index]->next();
 }
 
 BOOL FindData::cmpBytesInCyclesRange()
@@ -299,8 +299,8 @@ BOOL FindData::cmpBytesInCyclesRange()
     while (byteIndex >= 0)
     {
         if (NULL == addrValuesIters[byteIndex]) {
-			addrValuesIters[byteIndex] = mem->dynamicMem->getCyclesOfAddress(currentItem.addr + byteIndex);
-			advanceByteIter(byteIndex);
+            addrValuesIters[byteIndex] = mem->dynamicMem->getCyclesOfAddress(currentItem.addr + byteIndex);
+            advanceByteIter(byteIndex);
         }
         currentValue = &byteInTime[byteIndex];
         ByteInTime const * nextValue = addrValuesIters[byteIndex]->current();
@@ -313,7 +313,7 @@ BOOL FindData::cmpBytesInCyclesRange()
             {
                 break;
             }
-			advanceByteIter(byteIndex);
+            advanceByteIter(byteIndex);
             nextValue = addrValuesIters[byteIndex]->current();
             // Restart of the following bytes
             for (int i = byteIndex - 1; i >= 0; --i)
@@ -328,24 +328,24 @@ BOOL FindData::cmpBytesInCyclesRange()
         }
         if (INVALID_CYCLE == currentValue->cycle)
         {
-			if (NULL != addrValuesIters[byteIndex]) {
-				delete addrValuesIters[byteIndex];
-				addrValuesIters[byteIndex] = NULL;
-			}
+            if (NULL != addrValuesIters[byteIndex]) {
+                delete addrValuesIters[byteIndex];
+                addrValuesIters[byteIndex] = NULL;
+            }
             byteIndex++;
-            if ((DWORD)byteIndex >= targetLength) 
+            if ((DWORD)byteIndex >= targetLength)
             {
                 return FALSE;
             } else {
                 currentItem.cycle = byteCyclesRange[byteIndex].bottom;
                 currentTop        = byteCyclesRange[byteIndex].top;
-				advanceByteIter(byteIndex);
+                advanceByteIter(byteIndex);
             }
         }
         else {
             if (0 < byteIndex)
             {
-				int nextByteIndex = byteIndex - 1;
+                int nextByteIndex = byteIndex - 1;
                 currentItem.cycle = max(currentItem.cycle, currentValue->cycle);
                 byteCyclesRange[nextByteIndex].bottom = currentItem.cycle;
                 if (NULL == nextValue) {
@@ -366,34 +366,34 @@ BOOL FindData::cmpBytesInCyclesRange()
 void FindData::next()
 {
     if (NULL == pairsIter) {
-		// Search ended
+        // Search ended
         return;
     }
     if (NULL != currentPair)
     {
         assert(NULL != addrValuesIters[0]);
-		// Advance the first byte to next value
-		advanceByteIter(0);
+        // Advance the first byte to next value
+        advanceByteIter(0);
         if (TRUE == cmpBytesInCyclesRange())
         {
-			// Yield result
+            // Yield result
             return;
         }
         deleteValuesIter();
-		pairsIter->next();
+        pairsIter->next();
     }
     currentPair = pairsIter->current();
     while (NULL != currentPair) {
-		currentItem.addr   = currentPair->addr;
+        currentItem.addr   = currentPair->addr;
         currentItem.cycle  = max(bottomCycle, currentPair->cycle);
         if (topCycle <= currentItem.cycle) {
-			// Passed the topCycle, no more pairs in range
+            // Passed the topCycle, no more pairs in range
             break;
         }
         currentTop = topCycle;
-		allocateValuesIter(currentItem.addr);
+        allocateValuesIter(currentItem.addr);
         if (TRUE == cmpBytesInCyclesRange()) {
-			// Yield result
+            // Yield result
             return;
         }
         deleteValuesIter();

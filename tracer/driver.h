@@ -11,10 +11,10 @@
 
 /* Oregano fine tuning constants */
 /* NOTICE!
- * 	values here must match the values in the trap_interrupt.asm source and the PyOregano file */
-#define LOG_BUFFER_SIZE					(0x4000)
-#define LOG_BUFFER_NUM_OF_BUFFERS		(0x1000)
-#define LOG_BUFFER_NUM_OF_BUFFERS_MASK	(0x0fff)
+ *  values here must match the values in the trap_interrupt.asm source and the PyOregano file */
+#define LOG_BUFFER_SIZE                 (0x4000)
+#define LOG_BUFFER_NUM_OF_BUFFERS       (0x1000)
+#define LOG_BUFFER_NUM_OF_BUFFERS_MASK  (0x0fff)
 #define MAX_LOG_CYCLES                  (0xffffffff)
 
 #define THREAD_CONTEXT_MAX_THREADS      (0x1000)
@@ -24,9 +24,9 @@
 #define MAX_LOG_RANGES                  (0x80)
 
 /* Program constants & strings */
-#define DRIVER_NAME			(L"\\Device\\Oregano")
-#define DOS_DEVICE_NAME		(L"\\DosDevices\\Oregano")
-#define OREGANO_MEMORY_TAG	((ULONG)'oNaG')
+#define DRIVER_NAME         (L"\\Device\\Oregano")
+#define DOS_DEVICE_NAME     (L"\\DosDevices\\Oregano")
+#define OREGANO_MEMORY_TAG  ((ULONG)'oNaG')
 
 /* Structures declarations */
 #ifdef AMD64
@@ -85,9 +85,9 @@ extern unsigned int isTrapOnBranchSet;
 /* Functions declarations */
 /*
  * DriverUnload
- * 	
- * 	Args:
- * 		driver_object
+ *
+ *  Args:
+ *      driver_object
  *
  */
 DRIVER_UNLOAD DriverUnload;
@@ -95,53 +95,53 @@ DRIVER_UNLOAD DriverUnload;
 /*
  * DriverEntry
  *
- * 	Args:
- * 			driver_object
- * 			rigistery_path
+ *  Args:
+ *          driver_object
+ *          rigistery_path
  */
 DRIVER_INITIALIZE DriverEntry;
 /*
  * default_irp_handler
- * 
+ *
  * This procedure handles all the major functions that we do not implements.
- * 
- * 	Args:
- * 		device_object
- * 		irp
+ *
+ *  Args:
+ *      device_object
+ *      irp
  */
 NTSTATUS default_irp_handler( PDEVICE_OBJECT device_object, PIRP irp );
 /*
  * on_close
- * 
+ *
  * Called when instance of the driver is closed (CloseHandle).
  * This function is responsible for unhooking int1.
- * 
- * 	Args:
- * 		device_object
- * 		irp
+ *
+ *  Args:
+ *      device_object
+ *      irp
  */
 _Dispatch_type_(IRP_MJ_CLOSE)
 DRIVER_DISPATCH onClose;
 /*
  * on_create
- * 
+ *
  * Called when instance of the driver is created (CreateFile).
  * This function sets the int1 (Trap interrupt) hook.
- * 
- * 	Args:
- * 		device_object
- * 		irp
+ *
+ *  Args:
+ *      device_object
+ *      irp
  */
 _Dispatch_type_(IRP_MJ_CREATE)
 DRIVER_DISPATCH onCreate;
 /*
  * on_device_control
- * 
+ *
  * called when an IOCTL is issued on the device handle (DeviceIoControl)
- * 
- * 	Args:
- * 		device_object
- * 		irp
+ *
+ *  Args:
+ *      device_object
+ *      irp
  */
 _Dispatch_type_(IRP_MJ_DEVICE_CONTROL)
 DRIVER_DISPATCH onDeviceControl;

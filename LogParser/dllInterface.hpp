@@ -54,8 +54,8 @@ LOG_PARSER_API DWORD getThreadId(LogParser * logParser, DWORD cycle);
 LOG_PARSER_API DWORD findEffectiveCycle(LogParser * logParser, DWORD regId, DWORD cycle);
 LOG_PARSER_API MACHINE_LONG getRegValue(LogParser * logParser, DWORD regId, DWORD cycle);
 
-LOG_PARSER_API BYTE	 getByte (LogParser * logParser, DWORD cycle, ADDRESS addr);
-LOG_PARSER_API WORD	 getWord (LogParser * logParser, DWORD cycle, ADDRESS addr);
+LOG_PARSER_API BYTE  getByte (LogParser * logParser, DWORD cycle, ADDRESS addr);
+LOG_PARSER_API WORD  getWord (LogParser * logParser, DWORD cycle, ADDRESS addr);
 LOG_PARSER_API DWORD getDword(LogParser * logParser, DWORD cycle, ADDRESS addr);
 LOG_PARSER_API QWORD getQword(LogParser * logParser, DWORD cycle, ADDRESS addr);
 
@@ -63,24 +63,24 @@ LOG_PARSER_API void deleteLogParserObject(LogParser * logParser);
 
 LOG_PARSER_API FindCycleWithEipValue * findCycleWithEipValue( LogParser * logParser, ADDRESS target, DWORD startCycle, DWORD endCycle );
 LOG_PARSER_API FindCycleWithEipValue * findCycleWithEipValueReverse(LogParser * logParser, ADDRESS target, DWORD startCycle, DWORD endCycle);
-LOG_PARSER_API void 	findCycleWithEipValueObjectNext(FindCycleWithEipValue * ctx);
+LOG_PARSER_API void     findCycleWithEipValueObjectNext(FindCycleWithEipValue * ctx);
 LOG_PARSER_API void     findCycleWithEipValueObjectPrev(FindCycleWithEipValue * ctx);
-LOG_PARSER_API DWORD	findCycleWithEipValueObjectCurrent(FindCycleWithEipValue * ctx);
+LOG_PARSER_API DWORD    findCycleWithEipValueObjectCurrent(FindCycleWithEipValue * ctx);
 LOG_PARSER_API BOOL     findCycleWithEipValueIsEndOfSearch(FindCycleWithEipValue * ctx);
-LOG_PARSER_API void		findCycleWithEipValueObjectRestartSearch(FindCycleWithEipValue * ctx);
-LOG_PARSER_API void		findCycleWithEipValueDelete(FindCycleWithEipValue * ctx);
+LOG_PARSER_API void     findCycleWithEipValueObjectRestartSearch(FindCycleWithEipValue * ctx);
+LOG_PARSER_API void     findCycleWithEipValueDelete(FindCycleWithEipValue * ctx);
 
 LOG_PARSER_API FindChangingCycles * findChangingCycles( LogParser * logParser, ADDRESS addr, DWORD startCycle, DWORD endCycle) ;
-LOG_PARSER_API void  	findChangingCyclesNext(FindChangingCycles * ctx);
-LOG_PARSER_API Cycle 	findChangingCyclesCurrent(FindChangingCycles * ctx);
-LOG_PARSER_API void		findChangingCyclesRestartSearch(FindChangingCycles * ctx);
-LOG_PARSER_API void		findChangingCyclesDelete(FindChangingCycles * ctx);
+LOG_PARSER_API void     findChangingCyclesNext(FindChangingCycles * ctx);
+LOG_PARSER_API Cycle    findChangingCyclesCurrent(FindChangingCycles * ctx);
+LOG_PARSER_API void     findChangingCyclesRestartSearch(FindChangingCycles * ctx);
+LOG_PARSER_API void     findChangingCyclesDelete(FindChangingCycles * ctx);
 
 LOG_PARSER_API FindData * findData( LogParser * logParser, const BYTE * data, DWORD dataLength, DWORD startCycle, DWORD endCycle );
 LOG_PARSER_API void     findDataNext(FindData * ctx);
 LOG_PARSER_API const Address * findDataCurrent(FindData * ctx);
-LOG_PARSER_API void		findDataRestartSearch(FindData * ctx);
-LOG_PARSER_API void		findDataDelete(FindData * ctx);
+LOG_PARSER_API void     findDataRestartSearch(FindData * ctx);
+LOG_PARSER_API void     findDataDelete(FindData * ctx);
 
 LOG_PARSER_API RegLogIterBase * regLogIter( LogParser * logParser, DWORD regId, DWORD cycle );
 LOG_PARSER_API MACHINE_LONG regLogIterGetValue(RegLogIterBase * ctx);
@@ -90,4 +90,4 @@ LOG_PARSER_API void         regLogIterPrev(RegLogIterBase * ctx);
 LOG_PARSER_API BOOL         regLogIterIsLastCycle(RegLogIterBase * ctx);
 LOG_PARSER_API void         regLogIterDelete(RegLogIterBase * ctx);
 
-}; // extern "C" 
+}; // extern "C"

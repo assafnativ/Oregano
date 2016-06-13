@@ -35,7 +35,7 @@ void newThreadHandler(
         IN HANDLE threadId,
         IN BOOLEAN create );
 
-/* 
+/*
  * All functions are PAGE type,
  * because they are all used more then once or used for unloading.
  */
@@ -74,17 +74,17 @@ void newThreadHandler(
     if (0 == targetProcessId) {
         return;
     }
-	if (targetProcessId != processId) {
-		/* Not our target process */
-		return;
-	}
-	if (FALSE == create) {
-		/* We only care about new threads */
-		return;
-	}
+    if (targetProcessId != processId) {
+        /* Not our target process */
+        return;
+    }
+    if (FALSE == create) {
+        /* We only care about new threads */
+        return;
+    }
 
     /* Set TRACE flag for the new thread */
-	KdPrint(( "Oregano: new_thread_handler: Found new thread to log\r\n" ));
+    KdPrint(( "Oregano: new_thread_handler: Found new thread to log\r\n" ));
     setTrapFlagForThread(processId, threadId);
 
     return;
@@ -111,7 +111,7 @@ NTSTATUS allocBuffersPoll()
             KdPrint(( "! Oregano: allocBuffersPoll: log buffer is already allocated!\r\n" ));
             break;
         }
-        new_log_buffer = ExAllocatePoolWithTag( NonPagedPool, LOG_BUFFER_SIZE, OREGANO_MEMORY_TAG ); 
+        new_log_buffer = ExAllocatePoolWithTag( NonPagedPool, LOG_BUFFER_SIZE, OREGANO_MEMORY_TAG );
         //KdPrint(( "Oregano: on_create: Create buffer %x at %p\r\n", i, new_log_buffer ));
         if( NULL == new_log_buffer ) {
             KdPrint(( "! Oregano: allocBuffersPoll: Failed to allocate memory for log buffer %x\r\n", i ));
@@ -120,7 +120,7 @@ NTSTATUS allocBuffersPoll()
         RtlZeroMemory( new_log_buffer, LOG_BUFFER_SIZE );
         log_buffer_item[i] = new_log_buffer;
     } /* for */
-    
+
     return STATUS_SUCCESS;
 } /* allocBuffersPoll */
 
@@ -180,12 +180,12 @@ NTSTATUS io_control_debug_print(
                 sizeof(char) );
 #ifdef DEBUG
         function_result = RtlStringCchPrintfA(
-                (NTSTRSAFE_PSTR)output_buffer, output_buffer_length, 
-                "Oregano: Debug vars (0x%08X): %x %x %x %x %x %x %x %x\r\n", 
+                (NTSTRSAFE_PSTR)output_buffer, output_buffer_length,
+                "Oregano: Debug vars (0x%08X): %x %x %x %x %x %x %x %x\r\n",
                 &DebugVar0, DebugVar0, DebugVar1, DebugVar2, DebugVar3, DebugVar4, DebugVar5, DebugVar6, DebugVar7);
 #else
         function_result = RtlStringCchPrintfA(
-                (NTSTRSAFE_PSTR)output_buffer, output_buffer_length, 
+                (NTSTRSAFE_PSTR)output_buffer, output_buffer_length,
                 "Oregano: Debug" );
 #endif
         if( FALSE == NT_SUCCESS(function_result) ) {
@@ -226,7 +226,7 @@ NTSTATUS find_SystemServiceTable(ADDRESS * KeServiceDescriptorTable_ptr)
     /* On Win64 the KeServiceDescriptorTable is no longer exported,
      * therefor MmGetSystemRoutineAddress won't work for it.
      * So I search it I first find the offset to it. This is done by
-     * parsing the opcode that access the table at the 
+     * parsing the opcode that access the table at the
      * KeAddSystemServiceTable function. */
     KeAddSystemServiceTable_str.Buffer = stringBuffer;
     KeAddSystemServiceTable_str.Length = 0;
@@ -283,11 +283,11 @@ NTSTATUS find_SystemServiceTable(ADDRESS * KeServiceDescriptorTable_ptr)
     keServiceDescriptorTableStr.Buffer = stringBuffer;
     keServiceDescriptorTableStr.Length = 0;
     keServiceDescriptorTableStr.MaximumLength = 0x100;
-    
-    RtlAppendUnicodeToString(&keServiceDescriptorTableStr, L"Ke"); //KeServiceDescriptorTable 
-	RtlAppendUnicodeToString(&keServiceDescriptorTableStr, L"Service");
-	RtlAppendUnicodeToString(&keServiceDescriptorTableStr, L"Descriptor");
-	RtlAppendUnicodeToString(&keServiceDescriptorTableStr, L"Table");
+
+    RtlAppendUnicodeToString(&keServiceDescriptorTableStr, L"Ke"); //KeServiceDescriptorTable
+    RtlAppendUnicodeToString(&keServiceDescriptorTableStr, L"Service");
+    RtlAppendUnicodeToString(&keServiceDescriptorTableStr, L"Descriptor");
+    RtlAppendUnicodeToString(&keServiceDescriptorTableStr, L"Table");
 
     *KeServiceDescriptorTable_ptr = (ADDRESS)MmGetSystemRoutineAddress(&keServiceDescriptorTableStr);
     /* Now find the real address of the APIs */
@@ -357,10 +357,10 @@ NTSTATUS io_control_init_oregano(
                                                     systemServices.NtSuspendThread.index];
     systemServices.NtResumeThread.ptr   = ((ADDRESS *)KeServiceDescriptorTable->ServiceTable[0].TableBase)[
                                                     systemServices.NtResumeThread.index];
-    KdPrint(( "Oregano: io_control_init_oregano: Set \r\n\tNtSuspendProcess to 0x%p\r\n\tNtResumeProcess  to 0x%p\r\n\tNtSuspendThread  to 0x%p\r\n\tNtResuemThread   to 0x%p\r\n", 
-        systemServices.NtSuspendProcess.ptr, 
+    KdPrint(( "Oregano: io_control_init_oregano: Set \r\n\tNtSuspendProcess to 0x%p\r\n\tNtResumeProcess  to 0x%p\r\n\tNtSuspendThread  to 0x%p\r\n\tNtResuemThread   to 0x%p\r\n",
+        systemServices.NtSuspendProcess.ptr,
         systemServices.NtResumeProcess.ptr,
-        systemServices.NtSuspendThread.ptr, 
+        systemServices.NtSuspendThread.ptr,
         systemServices.NtResumeThread.ptr ));
 
     return function_result;
@@ -411,7 +411,7 @@ NTSTATUS io_control_add_trace_range(
     stopAddress         = (ADDRESS)traceRangeInfo->stopAddress;
     rangeStart          = (ADDRESS)traceRangeInfo->rangeStart;
     rangeEnd            = (ADDRESS)traceRangeInfo->rangeEnd;
-    KdPrint(( "Oregano: io_control_add_trace_range: stopAddress = %p range (%p - %p)\r\n", 
+    KdPrint(( "Oregano: io_control_add_trace_range: stopAddress = %p range (%p - %p)\r\n",
             stopAddress, rangeStart, rangeEnd ));
     /* Validate arguments */
     if (NULL == rangeStart) {
@@ -424,8 +424,8 @@ NTSTATUS io_control_add_trace_range(
         function_result = STATUS_INVALID_PARAMETER_3;
         goto IO_CONTROL_ADD_TRACE_RANGE_INVALID_ARG;
     }
-    if (    (NULL != (ADDRESS)stopAddress) && 
-            (((ADDRESS)stopAddress < rangeStart) || 
+    if (    (NULL != (ADDRESS)stopAddress) &&
+            (((ADDRESS)stopAddress < rangeStart) ||
              ((ADDRESS)stopAddress > rangeEnd)) ) {
         KdPrint( ("Oregano: io_control_add_trace_range: Stop address must be in range\r\n") );
         function_result = STATUS_INVALID_PARAMETER_1;
@@ -434,8 +434,8 @@ NTSTATUS io_control_add_trace_range(
 
     /* Put the new range in the right place */
     for (i = 0; MAX_LOG_RANGES > i; ++i) {
-        if (    (loggingRanges[i].BOTTOM_BOUND ==   NULL) || 
-                (loggingRanges[i].BOTTOM_BOUND <    rangeStart) ) 
+        if (    (loggingRanges[i].BOTTOM_BOUND ==   NULL) ||
+                (loggingRanges[i].BOTTOM_BOUND <    rangeStart) )
         {
             tempBottom          = loggingRanges[i].BOTTOM_BOUND;
             tempTop             = loggingRanges[i].TOP_BOUND;
@@ -506,7 +506,7 @@ NTSTATUS io_control_set_process_info(
 
     targetProcessId = (HANDLE)processInfo->processId;
     targetThreadId  = (HANDLE)processInfo->threadId;
-    
+
     targetEProcess = NULL;
     target_process = NULL;
     function_result = PsLookupProcessByProcessId( targetProcessId, (PEPROCESS *)(&targetEProcess) );
@@ -564,7 +564,7 @@ NTSTATUS io_control_start_trace(
     /* Set notify routine to install hooks on new threads,
         Iff it is not installed already, and we set the trace all threads */
     if ((FALSE == is_new_thread_handler_installed) && (0 == targetThreadId)) {
-		KdPrint(( "Oregano: io_control_start_trace: Setting new thread notifier\r\n" ));
+        KdPrint(( "Oregano: io_control_start_trace: Setting new thread notifier\r\n" ));
         return_ntstatus = PsSetCreateThreadNotifyRoutine( newThreadHandler );
         if (FALSE != NT_SUCCESS(return_ntstatus)) {
             is_new_thread_handler_installed = TRUE;
@@ -714,7 +714,7 @@ NTSTATUS io_control_read_buffer(
 
         buffer_number = (*((UINT32 *)input_buffer)) & LOG_BUFFER_NUM_OF_BUFFERS_MASK;
         requested_log_buffer = log_buffer_item[buffer_number];
-        KdPrint(("Oregano: io_control_read_buffer: Copying buffer %x (%p) to user buffer\r\n", 
+        KdPrint(("Oregano: io_control_read_buffer: Copying buffer %x (%p) to user buffer\r\n",
                     buffer_number, requested_log_buffer));
         RtlCopyMemory( output_buffer, requested_log_buffer, LOG_BUFFER_SIZE );
         irp->IoStatus.Information   = LOG_BUFFER_SIZE;
@@ -745,7 +745,7 @@ NTSTATUS default_irp_handler( PDEVICE_OBJECT device_object, PIRP irp )
 #endif
 
     PAGED_CODE();
-    
+
     KdPrint(( "Oregano: Unhandled IRP MJ function call, type %d\r\n", irp->Type ));
 
     return( return_ntstatus );
@@ -757,7 +757,7 @@ void stopTracing()
     KIRQL old_irql = 0;
 
     PAGED_CODE();
-    
+
     /* Raise the IRQL otherwise new thread could be created while cleaning */
     old_irql = KeGetCurrentIrql();
     if (old_irql < APC_LEVEL) {
@@ -794,7 +794,7 @@ NTSTATUS onClose(PDEVICE_OBJECT device_object, PIRP irp)
 {
     /* Would hold the return code of the function */
     NTSTATUS    return_ntstatus = STATUS_SUCCESS;
-    
+
     UNREFERENCED_PARAMETER(device_object);
     UNREFERENCED_PARAMETER(irp);
 
@@ -807,7 +807,7 @@ NTSTATUS onClose(PDEVICE_OBJECT device_object, PIRP irp)
 
     /* Unhook poor trap interrupt, if needed to... */
     if( 0 != orgTrapInterrupt ) {
-        
+
         /* Would hold the current IDT address */
         idt_t               idt = {0};
         /* Would hold int1 info, original and new one */
@@ -816,7 +816,7 @@ NTSTATUS onClose(PDEVICE_OBJECT device_object, PIRP irp)
         MACHINE_LONG        trap_interrupt_address = 0;
 
         KdPrint(( "Oregano: on_close: Unhooking trap interrupt\r\n" ));
-        
+
         /* First get the idt address */
         #ifndef AMD64
         load_idt( &idt );
@@ -868,7 +868,7 @@ NTSTATUS onCreate(PDEVICE_OBJECT device_object, PIRP irp)
 {
     /* Would hold the return code of the function */
     NTSTATUS    return_ntstatus = STATUS_SUCCESS;
-    
+
     /* Would hold the current IDT address */
     idt_t               idt = {0};
     /* Used only for setting the int address in the interrupt info struct */
@@ -876,7 +876,7 @@ NTSTATUS onCreate(PDEVICE_OBJECT device_object, PIRP irp)
     /* For installing hooks */
     InterruptHookInfo * hooksIter = NULL;
 
-    UNREFERENCED_PARAMETER(irp);    
+    UNREFERENCED_PARAMETER(irp);
     UNREFERENCED_PARAMETER(device_object);
 
     PAGED_CODE();
@@ -930,7 +930,7 @@ NTSTATUS onCreate(PDEVICE_OBJECT device_object, PIRP irp)
             DbgPrint( "Oregano: on_create: Interrupt 0x%02x address = %p\r\n",
                         hooksIter->index,
                         *hooksIter->accessableOrgIntAddress );
-            
+
             if (0 != hooksIter->newInterrupt) {
                 /* Set the hook */
 #ifdef i386
@@ -1011,7 +1011,7 @@ NTSTATUS onDeviceControl(PDEVICE_OBJECT device_object, PIRP irp)
     switch( io_control_code ) {
         case IOCTL_DEBUG_PRINT:
             KdPrint(("Oregano: on_device_control: IOCTL_DEBUG_PRINT\r\n"));
-            return_ntstatus = io_control_debug_print( 
+            return_ntstatus = io_control_debug_print(
                     irp, io_stack_irp, input_buffer, output_buffer );
             KdPrint(("Oregano: on_device_control: IOCTL_DEBUG_PRINT - Done\r\n"));
             break;
@@ -1023,41 +1023,41 @@ NTSTATUS onDeviceControl(PDEVICE_OBJECT device_object, PIRP irp)
             break;
         case IOCTL_ADD_TRACE_RANGE:
             KdPrint(("Oregano: on_device_control: IOCTL_ADD_TRACE_RANGE\r\n"));
-            return_ntstatus = io_control_add_trace_range( 
+            return_ntstatus = io_control_add_trace_range(
                     irp, io_stack_irp, input_buffer, output_buffer );
             KdPrint(("Oregano: on_device_control: IOCTL_ADD_TRACE_RANGE - Done\r\n"));
             break;
         case IOCTL_SET_PROCESS_INFO:
             KdPrint(("Oregano: on_device_control: IOCTL_SET_PROCESS_ID\r\n"));
-            return_ntstatus = io_control_set_process_info( 
+            return_ntstatus = io_control_set_process_info(
                     irp, io_stack_irp, input_buffer, output_buffer );
             KdPrint(("Oregano: on_device_control: IOCTL_SET_PROCESS_ID - Done\r\n"));
             break;
         case IOCTL_START_TRACE:
             KdPrint(("Oregano: on_device_control: IOCTL_START_TRACE\r\n"));
-            return_ntstatus = io_control_start_trace( 
+            return_ntstatus = io_control_start_trace(
                     irp, io_stack_irp, input_buffer, output_buffer );
             KdPrint(("Oregano: on_device_control: IOCTL_START_TRACE - Done\r\n"));
             break;
         case IOCTL_STOP_TRACE:
             KdPrint(("Oregano: on_device_control: IOCTL_STOP_TRACE\r\n"));
-            return_ntstatus = io_control_stop_trace( 
+            return_ntstatus = io_control_stop_trace(
                     irp, io_stack_irp, input_buffer, output_buffer );
             KdPrint(("Oregano: on_device_control: IOCTL_STOP_TRACE - Done\r\n"));
             break;
         case IOCTL_GET_LAST_BREAK_POINT_INFO:
             KdPrint(("Oregano: on_device_control: IOCTL_GET_LAST_BREAK_POINT_INFO\r\n"));
-            return_ntstatus = io_control_get_last_break_point_info( 
+            return_ntstatus = io_control_get_last_break_point_info(
                     irp, io_stack_irp, input_buffer, output_buffer );
             KdPrint(("Oregano: on_device_control: IOCTL_GET_LAST_BREAK_POINT_INFO - Done\r\n"));
             break;
         case IOCTL_PROBE_TRACE:
             //KdPrint(("Oregano: on_device_control: IOCTL_PROBE_TRACE\r\n"));
-            return_ntstatus = io_control_probe_trace( 
+            return_ntstatus = io_control_probe_trace(
                     irp, io_stack_irp, input_buffer, output_buffer );
             //KdPrint(("Oregano: on_device_control: IOCTL_PROBE_TRACE - Done\r\n"));
             break;
-        /* 
+        /*
             * TOBD: Maybe I should let the driver write the log to disk
             */
         case IOCTL_READ_BUFFER:
@@ -1065,7 +1065,7 @@ NTSTATUS onDeviceControl(PDEVICE_OBJECT device_object, PIRP irp)
             if( 0 == targetProcessId ) {
                 goto ON_DEVICE_CONTROL_IO_BUFFERS_ERROR;
             }
-            return_ntstatus = io_control_read_buffer( 
+            return_ntstatus = io_control_read_buffer(
                     irp, io_stack_irp, input_buffer, output_buffer );
             // KdPrint(("Oregano: on_device_control: IOCTL_READ_BUFFER - Done\r\n"));
             break;
@@ -1077,7 +1077,7 @@ NTSTATUS onDeviceControl(PDEVICE_OBJECT device_object, PIRP irp)
 ON_DEVICE_CONTROL_IO_GET_CURRENT_IRP_STACK_LOCATION_ERROR:
 ON_DEVICE_CONTROL_IO_BUFFERS_ERROR:
     irp->IoStatus.Status = return_ntstatus;
-    
+
     /* We are done with this irp, lets pass it to the I/O manger,
      * The IO_NO_INCREMENT means that we do not mess around with the
      * Scheduler. */

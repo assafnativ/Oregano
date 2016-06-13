@@ -60,9 +60,9 @@ void deleteLogParserObject(LogParser * logParser) { delete logParser; }
 
 FindCycleWithEipValue * findCycleWithEipValue( LogParser * logParser, ADDRESS target, DWORD startCycle, DWORD endCycle )
 {
-	FindCycleWithEipValue * newFinder = new FindCycleWithEipValue(logParser);
-	newFinder->newSearch(target, startCycle, endCycle);
-	return newFinder;
+    FindCycleWithEipValue * newFinder = new FindCycleWithEipValue(logParser);
+    newFinder->newSearch(target, startCycle, endCycle);
+    return newFinder;
 }
 FindCycleWithEipValue * findCycleWithEipValueReverse(LogParser * logParser, ADDRESS target, DWORD startCycle, DWORD endCycle)
 {
@@ -74,8 +74,8 @@ void    findCycleWithEipValueObjectNext(FindCycleWithEipValue * ctx)          { 
 void    findCycleWithEipValueObjectPrev(FindCycleWithEipValue * ctx)          { ctx->prev(); }
 DWORD   findCycleWithEipValueObjectCurrent(FindCycleWithEipValue * ctx)       { return ctx->current(); }
 BOOL    findCycleWithEipValueIsEndOfSearch(FindCycleWithEipValue * ctx)       { return ctx->isEndOfSearch(); }
-void	findCycleWithEipValueObjectRestartSearch(FindCycleWithEipValue * ctx) { ctx->restartSearch(); }
-void	findCycleWithEipValueDelete(FindCycleWithEipValue * ctx)              { delete ctx; }
+void    findCycleWithEipValueObjectRestartSearch(FindCycleWithEipValue * ctx) { ctx->restartSearch(); }
+void    findCycleWithEipValueDelete(FindCycleWithEipValue * ctx)              { delete ctx; }
 
 FindChangingCycles * findChangingCycles( LogParser * logParser, ADDRESS addr, DWORD startCycle, DWORD endCycle)
 {
@@ -83,8 +83,8 @@ FindChangingCycles * findChangingCycles( LogParser * logParser, ADDRESS addr, DW
 }
 void    findChangingCyclesNext(FindChangingCycles * ctx)          {ctx->next();}
 Cycle   findChangingCyclesCurrent(FindChangingCycles * ctx)       {return ctx->current();}
-void	findChangingCyclesRestartSearch(FindChangingCycles * ctx) {ctx->restartSearch();}
-void	findChangingCyclesDelete(FindChangingCycles * ctx)        {delete ctx;}
+void    findChangingCyclesRestartSearch(FindChangingCycles * ctx) {ctx->restartSearch();}
+void    findChangingCyclesDelete(FindChangingCycles * ctx)        {delete ctx;}
 
 FindData * findData( LogParser * logParser, const BYTE * data, DWORD dataLength, DWORD startCycle, DWORD endCycle )
 {
@@ -92,8 +92,8 @@ FindData * findData( LogParser * logParser, const BYTE * data, DWORD dataLength,
 }
 void    findDataNext(FindData * ctx) {ctx->next();}
 const Address * findDataCurrent(FindData * ctx) { return ctx->current();}
-void	findDataRestartSearch(FindData * ctx) {ctx->restartSearch();}
-void	findDataDelete(FindData * ctx) {delete ctx;}
+void    findDataRestartSearch(FindData * ctx) {ctx->restartSearch();}
+void    findDataDelete(FindData * ctx) {delete ctx;}
 
 RegLogIterBase * regLogIter( LogParser * logParser, DWORD regId, DWORD cycle )
 {

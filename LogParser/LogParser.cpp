@@ -4,26 +4,26 @@
 #include "LogParser.hpp"
 
 BOOL WINAPI DllMain(
-			__in  HINSTANCE hinstDLL,
-			__in  DWORD reason,
-			__in  LPVOID reserved )
+            __in  HINSTANCE hinstDLL,
+            __in  DWORD reason,
+            __in  LPVOID reserved )
 {
 
-	switch( reason ) {
-		case DLL_PROCESS_ATTACH:
-			break;
-		case DLL_PROCESS_DETACH:
-			break;
-		case DLL_THREAD_ATTACH:
-			break;
-		case DLL_THREAD_DETACH:
-			break;
-		default:
-			/* Unknown DLL callback reason */
-			break;
-	}
+    switch( reason ) {
+        case DLL_PROCESS_ATTACH:
+            break;
+        case DLL_PROCESS_DETACH:
+            break;
+        case DLL_THREAD_ATTACH:
+            break;
+        case DLL_THREAD_DETACH:
+            break;
+        default:
+            /* Unknown DLL callback reason */
+            break;
+    }
 
-	return TRUE;
+    return TRUE;
 }
 
 LogParser::LogParser() :
@@ -106,17 +106,17 @@ void LogParser::initContext()
 {
     eipLog = new EipLog(rootPage->eipRootPage, dc);
 #ifdef X86
-	reg[REG_ID_EIP] = NULL; /* eip */
-	reg[REG_ID_EDI] = new RegLog("edi",       rootPage->ediRootPage,      dc, 'edi0');
-	reg[REG_ID_ESI] = new RegLog("esi",       rootPage->esiRootPage,      dc, 'esi0');
-	reg[REG_ID_EBP] = new RegLog("ebp",       rootPage->ebpRootPage,      dc, 'ebp0');
-	reg[REG_ID_EBX] = new RegLog("ebx",       rootPage->ebxRootPage,      dc, 'ebx0');
-	reg[REG_ID_EDX] = new RegLog("edx",       rootPage->edxRootPage,      dc, 'edx0');
-	reg[REG_ID_ECX] = new RegLog("ecx",       rootPage->ecxRootPage,      dc, 'ecx0');
-	reg[REG_ID_EAX] = new RegLog("eax",       rootPage->eaxRootPage,      dc, 'eax0');
-	reg[REG_ID_ECS] = new RegLog("ecs",       rootPage->ecsRootPage,      dc, 'ecs0');
-	reg[REG_ID_EFLAGS] = new RegLog("eflags", rootPage->eflagsRootPage,   dc, 'flg0');
-	reg[REG_ID_ESP] = new RegLog("esp",       rootPage->espRootPage,      dc, 'esp0');
+    reg[REG_ID_EIP] = NULL; /* eip */
+    reg[REG_ID_EDI] = new RegLog("edi",       rootPage->ediRootPage,      dc, 'edi0');
+    reg[REG_ID_ESI] = new RegLog("esi",       rootPage->esiRootPage,      dc, 'esi0');
+    reg[REG_ID_EBP] = new RegLog("ebp",       rootPage->ebpRootPage,      dc, 'ebp0');
+    reg[REG_ID_EBX] = new RegLog("ebx",       rootPage->ebxRootPage,      dc, 'ebx0');
+    reg[REG_ID_EDX] = new RegLog("edx",       rootPage->edxRootPage,      dc, 'edx0');
+    reg[REG_ID_ECX] = new RegLog("ecx",       rootPage->ecxRootPage,      dc, 'ecx0');
+    reg[REG_ID_EAX] = new RegLog("eax",       rootPage->eaxRootPage,      dc, 'eax0');
+    reg[REG_ID_ECS] = new RegLog("ecs",       rootPage->ecsRootPage,      dc, 'ecs0');
+    reg[REG_ID_EFLAGS] = new RegLog("eflags", rootPage->eflagsRootPage,   dc, 'flg0');
+    reg[REG_ID_ESP] = new RegLog("esp",       rootPage->espRootPage,      dc, 'esp0');
     reg[REG_ID_ESS] = NULL; // ess
 #elif AMD64
     reg[REG_ID_RIP] = new RegLog("rip",       rootPage->eipRootPage,    dc, 'rip0');
@@ -140,7 +140,7 @@ void LogParser::initContext()
     reg[REG_ID_RSP] = new RegLog("rsp",       rootPage->rspRootPage,    dc, 'rsp0');
     reg[REG_ID_RSS] = new RegLog("rss",       rootPage->rssRootPage,    dc, 'rss0');
 #endif
-	reg[THREAD_ID]  = new RegLog("thread",    rootPage->threadIdRootPage, dc, 'thr0');
+    reg[THREAD_ID]  = new RegLog("thread",    rootPage->threadIdRootPage, dc, 'thr0');
 }
 
 void LogParser::initMemory()
@@ -151,12 +151,12 @@ void LogParser::initMemory()
 
 LogParser::~LogParser()
 {
-	for (DWORD i = 0; i < NUMBER_OF_REGS; ++i) {
+    for (DWORD i = 0; i < NUMBER_OF_REGS; ++i) {
         if (NULL != reg[i]) {
-		    delete reg[i];
+            delete reg[i];
             reg[i] = NULL;
         }
-	}
+    }
     if (NULL != eipLog) {
         delete eipLog;
         eipLog = NULL;
@@ -248,7 +248,7 @@ BOOL LogParser::parse(FileReader & log)
                     break;
                 default:
                     /* Parse error unknown section */
-					assert(FALSE);
+                    assert(FALSE);
                     break;
                 }
             }
@@ -307,11 +307,11 @@ BOOL LogParser::parseRangesInfo(FileReader &log)
 
 BOOL LogParser::parseTrace(FileReader &log)
 {
-	register BYTE changeType = 0;
-	BYTE		regId = 0;
-	RegValue	regValue;
-	Address		address(0, 0);
-	BYTE		byteValue;
+    register BYTE changeType = 0;
+    BYTE        regId = 0;
+    RegValue    regValue;
+    Address     address(0, 0);
+    BYTE        byteValue;
     WORD        wordValue;
     DWORD       dwordValue;
     QWORD       qwordValue;
@@ -319,35 +319,35 @@ BOOL LogParser::parseTrace(FileReader &log)
     assert(0 == lastCycle);
 
     while( (FALSE == log.isEof()) && (lastCycle <= _maxCycle) ) {
-		changeType = log.readByte();
-		switch( changeType ) {
-			case EIP_CHANGE_TYPE:
-			{
+        changeType = log.readByte();
+        switch( changeType ) {
+            case EIP_CHANGE_TYPE:
+            {
                 MACHINE_LONG newEip = log.readPointer();
-				eipLog->append(newEip);
-				(*_lastCyclePtr)++;
+                eipLog->append(newEip);
+                (*_lastCyclePtr)++;
                 lastCycle = *_lastCyclePtr;
-			}
-			break;
+            }
+            break;
             /* I treat the thread id as another register */
             case THREAD_CHANGE:
-			{
-				regValue.cycle = lastCycle;
-				regValue.value = log.readDword();
-				reg[THREAD_ID]->append( regValue );
-			}
-			break;
+            {
+                regValue.cycle = lastCycle;
+                regValue.value = log.readDword();
+                reg[THREAD_ID]->append( regValue );
+            }
+            break;
 #ifdef X86
-			case REG_ID_EDI:
-			case REG_ID_ESI:
-			case REG_ID_EBP:
-			case REG_ID_EBX:
-			case REG_ID_EDX:
-			case REG_ID_ECX:
-			case REG_ID_EAX:
-			case REG_ID_ECS:
-			case REG_ID_EFLAGS:
-			case REG_ID_ESP:
+            case REG_ID_EDI:
+            case REG_ID_ESI:
+            case REG_ID_EBP:
+            case REG_ID_EBX:
+            case REG_ID_EDX:
+            case REG_ID_ECX:
+            case REG_ID_EAX:
+            case REG_ID_ECS:
+            case REG_ID_EFLAGS:
+            case REG_ID_ESP:
 #elif AMD64
             case REG_ID_RDI:
             case REG_ID_RSI:
@@ -369,39 +369,39 @@ BOOL LogParser::parseTrace(FileReader &log)
             case REG_ID_RSP:
             case REG_ID_RSS:
 #endif
-			{
-				regId = changeType;
-				regValue.cycle = lastCycle;
-				regValue.value = log.readDword();
-				reg[regId]->append( regValue );
-			} /* Regs cases */
+            {
+                regId = changeType;
+                regValue.cycle = lastCycle;
+                regValue.value = log.readDword();
+                reg[regId]->append( regValue );
+            } /* Regs cases */
             break;
-            
+
             case BYTEPTR_ACCESS:
             {
                 address.cycle = lastCycle;
-				address.addr = log.readDword();
-				byteValue = log.readByte();
-				memory->setByte(address, byteValue);
+                address.addr = log.readDword();
+                byteValue = log.readByte();
+                memory->setByte(address, byteValue);
             } /* BYTEPTR_ACCESS */
             break;
 
-			case WORDPTR_ACCESS:
-			{
-				address.cycle = lastCycle;
-				address.addr = log.readDword();
-				wordValue = log.readWord();
+            case WORDPTR_ACCESS:
+            {
+                address.cycle = lastCycle;
+                address.addr = log.readDword();
+                wordValue = log.readWord();
                 memory->setWord(address, wordValue);
-			} /* WORDPTR_ACCESS */
-			break;
+            } /* WORDPTR_ACCESS */
+            break;
 
-			case DWORDPTR_ACCESS:
-			{
-				address.cycle = lastCycle;
-				address.addr = log.readDword();
+            case DWORDPTR_ACCESS:
+            {
+                address.cycle = lastCycle;
+                address.addr = log.readDword();
                 dwordValue = log.readDword();
                 memory->setDword(address, dwordValue);
-			} /* DWORDPTR_ACCESS */
+            } /* DWORDPTR_ACCESS */
             break;
 
             case QWORDPTR_ACCESS:
@@ -411,16 +411,16 @@ BOOL LogParser::parseTrace(FileReader &log)
                 qwordValue = log.readQword();
                 memory->setQword(address, qwordValue);
             } /* DWORDPTR_ACCESS */
-			break;
+            break;
 
-			default:
-				printf("Parsing failed at position %d\n", log.tell());
-				return FALSE;
-		} /* switch */
-	} /* while */
+            default:
+                printf("Parsing failed at position %d\n", log.tell());
+                return FALSE;
+        } /* switch */
+    } /* while */
 
-	log.closeFile();
-	return TRUE;
+    log.closeFile();
+    return TRUE;
 }
 
 DWORD LogParser::findRegEffectiveIndex(DWORD regId, DWORD cycle)
@@ -453,12 +453,12 @@ MACHINE_LONG LogParser::getRegValueById(DWORD regId, DWORD cycle)
         if (cycle > maxEipCycle) {
             return UNKNOWN_MACHINE_LONG;
         }
-		return eipLog->getItem(cycle);
+        return eipLog->getItem(cycle);
     } else if (NUMBER_OF_REGS > regId) {
         DWORD index = findRegEffectiveIndex(regId, cycle);
-		if (index >= reg[regId]->getNumItems()) {
-			return UNKNOWN_MACHINE_LONG;
-		}
+        if (index >= reg[regId]->getNumItems()) {
+            return UNKNOWN_MACHINE_LONG;
+        }
         return reg[regId]->getItem(index).value;
     } else {
         // Invalid reg id
@@ -468,36 +468,36 @@ MACHINE_LONG LogParser::getRegValueById(DWORD regId, DWORD cycle)
 
 DWORD LogParser::findCycleWithEipValue(DWORD targetEip, DWORD startCycle, DWORD endCycle)
 {
-	int step;
-	if (startCycle > endCycle) {
-		step = -1;
-	} else {
-		step = 1;
-	}
-	for (DWORD cycleIter = startCycle; cycleIter != endCycle; cycleIter += step) {
-		if (targetEip == eipLog->getItem(cycleIter)) {
-			return cycleIter;
-		}
-	}
-	return 0;
+    int step;
+    if (startCycle > endCycle) {
+        step = -1;
+    } else {
+        step = 1;
+    }
+    for (DWORD cycleIter = startCycle; cycleIter != endCycle; cycleIter += step) {
+        if (targetEip == eipLog->getItem(cycleIter)) {
+            return cycleIter;
+        }
+    }
+    return 0;
 }
 
 DWORD LogParser::findCycleWithRegValue(DWORD regId, DWORD targetValue, DWORD startCycle, DWORD endCycle)
 {
-	int step;
-	DWORD startIndex = reg[regId]->findEffectiveCycle(startCycle);
-	DWORD endIndex   = reg[regId]->findEffectiveCycle(endCycle);
-	if (startIndex > endIndex) {
-		step = -1;
-	} else {
-		step = 1;
-	}
-	for (DWORD index = startIndex; index != endIndex; index += step) {
-		if (targetValue == reg[regId]->getItem(index).value) {
-			return index;
-		}
-	}
-	return 0;
+    int step;
+    DWORD startIndex = reg[regId]->findEffectiveCycle(startCycle);
+    DWORD endIndex   = reg[regId]->findEffectiveCycle(endCycle);
+    if (startIndex > endIndex) {
+        step = -1;
+    } else {
+        step = 1;
+    }
+    for (DWORD index = startIndex; index != endIndex; index += step) {
+        if (targetValue == reg[regId]->getItem(index).value) {
+            return index;
+        }
+    }
+    return 0;
 }
 
 RegLogIterBase * LogParser::getRegLogIter(DWORD regId, DWORD cycle)
@@ -512,7 +512,7 @@ RegLogIterBase * LogParser::getRegLogIter(DWORD regId, DWORD cycle)
     return NULL;
 }
 
-FindCycleWithEipValue::FindCycleWithEipValue(LogParser * logParser)	: 
+FindCycleWithEipValue::FindCycleWithEipValue(LogParser * logParser) :
                         logParser(logParser),
                         eipLog(logParser->getEipLog()),
                         currentCycle(0),
@@ -525,24 +525,24 @@ FindCycleWithEipValue::FindCycleWithEipValue(LogParser * logParser)	:
 
 void FindCycleWithEipValue::restartSearch()
 {
-	isDone = FALSE;
-	DWORD numValues = eipLog->getNumItems();
-	if (bottomCycle >= numValues) {
-		isDone = TRUE;
-	}
-	if (topCycle >= numValues) {
-		topCycle = numValues;
-	}
-	currentCycle = bottomCycle;
+    isDone = FALSE;
+    DWORD numValues = eipLog->getNumItems();
+    if (bottomCycle >= numValues) {
+        isDone = TRUE;
+    }
+    if (topCycle >= numValues) {
+        topCycle = numValues;
+    }
+    currentCycle = bottomCycle;
     findNext();
 }
 
 void FindCycleWithEipValue::newSearch( ADDRESS searchTarget, DWORD startCycle, DWORD endCycle )
 {
-	bottomCycle = startCycle;
-	topCycle = endCycle;
+    bottomCycle = startCycle;
+    topCycle = endCycle;
     target = searchTarget;
-	restartSearch();
+    restartSearch();
 }
 
 void FindCycleWithEipValue::newReverseSearch(ADDRESS searchTarget, DWORD startCycle, DWORD endCycle)

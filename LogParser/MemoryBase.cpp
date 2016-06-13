@@ -4,7 +4,7 @@
 #include "MemoryBase.hpp"
 
 MemoryBase::MemoryBase( PageIndex rootPage, PagedDataContainer * dc )
-    : 
+    :
     dc(dc),
     rootPageIndex(rootPage)
 {

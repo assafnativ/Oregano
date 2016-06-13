@@ -16,7 +16,7 @@ extern ADDRESS orgBreakpointInterrupt;
 extern HANDLE targetProcessId;
 /* What thread are we debugging, if zero we debug all threads in the process */
 HANDLE targetThreadId;
-extern void * target_process;	// CR3
+extern void * target_process;   // CR3
 /* Where should we stop logging */
 extern void * stopAddress;
 /* Current logging range */
@@ -54,20 +54,20 @@ extern unsigned long DebugVar7;
 /* Functions declarations */
 /*
  * trap_interrupt
- * 	
- * 	Description:
- *	 	This function should replace the original trap interrupt.
- * 		The purpose of this function is to log the current opcode,
- * 		and it's affect on memory, registers and anything else that
- * 		might be in the interest of the programmer.
- * 		This function should be as fast, efficient and effective as
- * 		possible, cause it is called once for every opcode running.
- * 		It is written in mostly pure x86 assembly.
  *
- * 	Known issues:
- * 		Because this function replaces the original windows trap interrupt,
- * 		it is impassable to use debuggers single step function while it is running,
- * 		an attempt to do so might cause a BSOD.
+ *  Description:
+ *      This function should replace the original trap interrupt.
+ *      The purpose of this function is to log the current opcode,
+ *      and it's affect on memory, registers and anything else that
+ *      might be in the interest of the programmer.
+ *      This function should be as fast, efficient and effective as
+ *      possible, cause it is called once for every opcode running.
+ *      It is written in mostly pure x86 assembly.
+ *
+ *  Known issues:
+ *      Because this function replaces the original windows trap interrupt,
+ *      it is impassable to use debuggers single step function while it is running,
+ *      an attempt to do so might cause a BSOD.
  *
  */
 extern void trap_interrupt( void );

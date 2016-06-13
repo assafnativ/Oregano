@@ -5,12 +5,12 @@
 #include <ntddk.h>
 #include "GlobalDefines.h"
 
-typedef struct ServiceTableEntry 
+typedef struct ServiceTableEntry
 {
-	UINT32 *TableBase;
-	UINT32 *CounterTableBase; 
-	UINT32 NumberOfServices;
-	UINT8 *ParamTableBase;
+    UINT32 *TableBase;
+    UINT32 *CounterTableBase;
+    UINT32 NumberOfServices;
+    UINT8 *ParamTableBase;
 } t_ServiceTableEntry;
 
 typedef struct ServiceDescriptorTable

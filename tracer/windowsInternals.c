@@ -15,7 +15,7 @@ NTSTATUS mySuspendProcess( HANDLE processId )
     if (0 == systemServices.NtSuspendProcess.index) {
         return STATUS_INTERNAL_ERROR;
     }
-    
+
     /* TODO: Find out which AccessMask is realy needed */
     clientId.UniqueProcess = processId;
     functionResult = ZwOpenProcess( &process, PROCESS_ALL_ACCESS, &objectAttributes, &clientId );
@@ -31,7 +31,7 @@ NTSTATUS mySuspendProcess( HANDLE processId )
     }
 
     return ZwClose(process);
-} 
+}
 
 NTSTATUS myResumeProcess( HANDLE processId )
 {
@@ -43,7 +43,7 @@ NTSTATUS myResumeProcess( HANDLE processId )
     if (0 == systemServices.NtResumeProcess.index) {
         return STATUS_INTERNAL_ERROR;
     }
-    
+
     /* TODO: Find out which AccessMask is realy needed */
     clientId.UniqueProcess = processId;
     /* Maybe use THREAD_SUSPEND_RESUME with ObReferenceObjectByHandle Look at the code of psquery.c Line 2975 */

@@ -34,6 +34,8 @@
 *.idb
 *.exp
 *.bak
+*.VC.db
+*.backup
 intermediate/*
 output/*
 */build/*

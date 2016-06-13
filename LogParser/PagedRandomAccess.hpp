@@ -23,7 +23,7 @@ public:
         DWORD numItems;
         PageIndex level2[INDEXES_IN_ROOT_PAGE];
     };
-    PagedRandomAccess(PageIndex rootIndex, PagedDataContainer * dc, DWORD tag) : 
+    PagedRandomAccess(PageIndex rootIndex, PagedDataContainer * dc, DWORD tag) :
             dc(dc),
             rootPageIndex(rootIndex),
             rootPage(NULL)
@@ -59,7 +59,7 @@ public:
         T * leaf = obtainLeafPageSafe(leafIndex, itemIndex);
         RandomAccessLeafOffset itemOffset = getLeafOffset(itemIndex);
         T * targetCell = leaf + itemOffset;
-		assert(0 == memcmp(ZERO_BUFFER_FOR_COMPARE, targetCell, sizeof(T)));
+        assert(0 == memcmp(ZERO_BUFFER_FOR_COMPARE, targetCell, sizeof(T)));
         *targetCell = item;
         dc->releasePage(leafIndex);
         rootPage->numItems++;
@@ -69,23 +69,23 @@ public:
     {
     }
 
-    DWORD getNumItems() 
+    DWORD getNumItems()
     {
         return rootPage->numItems;
     }
 
-	StatisticsInfo * statistics()
-	{
-		StatisticsInfo * result = new StatisticsInfo;
-		// One for the root page 
-		result->totalPages = 1;
-		result->pagesInUse = 1;
+    StatisticsInfo * statistics()
+    {
+        StatisticsInfo * result = new StatisticsInfo;
+        // One for the root page
+        result->totalPages = 1;
+        result->pagesInUse = 1;
 
-		result->totalPages += rootPage->numItems / LEAF_PAGE_CAPACITY;
-		result->totalPages += rootPage->numItems / ROOT_PAGE_CAPACITY;
+        result->totalPages += rootPage->numItems / LEAF_PAGE_CAPACITY;
+        result->totalPages += rootPage->numItems / ROOT_PAGE_CAPACITY;
 
-		return result;
-	}
+        return result;
+    }
 
 protected:
     PagedDataContainer * dc;
