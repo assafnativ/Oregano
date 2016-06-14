@@ -36,6 +36,7 @@
 *.bak
 *.VC.db
 *.backup
+*.opendb
 intermediate/*
 output/*
 */build/*

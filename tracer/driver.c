@@ -115,7 +115,7 @@ NTSTATUS    DriverEntry(    PDRIVER_OBJECT  driver_object,
     /* Set the offsets global var */
     offsets = find_windows_offsets(windows_version);
 
-    for (unsigned int i = 0; i < LOG_BUFFER_NUM_OF_BUFFERS; ++i)
+    for (i = 0; i < LOG_BUFFER_NUM_OF_BUFFERS; ++i)
     {
         log_buffer_item[i] = NULL;
     }

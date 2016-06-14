@@ -4,7 +4,7 @@
 
 [Version]
 Signature="$WINDOWS NT$"
-Class=DiskDrive
+Class="DiskDrive"
 ClassGuid={4d36e967-e325-11ce-bfc1-08002be10318}
 Provider="Nativ"
 DriverVer=07/26/2014,1.0.0.0
@@ -43,8 +43,6 @@ Dependencies = FltMgr
 %ManufacturerName%=Standard,NT$ARCH$
 
 [Standard.NT$ARCH$]
-%CatalogFile.DeviceDesc0% = disk, GenDisk
-%ManufacturerName.DeviceDesc1% = disk, GenOptical
 
 [Strings]
 DriverName="Oregano"

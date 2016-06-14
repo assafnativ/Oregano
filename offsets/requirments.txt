@@ -1,0 +1,4 @@
+pdbparser # Don't have to compile
+pywin32
+pywin32api
+construct

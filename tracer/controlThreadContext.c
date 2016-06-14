@@ -102,6 +102,7 @@ VOID changeTrapFlagForThreadAPC(
     IN PVOID *SystemArgument1,
     IN PVOID *SystemArgument2 )
 {
+#pragma warning(suppress : 4311)
     int      isSetTheFlag = (int)Apc->SystemArgument1;
     KEVENT * operationComplete = (KEVENT *)Apc->SystemArgument2;
 
@@ -152,15 +153,14 @@ void changeTrapFlagForThread( ADDRESS ethread, int setTheFlag )
             if (FALSE != setTheFlag)
             {
                 ThreadContext * threadCtx = NULL;
-#pragma warning( disable : 4305 )
                 /* Find a free entry in the Hash table */
+#pragma warning(suppress : 4311)
                 hashIndex = (((UINT32)ethread) & THREAD_ID_MASK) >> THREAD_ID_IGNORED_BITS;
                 DbgPrint("Oregano: setTrapFlagAPC: EThread %p hash id %x\r\n", ethread, hashIndex);
                 while (0 != threads[hashIndex].ID) {
                     hashIndex = (hashIndex + 1) % THREAD_CONTEXT_MAX_THREADS;
                 }
                 threadCtx = &threads[hashIndex];
-#pragma warning( default : 4305 )
 #ifdef AMD64
                 threadCtx->ID  = (UINT64)ethread;
                 threadCtx->RDI = UNKNOWN_QWORD_VALUE;

@@ -1,5 +1,3 @@
-
-
 /*
  * Oregano driver IRP MJ functions
  * defines all the IRP MJ functions needed for file access like.
@@ -43,9 +41,6 @@ void newThreadHandler(
 #pragma alloc_text( PAGE, deallocBuffersPoll )
 #pragma alloc_text( PAGE, default_irp_handler )
 #pragma alloc_text( PAGE, stopTracing )
-#pragma alloc_text( PAGE, onClose )
-#pragma alloc_text( PAGE, onCreate )
-#pragma alloc_text( PAGE, onDeviceControl )
 #pragma alloc_text( PAGE, find_SystemServiceTable )
 #pragma alloc_text( PAGE, newThreadHandler )
 
@@ -798,8 +793,6 @@ NTSTATUS onClose(PDEVICE_OBJECT device_object, PIRP irp)
     UNREFERENCED_PARAMETER(device_object);
     UNREFERENCED_PARAMETER(irp);
 
-    PAGED_CODE();
-
     KdPrint(( "Oregano: on_close: Start\r\n" ));
 
     /* Stop any active trace */
@@ -878,8 +871,6 @@ NTSTATUS onCreate(PDEVICE_OBJECT device_object, PIRP irp)
 
     UNREFERENCED_PARAMETER(irp);
     UNREFERENCED_PARAMETER(device_object);
-
-    PAGED_CODE();
 
     DbgPrint( "Oregano: on_create: I/O Create\r\n" );
 
@@ -966,8 +957,6 @@ ON_CREATE_ALLOC_ERROR:
     return( return_ntstatus );
 }
 
-
-
 /* See header file driver.h for descriptions */
 NTSTATUS onDeviceControl(PDEVICE_OBJECT device_object, PIRP irp)
 {
@@ -982,8 +971,6 @@ NTSTATUS onDeviceControl(PDEVICE_OBJECT device_object, PIRP irp)
     unsigned char * output_buffer = NULL;
 
     UNREFERENCED_PARAMETER(device_object);
-
-    PAGED_CODE();
 
     KdPrint(( "Oregano: on_device_control: Device I/O Control\r\n"));
 
